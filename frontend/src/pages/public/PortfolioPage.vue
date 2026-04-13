@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+// Theme toggle state
+const isDark = ref(false)
+
 const works = ref([
   { title: 'MyWebSide Blog', desc: '基于 Spring Boot 3 + Vue 3 的全栈博客', link: '/blog', tag: 'Full Stack' },
   { title: 'Awesome Tool', desc: '一个能极大提升效率的命令行工具', link: '#', tag: 'CLI' },
@@ -21,10 +24,14 @@ function scrollTo(id: string) {
     el.scrollIntoView({ behavior: 'smooth' })
   }
 }
+
+function toggleTheme() {
+  isDark.value = !isDark.value
+}
 </script>
 
 <template>
-  <div class="portfolio-container">
+  <div class="portfolio-container" :class="{ 'dark-theme': isDark }">
     <!-- Navbar -->
     <nav class="glass-nav">
       <div class="nav-inner">
@@ -34,6 +41,9 @@ function scrollTo(id: string) {
           <a @click="scrollTo('skills')">技能</a>
           <a @click="scrollTo('works')">作品</a>
           <a @click="scrollTo('contact')">联系</a>
+          <a @click="toggleTheme" class="theme-toggle" :title="isDark ? '切换到白昼' : '切换到星夜'">
+            {{ isDark ? '🌙' : '☀️' }}
+          </a>
           <a @click="router.push('/blog')" class="blog-btn">前往博客</a>
         </div>
       </div>
@@ -43,7 +53,7 @@ function scrollTo(id: string) {
     <section class="hero" id="hero">
       <div class="hero-content">
         <h1 class="hero-title">你好，我是 <span>Developer</span></h1>
-        <p class="hero-subtitle">热爱技术，专注开源，分享代码与生活</p>
+        <p class="hero-subtitle">热爱技术，像精灵一样在代码的魔法世界中旅行</p>
         <div class="hero-actions">
           <button class="btn-primary" @click="scrollTo('works')">探索作品</button>
           <button class="btn-outline" @click="router.push('/blog')">阅读博客</button>
@@ -55,17 +65,27 @@ function scrollTo(id: string) {
     <section class="section" id="about">
       <div class="glass-card about-card">
         <h2>个人简介</h2>
-        <p>
-          我是一名前端与后端兼修的开发者，熟练掌握 Vue 3 生态以及 Spring Boot 后端技术栈。
-          喜欢将优雅的界面设计与健壮的后台逻辑相结合。在 GitHub 上活跃，热爱分享开源项目，
-          希望通过代码让世界变得更美好一点。
-        </p>
+        <div class="about-content">
+          <!-- 奇幻森林与远景 -->
+          <img src="https://w.wallhaven.cc/full/5g/wallhaven-5g9q69.jpg" alt="Frieren Magic Forest" class="about-img" />
+          <div class="about-text">
+            <p>
+              我是一名前端与后端兼修的开发者，熟练掌握 Vue 3 生态以及 Spring Boot 后端技术栈。
+              喜欢将优雅的界面设计与健壮的后台逻辑相结合。
+            </p>
+            <br />
+            <p>
+              就像在漫长旅途中不断收集新魔法一样，我也在不断学习和分享开源项目，希望通过代码让世界变得更美好一点。
+              如果生命足够漫长，我希望能一直敲着代码，直到魔法时代的尽头。
+            </p>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- Skills Section -->
     <section class="section" id="skills">
-      <h2>技能标签</h2>
+      <h2>魔法技能 (Skills)</h2>
       <div class="skills-grid">
         <div v-for="(skill, index) in skills" :key="index" class="glass-card skill-card">
           {{ skill }}
@@ -91,7 +111,11 @@ function scrollTo(id: string) {
     <section class="section" id="contact">
       <div class="glass-card contact-card">
         <h2>联系我</h2>
-        <p>期待与你交流技术，探讨合作可能。</p>
+        <p>期待与你交流技术，探讨合作可能。旅途还在继续，一起创造新的魔法吧。</p>
+        
+        <!-- 静谧的旅途 (夜色/黄昏) - 用作装饰图 -->
+        <img src="https://w.wallhaven.cc/full/zy/wallhaven-zy8m9y.jpg" alt="Frieren Journey Night" class="contact-img" />
+        
         <div class="contact-links">
           <a href="https://github.com" target="_blank">GitHub</a>
           <a href="mailto:hello@example.com">Email</a>
@@ -107,18 +131,32 @@ function scrollTo(id: string) {
 </template>
 
 <style scoped>
-/* Base Theme & Gradient Background */
+/* 
+  Base Theme & Gradient Background (Light/Frieren Day Theme)
+*/
 .portfolio-container {
   min-height: 100vh;
-  /* Frieren Theme: Light and airy with a touch of magic */
+  /* Light and airy with a touch of magic */
   background: linear-gradient(135deg, rgba(230, 238, 245, 0.8) 0%, rgba(200, 218, 235, 0.9) 100%);
   background-image: url('https://w.wallhaven.cc/full/jx/wallhaven-jx6e3p.jpg'), linear-gradient(135deg, rgba(230, 238, 245, 0.5) 0%, rgba(200, 218, 235, 0.7) 100%);
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
   background-blend-mode: overlay;
   color: #2c3e50;
   font-family: system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* 
+  Dark Theme (Frieren Night Theme)
+*/
+.portfolio-container.dark-theme {
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(42, 27, 61, 0.95) 100%);
+  /* Use a dark night anime background */
+  background-image: url('https://w.wallhaven.cc/full/zy/wallhaven-zy8m9y.jpg'), linear-gradient(135deg, rgba(26, 26, 46, 0.7) 0%, rgba(42, 27, 61, 0.8) 100%);
+  color: #e2e8f0;
 }
 
 /* Typography */
@@ -134,6 +172,11 @@ h2 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+.dark-theme h2 {
+  background: linear-gradient(to right, #a18cd1, #fbc2eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
 /* Glassmorphism Mixin */
 .glass-nav, .glass-card {
@@ -142,6 +185,12 @@ h2 {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 8px 32px 0 rgba(74, 144, 226, 0.15);
+  transition: all 0.3s ease;
+}
+.dark-theme .glass-nav, .dark-theme .glass-card {
+  background: rgba(16, 18, 27, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
 /* Navigation */
@@ -170,6 +219,12 @@ h2 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+.dark-theme .logo {
+  background: linear-gradient(to right, #a18cd1, #fbc2eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .links {
   display: flex;
   gap: 24px;
@@ -184,12 +239,29 @@ h2 {
 .links a:hover {
   color: #4a90e2;
 }
+.dark-theme .links a {
+  color: #e2e8f0;
+}
+.dark-theme .links a:hover {
+  color: #fbc2eb;
+}
+.theme-toggle {
+  font-size: 1.3rem;
+  user-select: none;
+}
+.theme-toggle:hover {
+  transform: scale(1.1);
+}
+
 .blog-btn {
   background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
   color: white !important;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 0.9rem;
+}
+.dark-theme .blog-btn {
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
 }
 .blog-btn:hover {
   opacity: 0.9;
@@ -213,11 +285,20 @@ h2 {
   color: #1a2a3a;
   text-shadow: 0 2px 4px rgba(255,255,255,0.8);
 }
+.dark-theme .hero-title {
+  color: #f0f4f8;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
 .hero-title span {
   background: linear-gradient(to right, #4a90e2, #50e3c2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: none;
+}
+.dark-theme .hero-title span {
+  background: linear-gradient(to right, #a18cd1, #fbc2eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .hero-subtitle {
   font-size: 1.25rem;
@@ -230,6 +311,11 @@ h2 {
   max-width: 600px;
   margin: 0 auto 2.5rem;
 }
+.dark-theme .hero-subtitle {
+  color: #e2e8f0;
+  background: rgba(16, 18, 27, 0.5);
+}
+
 .hero-actions {
   display: flex;
   gap: 16px;
@@ -249,9 +335,13 @@ h2 {
   color: white;
   box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
 }
+.dark-theme .btn-primary {
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  box-shadow: 0 4px 15px rgba(161, 140, 209, 0.3);
+}
 .btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
   transform: translateY(-2px);
+  filter: brightness(1.05);
 }
 .btn-outline {
   background: rgba(255, 255, 255, 0.8);
@@ -259,8 +349,16 @@ h2 {
   color: #4a90e2;
   backdrop-filter: blur(4px);
 }
+.dark-theme .btn-outline {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: #fbc2eb;
+  color: #fbc2eb;
+}
 .btn-outline:hover {
   background: rgba(74, 144, 226, 0.1);
+}
+.dark-theme .btn-outline:hover {
+  background: rgba(251, 194, 235, 0.1);
 }
 
 /* General Sections */
@@ -274,25 +372,45 @@ h2 {
 .about-card {
   padding: 40px;
   border-radius: 24px;
-  text-align: center;
   font-size: 1.1rem;
   line-height: 1.8;
 }
+.about-content {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  text-align: left;
+}
+.about-img {
+  width: 45%;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  object-fit: cover;
+  aspect-ratio: 16/10;
+}
+.dark-theme .about-img {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.about-text {
+  flex: 1;
+}
 .about-card p {
-  max-width: 800px;
-  margin: 0 auto;
   font-weight: 500;
   color: #2c3e50;
 }
+.dark-theme .about-card p {
+  color: #e2e8f0;
+}
 
 /* Cards Hover Interaction */
-.glass-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-}
 .glass-card:hover {
   transform: translateY(-5px);
   background: rgba(255, 255, 255, 0.6);
   box-shadow: 0 12px 40px 0 rgba(74, 144, 226, 0.25);
+}
+.dark-theme .glass-card:hover {
+  background: rgba(30, 32, 45, 0.7);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
 }
 
 /* Skills Grid */
@@ -308,6 +426,9 @@ h2 {
   font-weight: 600;
   color: #4a90e2;
   cursor: default;
+}
+.dark-theme .skill-card {
+  color: #fbc2eb;
 }
 
 /* Works Grid */
@@ -334,9 +455,16 @@ h2 {
   margin-bottom: 16px;
   font-weight: 700;
 }
+.dark-theme .work-tag {
+  background: rgba(251, 194, 235, 0.15);
+  color: #fbc2eb;
+}
 .work-card h3 {
   font-size: 1.4rem;
   color: #1a2a3a;
+}
+.dark-theme .work-card h3 {
+  color: #f0f4f8;
 }
 .work-card p {
   color: #2c3e50;
@@ -344,12 +472,18 @@ h2 {
   margin-bottom: 24px;
   flex-grow: 1;
 }
+.dark-theme .work-card p {
+  color: #cbd5e1;
+}
 .work-link {
   font-weight: 700;
   color: #4a90e2;
   text-decoration: none;
   cursor: pointer;
   transition: opacity 0.3s;
+}
+.dark-theme .work-link {
+  color: #fbc2eb;
 }
 .work-link:hover {
   opacity: 0.8;
@@ -365,6 +499,23 @@ h2 {
   margin-bottom: 30px;
   font-size: 1.1rem;
   font-weight: 500;
+  color: #2c3e50;
+}
+.dark-theme .contact-card p {
+  color: #e2e8f0;
+}
+.contact-img {
+  width: 100%;
+  max-width: 600px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 16px;
+  margin: 0 auto 30px auto;
+  display: block;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.dark-theme .contact-img {
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 .contact-links {
   display: flex;
@@ -382,11 +533,21 @@ h2 {
   border: 1px solid rgba(74, 144, 226, 0.3);
   transition: all 0.3s ease;
 }
+.dark-theme .contact-links a {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fbc2eb;
+  border-color: rgba(251, 194, 235, 0.3);
+}
 .contact-links a:hover {
   background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
   color: white;
   border-color: transparent;
   transform: translateY(-2px);
+}
+.dark-theme .contact-links a:hover {
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  color: white;
+  border-color: transparent;
 }
 
 /* Footer */
@@ -399,13 +560,17 @@ h2 {
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(8px);
 }
+.dark-theme .footer {
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.3);
+}
 
 /* Responsive */
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2.5rem;
   }
-  .links a:not(.blog-btn) {
+  .links a:not(.blog-btn):not(.theme-toggle) {
     display: none;
   }
   .works-grid {
@@ -413,6 +578,14 @@ h2 {
   }
   .hero-actions {
     flex-direction: column;
+  }
+  .about-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  .about-img {
+    width: 100%;
+    aspect-ratio: 4/3;
   }
 }
 </style>
