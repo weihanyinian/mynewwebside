@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -53,7 +53,6 @@ function toggleTheme() {
     <section class="hero" id="hero">
       <div class="hero-content">
         <h1 class="hero-title">你好，我是 <span>Developer</span></h1>
-        <p class="hero-subtitle">热爱技术，像精灵一样在代码的魔法世界中旅行</p>
         <div class="hero-actions">
           <button class="btn-primary" @click="scrollTo('works')">探索作品</button>
           <button class="btn-outline" @click="router.push('/blog')">阅读博客</button>
@@ -299,21 +298,6 @@ h2 {
   background: linear-gradient(to right, #a18cd1, #fbc2eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-.hero-subtitle {
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: #2c3e50;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 4px 12px;
-  border-radius: 8px;
-  backdrop-filter: blur(4px);
-  max-width: 600px;
-  margin: 0 auto 2.5rem;
-}
-.dark-theme .hero-subtitle {
-  color: #e2e8f0;
-  background: rgba(16, 18, 27, 0.5);
 }
 
 .hero-actions {
