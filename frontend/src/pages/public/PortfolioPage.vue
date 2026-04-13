@@ -110,19 +110,15 @@ function scrollTo(id: string) {
 /* Base Theme & Gradient Background */
 .portfolio-container {
   min-height: 100vh;
-  /* Light mode: blue-purple soft gradient */
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  color: #2c3e50;
+  /* Dark mode: blue-purple soft gradient */
+  background: linear-gradient(135deg, #1a1a2e 0%, #2a1b3d 100%);
+  background-image: url('https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1920&auto=format&fit=crop'), linear-gradient(135deg, #1a1a2e 0%, #2a1b3d 100%);
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
+  color: #e2e8f0;
   font-family: system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
-}
-
-/* Dark mode overrides for background and text */
-@media (prefers-color-scheme: dark) {
-  .portfolio-container {
-    background: linear-gradient(135deg, #1e1e2f 0%, #2a1b3d 100%);
-    color: #e2e8f0;
-  }
 }
 
 /* Typography */
@@ -134,33 +130,18 @@ h2 {
   font-size: 2rem;
   text-align: center;
   margin-bottom: 2rem;
-  background: linear-gradient(to right, #667eea, #764ba2);
+  background: linear-gradient(to right, #a18cd1, #fbc2eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-@media (prefers-color-scheme: dark) {
-  h2 {
-    background: linear-gradient(to right, #a18cd1, #fbc2eb);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
 }
 
 /* Glassmorphism Mixin */
 .glass-nav, .glass-card {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(16, 18, 27, 0.4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-}
-
-@media (prefers-color-scheme: dark) {
-  .glass-nav, .glass-card {
-    background: rgba(16, 18, 27, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  }
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Navigation */
@@ -185,16 +166,9 @@ h2 {
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  background: linear-gradient(to right, #667eea, #764ba2);
+  background: linear-gradient(to right, #a18cd1, #fbc2eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-@media (prefers-color-scheme: dark) {
-  .logo {
-    background: linear-gradient(to right, #a18cd1, #fbc2eb);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
 }
 .links {
   display: flex;
@@ -207,12 +181,7 @@ h2 {
   transition: color 0.3s;
 }
 .links a:hover {
-  color: #764ba2;
-}
-@media (prefers-color-scheme: dark) {
-  .links a:hover {
-    color: #fbc2eb;
-  }
+  color: #fbc2eb;
 }
 .blog-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -242,16 +211,9 @@ h2 {
   margin-bottom: 1rem;
 }
 .hero-title span {
-  background: linear-gradient(to right, #667eea, #764ba2);
+  background: linear-gradient(to right, #a18cd1, #fbc2eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-@media (prefers-color-scheme: dark) {
-  .hero-title span {
-    background: linear-gradient(to right, #a18cd1, #fbc2eb);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
 }
 .hero-subtitle {
   font-size: 1.25rem;
@@ -284,20 +246,11 @@ h2 {
 }
 .btn-outline {
   background: transparent;
-  border: 2px solid #764ba2;
-  color: #764ba2;
+  border: 2px solid #fbc2eb;
+  color: #fbc2eb;
 }
 .btn-outline:hover {
-  background: rgba(118, 75, 162, 0.1);
-}
-@media (prefers-color-scheme: dark) {
-  .btn-outline {
-    border-color: #fbc2eb;
-    color: #fbc2eb;
-  }
-  .btn-outline:hover {
-    background: rgba(251, 194, 235, 0.1);
-  }
+  background: rgba(251, 194, 235, 0.1);
 }
 
 /* General Sections */
@@ -327,12 +280,7 @@ h2 {
 }
 .glass-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15);
-}
-@media (prefers-color-scheme: dark) {
-  .glass-card:hover {
-    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
-  }
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
 }
 
 /* Skills Grid */
@@ -365,19 +313,13 @@ h2 {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: rgba(118, 75, 162, 0.15);
-  color: #764ba2;
+  background: rgba(251, 194, 235, 0.15);
+  color: #fbc2eb;
   padding: 4px 10px;
   border-radius: 12px;
   align-self: flex-start;
   margin-bottom: 16px;
   font-weight: 700;
-}
-@media (prefers-color-scheme: dark) {
-  .work-tag {
-    background: rgba(251, 194, 235, 0.15);
-    color: #fbc2eb;
-  }
 }
 .work-card h3 {
   font-size: 1.4rem;
@@ -389,18 +331,13 @@ h2 {
 }
 .work-link {
   font-weight: 600;
-  color: #667eea;
+  color: #a18cd1;
   text-decoration: none;
   cursor: pointer;
   transition: opacity 0.3s;
 }
 .work-link:hover {
   opacity: 0.8;
-}
-@media (prefers-color-scheme: dark) {
-  .work-link {
-    color: #a18cd1;
-  }
 }
 
 /* Contact */
@@ -425,15 +362,9 @@ h2 {
   border-radius: 30px;
   text-decoration: none;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.5);
-  color: #2c3e50;
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
   transition: all 0.3s ease;
-}
-@media (prefers-color-scheme: dark) {
-  .contact-links a {
-    background: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-  }
 }
 .contact-links a:hover {
   background: #667eea;
@@ -455,7 +386,7 @@ h2 {
     font-size: 2.5rem;
   }
   .links a:not(.blog-btn) {
-    display: none; /* Hide links on very small screens for simplicity, keep blog btn */
+    display: none;
   }
   .works-grid {
     grid-template-columns: 1fr;
