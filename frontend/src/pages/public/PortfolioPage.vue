@@ -110,13 +110,13 @@ function scrollTo(id: string) {
 /* Base Theme & Gradient Background */
 .portfolio-container {
   min-height: 100vh;
-  /* Dark mode: blue-purple soft gradient */
-  background: linear-gradient(135deg, #1a1a2e 0%, #2a1b3d 100%);
-  background-image: url('https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1920&auto=format&fit=crop'), linear-gradient(135deg, #1a1a2e 0%, #2a1b3d 100%);
+  /* Frieren Theme: Light and airy with a touch of magic */
+  background: linear-gradient(135deg, rgba(230, 238, 245, 0.8) 0%, rgba(200, 218, 235, 0.9) 100%);
+  background-image: url('https://w.wallhaven.cc/full/jx/wallhaven-jx6e3p.jpg'), linear-gradient(135deg, rgba(230, 238, 245, 0.5) 0%, rgba(200, 218, 235, 0.7) 100%);
   background-size: cover;
   background-position: center;
   background-blend-mode: overlay;
-  color: #e2e8f0;
+  color: #2c3e50;
   font-family: system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
 }
@@ -130,18 +130,18 @@ h2 {
   font-size: 2rem;
   text-align: center;
   margin-bottom: 2rem;
-  background: linear-gradient(to right, #a18cd1, #fbc2eb);
+  background: linear-gradient(to right, #4a90e2, #50e3c2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 /* Glassmorphism Mixin */
 .glass-nav, .glass-card {
-  background: rgba(16, 18, 27, 0.4);
+  background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px 0 rgba(74, 144, 226, 0.15);
 }
 
 /* Navigation */
@@ -166,7 +166,7 @@ h2 {
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  background: linear-gradient(to right, #a18cd1, #fbc2eb);
+  background: linear-gradient(to right, #4a90e2, #50e3c2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -177,14 +177,15 @@ h2 {
 }
 .links a {
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  color: #2c3e50;
   transition: color 0.3s;
 }
 .links a:hover {
-  color: #fbc2eb;
+  color: #4a90e2;
 }
 .blog-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
   color: white !important;
   padding: 8px 16px;
   border-radius: 20px;
@@ -209,15 +210,23 @@ h2 {
   font-size: 4rem;
   letter-spacing: -1.5px;
   margin-bottom: 1rem;
+  color: #1a2a3a;
+  text-shadow: 0 2px 4px rgba(255,255,255,0.8);
 }
 .hero-title span {
-  background: linear-gradient(to right, #a18cd1, #fbc2eb);
+  background: linear-gradient(to right, #4a90e2, #50e3c2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-shadow: none;
 }
 .hero-subtitle {
   font-size: 1.25rem;
-  opacity: 0.8;
+  font-weight: 500;
+  color: #2c3e50;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 4px 12px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
   max-width: 600px;
   margin: 0 auto 2.5rem;
 }
@@ -236,21 +245,22 @@ h2 {
   border: none;
 }
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
 }
 .btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
   transform: translateY(-2px);
 }
 .btn-outline {
-  background: transparent;
-  border: 2px solid #fbc2eb;
-  color: #fbc2eb;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #4a90e2;
+  color: #4a90e2;
+  backdrop-filter: blur(4px);
 }
 .btn-outline:hover {
-  background: rgba(251, 194, 235, 0.1);
+  background: rgba(74, 144, 226, 0.1);
 }
 
 /* General Sections */
@@ -271,16 +281,18 @@ h2 {
 .about-card p {
   max-width: 800px;
   margin: 0 auto;
-  opacity: 0.9;
+  font-weight: 500;
+  color: #2c3e50;
 }
 
 /* Cards Hover Interaction */
 .glass-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }
 .glass-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 40px 0 rgba(74, 144, 226, 0.25);
 }
 
 /* Skills Grid */
@@ -294,6 +306,7 @@ h2 {
   padding: 12px 24px;
   border-radius: 30px;
   font-weight: 600;
+  color: #4a90e2;
   cursor: default;
 }
 
@@ -313,8 +326,8 @@ h2 {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: rgba(251, 194, 235, 0.15);
-  color: #fbc2eb;
+  background: rgba(74, 144, 226, 0.15);
+  color: #4a90e2;
   padding: 4px 10px;
   border-radius: 12px;
   align-self: flex-start;
@@ -323,15 +336,17 @@ h2 {
 }
 .work-card h3 {
   font-size: 1.4rem;
+  color: #1a2a3a;
 }
 .work-card p {
-  opacity: 0.8;
+  color: #2c3e50;
+  font-weight: 500;
   margin-bottom: 24px;
   flex-grow: 1;
 }
 .work-link {
-  font-weight: 600;
-  color: #a18cd1;
+  font-weight: 700;
+  color: #4a90e2;
   text-decoration: none;
   cursor: pointer;
   transition: opacity 0.3s;
@@ -349,7 +364,7 @@ h2 {
 .contact-card p {
   margin-bottom: 30px;
   font-size: 1.1rem;
-  opacity: 0.9;
+  font-weight: 500;
 }
 .contact-links {
   display: flex;
@@ -362,13 +377,15 @@ h2 {
   border-radius: 30px;
   text-decoration: none;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.8);
+  color: #4a90e2;
+  border: 1px solid rgba(74, 144, 226, 0.3);
   transition: all 0.3s ease;
 }
 .contact-links a:hover {
-  background: #667eea;
+  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
   color: white;
+  border-color: transparent;
   transform: translateY(-2px);
 }
 
@@ -376,8 +393,11 @@ h2 {
 .footer {
   text-align: center;
   padding: 40px 20px;
-  opacity: 0.6;
+  font-weight: 500;
+  color: #2c3e50;
   font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
 }
 
 /* Responsive */
