@@ -26,7 +26,7 @@ function syncToRoute() {
   if (keyword.value) q.keyword = keyword.value
   if (categoryId.value) q.categoryId = String(categoryId.value)
   if (tagId.value) q.tagId = String(tagId.value)
-  router.push({ path: '/', query: q })
+  router.push({ path: '/blog', query: q })
 }
 
 async function load() {
@@ -90,7 +90,7 @@ onMounted(async () => {
             <span> · 浏览 {{ a.views }}</span>
           </div>
           <div class="post__tags">
-            <el-tag v-for="t in a.tags" :key="t.id" size="small" effect="plain" @click.stop="router.push({ path: '/', query: { tagId: t.id } })">
+            <el-tag v-for="t in a.tags" :key="t.id" size="small" effect="plain" @click.stop="router.push({ path: '/blog', query: { tagId: t.id } })">
               {{ t.name }}
             </el-tag>
           </div>

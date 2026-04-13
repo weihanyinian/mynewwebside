@@ -19,7 +19,7 @@ onMounted(async () => {
         v-for="c in items"
         :key="c.id"
         class="cell"
-        @click="router.push({ path: '/', query: { categoryId: c.id } })"
+        @click="router.push({ path: '/blog', query: { categoryId: c.id } })"
       >
         {{ c.name }}
       </div>

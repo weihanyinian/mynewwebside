@@ -7,7 +7,7 @@ const route = useRoute()
 const keyword = ref<string>((route.query.keyword as string) || '')
 
 function onSearch() {
-  router.push({ path: '/', query: keyword.value ? { keyword: keyword.value } : {} })
+  router.push({ path: '/blog', query: keyword.value ? { keyword: keyword.value } : {} })
 }
 </script>
 
@@ -17,7 +17,7 @@ function onSearch() {
       <div class="site-header__inner">
         <div class="brand" @click="router.push('/')">MyWebSide</div>
         <nav class="nav">
-          <a class="nav__link" @click="router.push('/')">文章</a>
+          <a class="nav__link" @click="router.push('/blog')">文章</a>
           <a class="nav__link" @click="router.push('/categories')">分类</a>
           <a class="nav__link" @click="router.push('/tags')">标签</a>
           <a class="nav__link" @click="router.push('/admin/login')">管理</a>

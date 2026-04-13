@@ -37,7 +37,7 @@ onMounted(async () => {
             :key="t.id"
             size="small"
             effect="plain"
-            @click="router.push({ path: '/', query: { tagId: t.id } })"
+            @click="router.push({ path: '/blog', query: { tagId: t.id } })"
           >
             {{ t.name }}
           </el-tag>

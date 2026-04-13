@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { getToken } from '../utils/token'
 
+const PortfolioPage = () => import('../pages/public/PortfolioPage.vue')
 const HomePage = () => import('../pages/public/HomePage.vue')
 const ArticlePage = () => import('../pages/public/ArticlePage.vue')
 const CategoriesPage = () => import('../pages/public/CategoriesPage.vue')
@@ -14,7 +15,8 @@ const AdminTagsPage = () => import('../pages/admin/AdminTagsPage.vue')
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: HomePage },
+    { path: '/', component: PortfolioPage },
+    { path: '/blog', component: HomePage },
     { path: '/article/:id', component: ArticlePage },
     { path: '/categories', component: CategoriesPage },
     { path: '/tags', component: TagsPage },

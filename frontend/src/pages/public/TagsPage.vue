@@ -21,7 +21,7 @@ onMounted(async () => {
         size="large"
         effect="plain"
         class="tag"
-        @click="router.push({ path: '/', query: { tagId: t.id } })"
+        @click="router.push({ path: '/blog', query: { tagId: t.id } })"
       >
         {{ t.name }}
       </el-tag>
