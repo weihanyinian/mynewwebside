@@ -1,0 +1,24 @@
+.DS_Store
+.idea/
+.vscode/
+
+# Logs / caches
+*.log
+.npm_cache/
+**/.npm_cache/
+
+# Java
+backend/target/
+**/target/
+*.class
+
+# Node
+frontend/node_modules/
+**/node_modules/
+frontend/dist/
+**/dist/
+
+# Local config
+backend/src/main/resources/application.yml
+frontend/.env.local
+frontend/.env.*.local

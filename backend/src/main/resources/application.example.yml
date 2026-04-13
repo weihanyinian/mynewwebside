@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: blog-backend
+  datasource:
+    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+    username: root
+    password: CHANGE_ME
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: Asia/Shanghai
+
+app:
+  cors:
+    allowed-origins: "http://localhost:5173"
+  admin:
+    username: admin
+    password: CHANGE_ME
+  jwt:
+    secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_FOR_PROD"
+    expire-minutes: 10080
