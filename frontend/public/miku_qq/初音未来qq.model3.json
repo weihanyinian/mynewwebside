@@ -1,0 +1,26 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "初音未来qq.moc3",
+		"Textures": [
+			"初音未来qq.4096/texture_00.png"
+		],
+		"Physics": "初音未来qq.physics3.json",
+		"DisplayInfo": "初音未来qq.cdi3.json"
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		},
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		}
+	]
+}

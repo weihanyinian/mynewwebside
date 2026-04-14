@@ -19,6 +19,13 @@ const live2dCanvas = ref<HTMLCanvasElement | null>(null)
 let app: any = null
 let model: any = null
 
+// Draggable State
+const position = ref({ x: 20, y: 20 }) // Distance from left and bottom
+let isDragging = false
+let hasDragged = false
+let startMouse = { x: 0, y: 0 }
+let startPos = { x: 0, y: 0 }
+
 function changeQuote(quoteStr?: string) {
   const next = quoteStr || quotes[Math.floor(Math.random() * quotes.length)]
   currentQuote.value = next
@@ -26,21 +33,23 @@ function changeQuote(quoteStr?: string) {
   resetHideTimer()
 }
 
-function poke() {
+function handlePoke() {
+  if (hasDragged) {
+    hasDragged = false
+    return
+  }
+  
   if (isMinimized.value) {
     isMinimized.value = false
     showBubble.value = true
     resetHideTimer()
   } else {
-    // Random quote
     changeQuote()
-    // Play bounce animation
     isBouncing.value = true
     setTimeout(() => {
       isBouncing.value = false
     }, 300)
     
-    // Attempt to trigger random expression if supported
     if (model && model.internalModel && model.internalModel.motionManager) {
       try {
         model.internalModel.motionManager.expressionManager?.setRandomExpression()
@@ -50,7 +59,7 @@ function poke() {
 }
 
 function onMouseEnter() {
-  if (isMinimized.value || showBubble.value) return
+  if (isDragging || isMinimized.value || showBubble.value) return
   changeQuote('你好呀～欢迎来到我的网站')
 }
 
@@ -67,6 +76,54 @@ function toggleMinimize(e: Event) {
   showBubble.value = false
 }
 
+// --- Drag Logic ---
+function startDrag(e: MouseEvent | TouchEvent) {
+  if ((e.target as HTMLElement).classList.contains('close-btn')) return
+  
+  isDragging = true
+  hasDragged = false
+  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  
+  startMouse = { x: clientX, y: clientY }
+  startPos = { x: position.value.x, y: position.value.y }
+  
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+  document.addEventListener('touchmove', onDrag, { passive: false })
+  document.addEventListener('touchend', stopDrag)
+}
+
+function onDrag(e: MouseEvent | TouchEvent) {
+  if (!isDragging) return
+  
+  const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+  const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+  
+  const dx = clientX - startMouse.x
+  const dy = clientY - startMouse.y
+  
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+    hasDragged = true
+  }
+
+  if (hasDragged) {
+    e.preventDefault()
+    // Update position. x is from left, y is from bottom (so y goes opposite to dy)
+    position.value.x = startPos.x + dx
+    position.value.y = startPos.y - dy
+  }
+}
+
+function stopDrag() {
+  isDragging = false
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('touchmove', onDrag)
+  document.removeEventListener('touchend', stopDrag)
+}
+// ------------------
+
 // Ensure PIXI is available globally
 declare global {
   interface Window {
@@ -77,14 +134,13 @@ declare global {
 onMounted(async () => {
   await nextTick()
   
-  // Wait for PIXI and Live2D scripts to be ready
   let checkCount = 0
   const initLive2D = async () => {
     if (window.PIXI && window.PIXI.live2d) {
       setupLive2D()
     } else {
       checkCount++
-      if (checkCount < 20) { // Wait up to 10 seconds
+      if (checkCount < 20) {
         setTimeout(initLive2D, 500)
       } else {
         console.error('Live2D scripts not loaded.')
@@ -102,31 +158,30 @@ onMounted(async () => {
 async function setupLive2D() {
   if (!live2dCanvas.value) return
 
-  // Create PIXI Application
   app = new window.PIXI.Application({
     view: live2dCanvas.value,
     transparent: true,
     autoStart: true,
     backgroundAlpha: 0,
-    resizeTo: live2dCanvas.value.parentElement
+    width: 250,
+    height: 300,
+    resolution: window.devicePixelRatio || 1,
+    autoDensity: true
   })
 
   try {
-    // Load the model from the public folder
-    model = await window.PIXI.live2d.Live2DModel.from('/mikumiku/mikumiku.model3.json')
+    model = await window.PIXI.live2d.Live2DModel.from('/miku_qq/初音未来qq.model3.json')
     app.stage.addChild(model)
 
-    // Setup initial scale and position
     resizeModel()
-
-    // Handle window resize
-    window.addEventListener('resize', resizeModel)
     
-    // Enable dragging/interaction if supported by the plugin
-    model.on('pointerdown', poke)
-
-    // Wait a brief moment to ensure model dimensions are loaded before resizing
-    setTimeout(resizeModel, 100)
+    // Internal hit area click
+    model.on('pointerdown', () => {
+      if (!isDragging) handlePoke()
+    })
+    
+    // Give it a moment to fully load textures and internal dimensions
+    setTimeout(resizeModel, 500)
 
   } catch (err) {
     console.error('Live2D Load Error:', err)
@@ -135,43 +190,56 @@ async function setupLive2D() {
 
 function resizeModel() {
   if (!model || !app) return
-  const containerWidth = app.renderer.width
-  const containerHeight = app.renderer.height
   
-  const baseWidth = model.internalModel ? model.internalModel.width : (model.width / model.scale.x)
-  const baseHeight = model.internalModel ? model.internalModel.height : (model.height / model.scale.y)
+  // Reset scale to correctly calculate base size
+  model.scale.set(1)
   
-  // Calculate scale to fit the container width/height appropriately
-  const scaleX = containerWidth / baseWidth
-  const scaleY = containerHeight / baseHeight
+  const containerWidth = 250
+  const containerHeight = 300
   
-  // We want the model to fit inside the avatar circle mostly, so we scale it down slightly
-  const scale = Math.min(scaleX, scaleY) * 1.5 
+  const scaleX = containerWidth / model.width
+  const scaleY = containerHeight / model.height
+  const scale = Math.min(scaleX, scaleY) * 0.95 // 95% to leave some padding
+  
   model.scale.set(scale)
   
-  // Center horizontally, align towards bottom
-  model.x = (containerWidth - baseWidth * scale) / 2
-  model.y = (containerHeight - baseHeight * scale) * 0.8
+  // Center horizontally and vertically
+  model.x = (containerWidth - model.width) / 2
+  model.y = (containerHeight - model.height) / 2 + 10 // Shift down slightly
 }
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', resizeModel)
   if (app) {
     app.destroy(false, { children: true })
   }
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('touchmove', onDrag)
+  document.removeEventListener('touchend', stopDrag)
 })
 </script>
 
 <template>
-  <div class="mascot-container" :class="{ 'is-minimized': isMinimized }">
+  <div 
+    class="mascot-container" 
+    :class="{ 'is-minimized': isMinimized }"
+    :style="{ left: position.x + 'px', bottom: position.y + 'px' }"
+  >
     <transition name="bubble-fade">
       <div v-if="showBubble && !isMinimized" class="speech-bubble glass-ui">
         {{ currentQuote }}
       </div>
     </transition>
     
-    <div class="mascot-avatar" :class="{ 'is-bouncing': isBouncing }" @click="poke" @mouseenter="onMouseEnter">
-      <div class="close-btn" @click.stop="toggleMinimize">
+    <div 
+      class="mascot-avatar" 
+      :class="{ 'is-bouncing': isBouncing }" 
+      @mouseenter="onMouseEnter"
+      @click="handlePoke"
+      @mousedown.prevent="startDrag"
+      @touchstart.prevent="startDrag"
+    >
+      <div class="close-btn" @click.stop="toggleMinimize" @mousedown.stop @touchstart.stop>
         {{ isMinimized ? '➕' : '➖' }}
       </div>
       <canvas ref="live2dCanvas" class="live2d-canvas"></canvas>
@@ -182,18 +250,14 @@ onBeforeUnmount(() => {
 <style scoped>
 .mascot-container {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
   z-index: 999;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center; /* Align center relative to the container */
   gap: 15px;
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  /* Remove transition to allow smooth dragging */
 }
 .mascot-container.is-minimized {
-  bottom: 10px;
-  right: 10px;
   transform: scale(0.7);
   opacity: 0.7;
 }
@@ -201,12 +265,13 @@ onBeforeUnmount(() => {
 .speech-bubble {
   padding: 12px 18px;
   border-radius: 16px;
-  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 4px; /* Change to bottom-left since it's on the left side */
   max-width: 200px;
   font-size: 0.9rem;
   font-weight: 600;
   line-height: 1.4;
-  transform-origin: bottom right;
+  transform-origin: bottom left;
+  text-align: center;
 }
 
 .glass-ui {
@@ -222,14 +287,16 @@ onBeforeUnmount(() => {
 .mascot-avatar {
   width: 250px;
   height: 300px;
-  /* Transparent background to show the full model seamlessly */
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: grab;
   position: relative;
   transition: transform 0.3s ease-out;
+}
+.mascot-avatar:active {
+  cursor: grabbing;
 }
 
 .mascot-avatar:hover {
@@ -239,6 +306,8 @@ onBeforeUnmount(() => {
 .live2d-canvas {
   width: 100%;
   height: 100%;
+  /* Pass events so dragging on canvas works */
+  pointer-events: auto;
 }
 
 /* Bounce Animation for Clicks */
@@ -294,7 +363,7 @@ onBeforeUnmount(() => {
     font-size: 0.8rem;
   }
   .close-btn {
-    opacity: 1; /* Always visible on mobile */
+    opacity: 1; 
     width: 24px;
     height: 24px;
     font-size: 0.8rem;
