@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import FloatingTools from '../../components/FloatingTools.vue'
 
 const router = useRouter()
 
@@ -31,6 +32,9 @@ function toggleTheme() {
 
 <template>
   <div class="portfolio-container" :class="{ 'dark-theme': isDark }">
+    <!-- Floating Widgets -->
+    <FloatingTools />
+
     <!-- Video Backgrounds -->
     <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
     <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
