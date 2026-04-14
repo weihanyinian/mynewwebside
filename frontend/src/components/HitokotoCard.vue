@@ -1,18 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import quotes from '../assets/quotes.json'
 
 const { t } = useI18n()
-
-const quotes = [
-  '即使是微小的光芒，也能照亮前行的路。✨',
-  '代码是写给机器的诗，也是写给自己的信。📝',
-  '不积跬步，无以至千里。🏃‍♂️',
-  '你所热爱的，就是你的生活。❤️',
-  'Bug 不可怕，可怕的是放弃寻找答案的心。🐛',
-  '保持热爱，奔赴山海。🌊',
-  '二次元的世界里，一切皆有可能。🌌'
-]
 
 const currentQuote = ref('')
 const isLoading = ref(false)
