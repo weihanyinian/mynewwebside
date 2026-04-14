@@ -1,48 +1,19 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
 const isDark = ref(false)
 
-import bgDayFallback from '../../assets/images/bg-day.jpg'
-import bgNightFallback from '../../assets/images/bg-night.jpg'
-import aboutForestFallback from '../../assets/images/about-forest.jpg'
-
-const imageUrls = import.meta.glob('/src/assets/images/*.{png,jpg,jpeg,gif,webp,avif,svg}', {
-  eager: true,
-  import: 'default'
-}) as Record<string, string>
-
-function pickByPrefix(prefix: string): string[] {
-  return Object.entries(imageUrls)
-    .filter(([k]) => (k.split('/').pop() || '').startsWith(prefix))
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([, url]) => url)
-}
-
-const dayImages = computed(() => pickByPrefix('317'))
-const nightImages = computed(() => pickByPrefix('315'))
-
-const bgDay = computed(() => dayImages.value[0] || bgDayFallback)
-const bgNight = computed(() => nightImages.value[0] || bgNightFallback)
-const aboutImg = computed(() => dayImages.value[1] || aboutForestFallback)
-const contactImg = computed(() => nightImages.value[1] || nightImages.value[0] || bgNightFallback)
-
-const containerStyle = computed(() => ({
-  '--bg-day': `url(${bgDay.value})`,
-  '--bg-night': `url(${bgNight.value})`
-}))
-
 const works = ref([
-  { title: 'MyWebSide Blog', desc: '基于 Spring Boot 3 + Vue 3 的全栈博客', link: '/blog', tag: 'Full Stack' },
-  { title: 'Awesome Tool', desc: '一个能极大提升效率的命令行工具', link: '#', tag: 'CLI' },
-  { title: 'Data Dashboard', desc: '基于 ECharts 封装的开源数据可视化面板', link: '#', tag: 'Frontend' }
+  { title: '大语言模型微调与部署', desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。', link: '#', tag: 'LLM / GLM4' },
+  { title: 'Transformer 机器翻译', desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。', link: '#', tag: 'Deep Learning' },
+  { title: 'MyWebSide Blog', desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。', link: '/blog', tag: 'Full Stack' }
 ])
 
 const skills = ref([
-  'Vue 3', 'TypeScript', 'Spring Boot', 'MySQL', 'Java', 'CSS / Sass', 'Docker', 'Git'
+  'Python', 'Machine Learning', 'Deep Learning', 'PyTorch', 'Transformers', 'LLMs / GLM4', 'LoRA Fine-tuning', 'Vue 3 & Spring Boot'
 ])
 
 // Smooth scroll for nav anchors
@@ -59,11 +30,15 @@ function toggleTheme() {
 </script>
 
 <template>
-  <div class="portfolio-container" :class="{ 'dark-theme': isDark }" :style="containerStyle">
+  <div class="portfolio-container" :class="{ 'dark-theme': isDark }">
+    <!-- Video Backgrounds -->
+    <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
+    <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
+
     <!-- Navbar -->
     <nav class="glass-nav">
       <div class="nav-inner">
-        <div class="logo">MyPortfolio</div>
+        <div class="logo">维寒一念的小站</div>
         <div class="links">
           <a @click="scrollTo('about')">关于</a>
           <a @click="scrollTo('skills')">技能</a>
@@ -80,7 +55,7 @@ function toggleTheme() {
     <!-- Hero Section -->
     <section class="hero" id="hero">
       <div class="hero-content">
-        <h1 class="hero-title">你好，我是 <span>Developer</span></h1>
+        <h1 class="hero-title">你好，我是 <span>维寒一念</span></h1>
         <div class="hero-actions">
           <button class="btn-primary" @click="scrollTo('works')">探索作品</button>
           <button class="btn-outline" @click="router.push('/blog')">阅读博客</button>
@@ -93,16 +68,16 @@ function toggleTheme() {
       <div class="glass-card about-card">
         <h2>个人简介</h2>
         <div class="about-content">
-          <img :src="aboutImg" alt="about" class="about-img" />
+          <img src="../../assets/images/about-forest.jpg" alt="about" class="about-img" />
           <div class="about-text">
             <p>
-              我是一名前端与后端兼修的开发者，熟练掌握 Vue 3 生态以及 Spring Boot 后端技术栈。
-              喜欢将优雅的界面设计与健壮的后台逻辑相结合。
+              我是一名专注于人工智能领域的开发者，致力于大语言模型（LLM）、深度学习以及自然语言处理的前沿探索。
+              熟练掌握 Python 与 PyTorch 框架，对 Transformer 架构及大模型微调（如 LoRA）有着丰富的实战经验。
             </p>
             <br />
             <p>
-              就像在漫长旅途中不断收集新魔法一样，我也在不断学习和分享开源项目，希望通过代码让世界变得更美好一点。
-              如果生命足够漫长，我希望能一直敲着代码，直到魔法时代的尽头。
+              就像在漫长旅途中不断收集新魔法一样，我也在不断积累前沿的 AI 技术（如 GLM4 等）。
+              我期待通过代码与算法解决复杂的现实问题，在人工智能的魔法时代里，留下属于自己的足迹。
             </p>
           </div>
         </div>
@@ -138,9 +113,7 @@ function toggleTheme() {
       <div class="glass-card contact-card">
         <h2>联系我</h2>
         <p>期待与你交流技术，探讨合作可能。旅途还在继续，一起创造新的魔法吧。</p>
-
-        <img :src="contactImg" alt="contact" class="contact-img" />
-
+        <img src="../../assets/images/bg-night.jpg" alt="contact" class="contact-img" />
         <div class="contact-links">
           <a href="https://github.com" target="_blank">GitHub</a>
           <a href="mailto:hello@example.com">Email</a>
@@ -163,15 +136,36 @@ function toggleTheme() {
   min-height: 100vh;
   /* Light and airy with a touch of magic */
   background: linear-gradient(135deg, rgba(230, 238, 245, 0.8) 0%, rgba(200, 218, 235, 0.9) 100%);
-  background-image: var(--bg-day), linear-gradient(135deg, rgba(230, 238, 245, 0.5) 0%, rgba(200, 218, 235, 0.7) 100%);
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-blend-mode: overlay;
   color: #2c3e50;
   font-family: system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   transition: background 0.5s ease, color 0.5s ease;
+  position: relative;
+}
+
+.bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+  transition: opacity 0.5s ease;
+}
+
+.light-video {
+  opacity: 1;
+}
+.dark-theme .light-video {
+  opacity: 0;
+}
+
+.dark-video {
+  opacity: 0;
+}
+.dark-theme .dark-video {
+  opacity: 1;
 }
 
 /* 
@@ -179,7 +173,6 @@ function toggleTheme() {
 */
 .portfolio-container.dark-theme {
   background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(42, 27, 61, 0.95) 100%);
-  background-image: var(--bg-night), linear-gradient(135deg, rgba(26, 26, 46, 0.7) 0%, rgba(42, 27, 61, 0.8) 100%);
   color: #e2e8f0;
 }
 
