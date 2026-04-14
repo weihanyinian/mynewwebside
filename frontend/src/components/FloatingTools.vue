@@ -2,13 +2,13 @@
 import { ref, computed, onUnmounted } from 'vue'
 
 const isMenuOpen = ref(false)
-const activeTool = ref<'none' | 'reaction' | 'cps' | 'pomodoro'>('none')
+const activeTool = ref<'none' | 'reaction' | 'cps' | 'pomodoro' | 'password' | 'base64'>('none')
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
 }
 
-function openTool(tool: 'reaction' | 'cps' | 'pomodoro') {
+function openTool(tool: 'reaction' | 'cps' | 'pomodoro' | 'password' | 'base64') {
   activeTool.value = tool
   isMenuOpen.value = false
 }
@@ -205,6 +205,73 @@ function playBeep() {
   }
 }
 
+// ==========================================
+// 4. Password Generator
+// ==========================================
+const pwdLength = ref(12)
+const pwdUpper = ref(true)
+const pwdLower = ref(true)
+const pwdNum = ref(true)
+const pwdSym = ref(true)
+const pwdResult = ref('')
+
+function generatePwd() {
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const lower = 'abcdefghijklmnopqrstuvwxyz'
+  const num = '0123456789'
+  const sym = '!@#$%^&*()_+~`|}{[]:;?><,./-='
+  let charset = ''
+  if (pwdUpper.value) charset += upper
+  if (pwdLower.value) charset += lower
+  if (pwdNum.value) charset += num
+  if (pwdSym.value) charset += sym
+  
+  if (!charset) {
+    pwdResult.value = '请至少选择一种字符'
+    return
+  }
+  let res = ''
+  for (let i = 0; i < pwdLength.value; i++) {
+    res += charset[Math.floor(Math.random() * charset.length)]
+  }
+  pwdResult.value = res
+}
+
+function copyPwd() {
+  if (pwdResult.value && pwdResult.value !== '请至少选择一种字符') {
+    navigator.clipboard.writeText(pwdResult.value)
+  }
+}
+
+// ==========================================
+// 5. Base64
+// ==========================================
+const base64Input = ref('')
+const base64Output = ref('')
+const base64Mode = ref<'encode' | 'decode'>('encode')
+
+function processBase64() {
+  try {
+    if (!base64Input.value) {
+      base64Output.value = ''
+      return
+    }
+    if (base64Mode.value === 'encode') {
+      // Encode with UTF-8 support
+      base64Output.value = btoa(encodeURIComponent(base64Input.value).replace(/%([0-9A-F]{2})/g,
+        (_, p1) => String.fromCharCode(Number('0x' + p1))
+      ))
+    } else {
+      // Decode with UTF-8 support
+      base64Output.value = decodeURIComponent(atob(base64Input.value).split('').map(c => 
+        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      ).join(''))
+    }
+  } catch (e) {
+    base64Output.value = '解析失败，请输入有效内容'
+  }
+}
+
 onUnmounted(() => {
   if (reactTimeout) clearTimeout(reactTimeout)
   if (cpsTimer) clearInterval(cpsTimer)
@@ -230,6 +297,12 @@ onUnmounted(() => {
         </div>
         <div class="menu-item" @click="openTool('pomodoro')">
           <span class="item-icon">🍅</span> 番茄钟
+        </div>
+        <div class="menu-item" @click="openTool('password')">
+          <span class="item-icon">🔑</span> 随机密码
+        </div>
+        <div class="menu-item" @click="openTool('base64')">
+          <span class="item-icon">🔤</span> Base64
         </div>
       </div>
     </transition>
@@ -323,6 +396,47 @@ onUnmounted(() => {
                 🔄 重置
               </button>
             </div>
+          </div>
+
+          <!-- ================= 4. Password Generator ================= -->
+          <div v-if="activeTool === 'password'" class="tool-modal glass-ui-modal">
+            <button class="close-btn" @click="closeTool">✕</button>
+            <h2 class="modal-title">🔑 密码生成器</h2>
+            
+            <div class="pwd-result-box" @click="copyPwd">
+              {{ pwdResult || '点击下方生成' }}
+              <span v-if="pwdResult" class="pwd-copy-hint">点击复制</span>
+            </div>
+
+            <div class="pwd-settings">
+              <div class="pwd-row">
+                <label>长度 ({{ pwdLength }})</label>
+                <input type="range" v-model="pwdLength" min="4" max="32" class="pwd-slider" />
+              </div>
+              <div class="pwd-options">
+                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdUpper" /> <span>大写字母</span></label>
+                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdLower" /> <span>小写字母</span></label>
+                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdNum" /> <span>数字</span></label>
+                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdSym" /> <span>特殊符号</span></label>
+              </div>
+            </div>
+
+            <button class="cyber-btn-outline pwd-gen-btn" @click="generatePwd">生成密码</button>
+          </div>
+
+          <!-- ================= 5. Base64 Encode/Decode ================= -->
+          <div v-if="activeTool === 'base64'" class="tool-modal glass-ui-modal">
+            <button class="close-btn" @click="closeTool">✕</button>
+            <h2 class="modal-title">🔤 Base64 工具</h2>
+
+            <div class="b64-modes">
+              <span class="b64-mode-btn" :class="{ active: base64Mode === 'encode' }" @click="base64Mode = 'encode'; processBase64()">加密</span>
+              <span class="b64-mode-btn" :class="{ active: base64Mode === 'decode' }" @click="base64Mode = 'decode'; processBase64()">解密</span>
+            </div>
+
+            <textarea class="cyber-textarea b64-input" v-model="base64Input" @input="processBase64" placeholder="输入待处理内容..."></textarea>
+            <div class="b64-arrow">↓</div>
+            <textarea class="cyber-textarea b64-output" v-model="base64Output" readonly placeholder="输出结果..."></textarea>
           </div>
 
         </div>
@@ -669,6 +783,125 @@ onUnmounted(() => {
 }
 .reset-btn:hover {
   background: rgba(255,255,255,0.2);
+}
+
+/* ================= Password Generator ================= */
+.pwd-result-box {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(102, 217, 255, 0.4);
+  padding: 15px;
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  cursor: pointer;
+  position: relative;
+  word-break: break-all;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.pwd-result-box:hover {
+  background: rgba(102, 217, 255, 0.1);
+}
+.pwd-copy-hint {
+  position: absolute;
+  right: 10px;
+  bottom: -20px;
+  font-size: 0.8rem;
+  color: #50e3c2;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.pwd-result-box:hover .pwd-copy-hint {
+  opacity: 1;
+}
+
+.pwd-settings {
+  text-align: left;
+  margin-bottom: 20px;
+}
+.pwd-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.pwd-slider {
+  width: 60%;
+}
+.pwd-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.cyber-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.cyber-checkbox input {
+  accent-color: #fca2e5;
+  width: 16px;
+  height: 16px;
+}
+
+.pwd-gen-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #66d9ff, #fca2e5);
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.pwd-gen-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* ================= Base64 ================= */
+.b64-modes {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+.b64-mode-btn {
+  padding: 6px 20px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.b64-mode-btn.active {
+  background: linear-gradient(135deg, #66d9ff, #fca2e5);
+  box-shadow: 0 2px 10px rgba(102, 217, 255, 0.4);
+}
+.cyber-textarea {
+  width: 100%;
+  height: 100px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(102, 217, 255, 0.3);
+  border-radius: 12px;
+  padding: 10px;
+  color: #fff;
+  font-family: monospace;
+  resize: none;
+}
+.cyber-textarea:focus {
+  outline: none;
+  border-color: #fca2e5;
+}
+.b64-arrow {
+  margin: 10px 0;
+  font-size: 1.5rem;
+  color: #66d9ff;
 }
 
 /* ================= Mobile Adjustments ================= */

@@ -6,6 +6,7 @@ const HomePage = () => import('../pages/public/HomePage.vue')
 const ArticlePage = () => import('../pages/public/ArticlePage.vue')
 const CategoriesPage = () => import('../pages/public/CategoriesPage.vue')
 const TagsPage = () => import('../pages/public/TagsPage.vue')
+const MessageWallPage = () => import('../pages/public/MessageWallPage.vue')
 const AdminLoginPage = () => import('../pages/admin/AdminLoginPage.vue')
 const AdminArticlesPage = () => import('../pages/admin/AdminArticlesPage.vue')
 const AdminEditorPage = () => import('../pages/admin/AdminEditorPage.vue')
@@ -20,6 +21,7 @@ export const router = createRouter({
     { path: '/article/:id', component: ArticlePage },
     { path: '/categories', component: CategoriesPage },
     { path: '/tags', component: TagsPage },
+    { path: '/message', component: MessageWallPage },
 
     { path: '/admin/login', component: AdminLoginPage },
     { path: '/admin', redirect: '/admin/articles' },

@@ -22,6 +22,7 @@ function goHome(hash: string) {
           <a @click="goHome('#skills')">技能</a>
           <a @click="goHome('#works')">作品</a>
           <a @click="goHome('#contact')">联系</a>
+          <a @click="router.push('/message')">留言墙</a>
           <a @click="router.push('/blog')" class="active">前往博客</a>
           <a v-if="isLoggedIn" @click="router.push('/admin')">管理后台</a>
           <a v-else @click="router.push('/admin/login')">管理后台</a>

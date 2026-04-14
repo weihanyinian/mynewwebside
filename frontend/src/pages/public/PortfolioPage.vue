@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import FloatingTools from '../../components/FloatingTools.vue'
+import HitokotoCard from '../../components/HitokotoCard.vue'
 
 const router = useRouter()
 
@@ -50,6 +51,7 @@ function toggleTheme() {
           <a @click="scrollTo('skills')">技能</a>
           <a @click="scrollTo('works')">作品</a>
           <a @click="scrollTo('contact')">联系</a>
+          <a @click="router.push('/message')">留言墙</a>
           <a @click="toggleTheme" class="theme-toggle" :title="isDark ? '切换到白昼' : '切换到星夜'">
             {{ isDark ? '🌙' : '☀️' }}
           </a>
@@ -68,6 +70,9 @@ function toggleTheme() {
         </div>
       </div>
     </section>
+
+    <!-- Hitokoto Quote -->
+    <HitokotoCard />
 
     <!-- About Section -->
     <section class="section" id="about">
