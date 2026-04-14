@@ -163,15 +163,22 @@ async function setupLive2D() {
     transparent: true,
     autoStart: true,
     backgroundAlpha: 0,
-    width: 250,
-    height: 300,
+    width: 350,
+    height: 450,
     resolution: window.devicePixelRatio || 1,
     autoDensity: true
   })
 
   try {
-    model = await window.PIXI.live2d.Live2DModel.from('/miku_qq/初音未来qq.model3.json')
+    model = await window.PIXI.live2d.Live2DModel.from('/14酱/我也要死吗.model3.json')
     app.stage.addChild(model)
+
+    // Hide the watermark text (CheekPuff2 is used for watermark in 14酱)
+    app.ticker.add(() => {
+      if (model?.internalModel?.coreModel) {
+        model.internalModel.coreModel.setParameterValueById('CheekPuff2', 1)
+      }
+    })
 
     resizeModel()
     
@@ -194,18 +201,23 @@ function resizeModel() {
   // Reset scale to correctly calculate base size
   model.scale.set(1)
   
-  const containerWidth = 250
-  const containerHeight = 300
+  const containerWidth = 350
+  const containerHeight = 450
   
-  const scaleX = containerWidth / model.width
-  const scaleY = containerHeight / model.height
-  const scale = Math.min(scaleX, scaleY) * 0.95 // 95% to leave some padding
+  const scaleX = containerWidth / (model.width || containerWidth)
+  const scaleY = containerHeight / (model.height || containerHeight)
+  const scale = Math.min(scaleX, scaleY) * 1.0 // Scale to fit the container
   
   model.scale.set(scale)
   
-  // Center horizontally and vertically
-  model.x = (containerWidth - model.width) / 2
-  model.y = (containerHeight - model.height) / 2 + 10 // Shift down slightly
+  if (model.anchor) {
+    model.anchor.set(0.5, 0.5)
+    model.x = containerWidth / 2
+    model.y = containerHeight / 2 + 10
+  } else {
+    model.x = (containerWidth - model.width) / 2
+    model.y = containerHeight - model.height + 20 // Align bottom, push slightly down so head is near top
+  }
 }
 
 onBeforeUnmount(() => {
@@ -285,8 +297,8 @@ onBeforeUnmount(() => {
 }
 
 .mascot-avatar {
-  width: 250px;
-  height: 300px;
+  width: 350px;
+  height: 450px;
   background: transparent;
   display: flex;
   align-items: center;
