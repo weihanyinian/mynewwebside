@@ -69,7 +69,7 @@ onMounted(async () => {
   <div class="home">
     <div class="card home-filters">
       <div class="home-filters__row">
-        <el-input v-model="keyword" placeholder="探索魔法碎片（标题/内容）..." clearable @keyup.enter="syncToRoute">
+        <el-input v-model="keyword" placeholder="搜索文章（标题/内容）..." clearable @keyup.enter="syncToRoute">
           <template #prefix>
             <el-icon><Search /></el-icon>
           </template>
@@ -80,7 +80,7 @@ onMounted(async () => {
         <el-select v-model="tagId" clearable placeholder="选择标签" @change="syncToRoute">
           <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.id" />
         </el-select>
-        <button class="filter-btn" @click="syncToRoute">寻迹</button>
+        <button class="filter-btn" @click="syncToRoute">搜索</button>
       </div>
     </div>
 
@@ -114,7 +114,7 @@ onMounted(async () => {
             <text x="100" y="100" font-size="40" text-anchor="middle" dominant-baseline="central" fill="rgba(74, 144, 226, 0.5)">🍃</text>
           </svg>
         </div>
-        <p class="empty-text">这里还是一片荒芜的魔法遗迹...</p>
+        <p class="empty-text">这里还没有任何文章...</p>
       </div>
 
       <div class="home-pager" v-if="total > 0">

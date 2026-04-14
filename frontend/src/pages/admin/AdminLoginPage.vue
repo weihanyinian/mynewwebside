@@ -23,7 +23,7 @@ async function onSubmit() {
     if (username.value === 'admin' && password.value === '123456') {
       // Mocking token
       setToken('mock-token-admin')
-      ElMessage.success('欢迎回来，魔法使！')
+      ElMessage.success('欢迎回来！')
       const redirect = (route.query.redirect as string) || '/admin/articles'
       router.replace(redirect)
     } else {
@@ -35,7 +35,7 @@ async function onSubmit() {
       router.replace(redirect)
     }
   } catch (e: any) {
-    ElMessage.error(e?.message || '登录失败，结界拒绝了你的访问')
+    ElMessage.error(e?.message || '登录失败，账号或密码错误')
   } finally {
     loading.value = false
   }
@@ -47,22 +47,22 @@ async function onSubmit() {
     <div class="login-background"></div>
     <div class="card login-card">
       <div class="login-header">
-        <h2 class="login-title">后台结界</h2>
+        <h2 class="login-title">管理后台</h2>
         <p class="login-subtitle">Admin Portal</p>
       </div>
       <el-form label-position="top" @submit.prevent="onSubmit" class="login-form">
-        <el-form-item label="魔法通行证 (Username)">
+        <el-form-item label="用户名 (Username)">
           <el-input v-model="username" autocomplete="username" placeholder="admin" class="cyber-input" />
         </el-form-item>
-        <el-form-item label="结界密钥 (Password)">
+        <el-form-item label="密码 (Password)">
           <el-input v-model="password" type="password" autocomplete="current-password" show-password placeholder="123456" class="cyber-input" />
         </el-form-item>
         <button class="btn-login" :disabled="loading" @click="onSubmit">
-          {{ loading ? '验证中...' : '解除结界' }}
+          {{ loading ? '验证中...' : '登 录' }}
         </button>
       </el-form>
       <div class="login-footer">
-        <a @click="router.push('/')">← 返回主世界</a>
+        <a @click="router.push('/')">← 返回主页</a>
       </div>
     </div>
   </div>

@@ -13,7 +13,7 @@ onMounted(async () => {
 
 <template>
   <div class="card panel page-animation">
-    <div class="page-title">魔法标签</div>
+    <div class="page-title">探索标签</div>
     <div class="tags-container">
       <span
         v-for="t in items"
@@ -23,7 +23,7 @@ onMounted(async () => {
       >
         # {{ t.name }}
       </span>
-      <div v-if="items.length === 0" class="empty-text">标签数据在虚空中游荡...</div>
+      <div v-if="items.length === 0" class="empty-text">暂无标签数据</div>
     </div>
   </div>
 </template>

@@ -33,7 +33,7 @@ function logout() {
         </el-menu-item>
         <el-menu-item index="/admin/editor">
           <el-icon><Edit /></el-icon>
-          <span>魔法撰写 (发布)</span>
+          <span>文章撰写</span>
         </el-menu-item>
         <el-menu-item index="/admin/categories">
           <el-icon><Folder /></el-icon>
@@ -51,11 +51,11 @@ function logout() {
         <div class="admin-header__inner">
           <div class="admin-header__title">
             <!-- Icon or Breadcrumb could go here -->
-            <span>控制中枢</span>
+            <span>控制面板</span>
           </div>
           <div class="admin-header__actions">
             <el-button class="cyber-btn-outline" @click="router.push('/blog')">返回前台</el-button>
-            <el-button class="cyber-btn-danger" @click="logout">断开连接</el-button>
+            <el-button class="cyber-btn-danger" @click="logout">退出登录</el-button>
           </div>
         </div>
       </el-header>

@@ -24,7 +24,7 @@ onMounted(async () => {
         <span class="cell-icon">📁</span>
         <span class="cell-name">{{ c.name }}</span>
       </div>
-      <div v-if="items.length === 0" class="empty-text">分类数据在虚空中游荡...</div>
+      <div v-if="items.length === 0" class="empty-text">暂无分类数据</div>
     </div>
   </div>
 </template>

@@ -31,7 +31,7 @@ public class AuthController {
     if (!props.getAdmin().getUsername().equals(req.username())
         || !props.getAdmin().getPassword().equals(req.password())) {
       // In real scenario: passwordEncoder.matches(req.password(), user.getPassword())
-      throw new BusinessException(401, "魔法通行证或结界密钥错误");
+      throw new BusinessException(401, "账号或密码错误");
     }
     String token = jwtService.issueToken(req.username());
     return ApiResponse.ok(new LoginResponse(token));

@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS `article_tag` (
 CREATE TABLE IF NOT EXISTS `comment` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
     `article_id` BIGINT NOT NULL,
-    `author` VARCHAR(50) NOT NULL DEFAULT '匿名魔法使',
+    `author` VARCHAR(50) NOT NULL DEFAULT '匿名用户',
     `content` VARCHAR(1000) NOT NULL,
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`article_id`) REFERENCES `article`(`id`) ON DELETE CASCADE

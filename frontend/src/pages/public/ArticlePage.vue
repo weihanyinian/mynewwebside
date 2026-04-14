@@ -16,7 +16,7 @@ const isLoggedIn = computed(() => !!getToken())
 
 // Mock comments data
 const comments = ref([
-  { id: 1, author: '匿名魔法使', content: '文章写得真好，受教了！', time: '2026-04-14 10:00', avatar: '🧙‍♂️' },
+  { id: 1, author: '匿名用户', content: '文章写得真好，受教了！', time: '2026-04-14 10:00', avatar: '👋' },
   { id: 2, author: '二次元爱好者', content: '这个博客的风格太棒了，特别是背景的赛博风！', time: '2026-04-14 12:30', avatar: '🌸' }
 ])
 const newComment = ref('')
@@ -29,7 +29,7 @@ function submitComment() {
   }
   comments.value.unshift({
     id: Date.now(),
-    author: newAuthor.value.trim() || '匿名魔法使',
+    author: newAuthor.value.trim() || '匿名用户',
     content: newComment.value,
     time: new Date().toLocaleString(),
     avatar: '✨'
@@ -93,7 +93,7 @@ onMounted(async () => {
           v-model="newComment"
           type="textarea"
           :rows="3"
-          placeholder="留下你的魔法印记..."
+          placeholder="留下你的评论..."
           class="comment-textarea"
         />
         <div class="comment-actions">
@@ -123,7 +123,7 @@ onMounted(async () => {
         <path fill="rgba(74, 144, 226, 0.2)" d="M42.7,-73.4C56.6,-66.1,70.1,-55.8,78.8,-42.1C87.5,-28.4,91.3,-14.2,90.4,-0.5C89.5,13.2,83.8,26.4,75.1,38.1C66.4,49.8,54.7,60.1,41.4,66.6C28.1,73.1,14,75.9,-0.6,76.9C-15.2,78,-30.4,77.3,-43.3,70.5C-56.2,63.7,-66.8,50.8,-73.8,36.5C-80.8,22.2,-84.2,6.5,-81.4,-8.2C-78.6,-22.9,-69.6,-36.6,-57.6,-45.5C-45.6,-54.4,-30.6,-58.5,-17.1,-63.4C-3.6,-68.3,8.8,-74.3,21.5,-76C34.2,-77.7,46.9,-75.1,42.7,-73.4Z" transform="translate(100 100)" />
         <text x="100" y="100" font-size="40" text-anchor="middle" dominant-baseline="central" fill="rgba(74, 144, 226, 0.5)">❓</text>
       </svg>
-      <p>文章可能被虚空吞噬了...</p>
+      <p>文章可能已被删除或不存在...</p>
     </div>
   </div>
 </template>

@@ -36,7 +36,7 @@ public class CommentService {
         
         Comment comment = new Comment();
         comment.setArticle(article);
-        comment.setAuthor((req.author() == null || req.author().isBlank()) ? "匿名魔法使" : req.author().trim());
+        comment.setAuthor((req.author() == null || req.author().isBlank()) ? "匿名用户" : req.author().trim());
         comment.setContent(req.content());
         comment.setCreateTime(Instant.now());
         

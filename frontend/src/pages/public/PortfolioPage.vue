@@ -112,7 +112,7 @@ function toggleTheme() {
     <section class="section" id="contact">
       <div class="glass-card contact-card">
         <h2>联系我</h2>
-        <p>期待与你交流技术，探讨合作可能。旅途还在继续，一起创造新的魔法吧。</p>
+        <p>期待与你交流技术，探讨合作可能。旅途还在继续，一起创造更多的可能吧。</p>
         <img src="../../assets/images/bg-night.jpg" alt="contact" class="contact-img" />
         <div class="contact-links">
           <a href="https://github.com" target="_blank">GitHub</a>
