@@ -22,3 +22,7 @@ frontend/dist/
 backend/src/main/resources/application.yml
 frontend/.env.local
 frontend/.env.*.local
+
+# Local wallpaper imports (do not commit)
+315*/
+317*/

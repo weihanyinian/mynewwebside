@@ -1,11 +1,39 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// Theme toggle state
 const isDark = ref(false)
+
+import bgDayFallback from '../../assets/images/bg-day.jpg'
+import bgNightFallback from '../../assets/images/bg-night.jpg'
+import aboutForestFallback from '../../assets/images/about-forest.jpg'
+
+const imageUrls = import.meta.glob('/src/assets/images/*.{png,jpg,jpeg,gif,webp,avif,svg}', {
+  eager: true,
+  import: 'default'
+}) as Record<string, string>
+
+function pickByPrefix(prefix: string): string[] {
+  return Object.entries(imageUrls)
+    .filter(([k]) => (k.split('/').pop() || '').startsWith(prefix))
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, url]) => url)
+}
+
+const dayImages = computed(() => pickByPrefix('317'))
+const nightImages = computed(() => pickByPrefix('315'))
+
+const bgDay = computed(() => dayImages.value[0] || bgDayFallback)
+const bgNight = computed(() => nightImages.value[0] || bgNightFallback)
+const aboutImg = computed(() => dayImages.value[1] || aboutForestFallback)
+const contactImg = computed(() => nightImages.value[1] || nightImages.value[0] || bgNightFallback)
+
+const containerStyle = computed(() => ({
+  '--bg-day': `url(${bgDay.value})`,
+  '--bg-night': `url(${bgNight.value})`
+}))
 
 const works = ref([
   { title: 'MyWebSide Blog', desc: '基于 Spring Boot 3 + Vue 3 的全栈博客', link: '/blog', tag: 'Full Stack' },
@@ -31,7 +59,7 @@ function toggleTheme() {
 </script>
 
 <template>
-  <div class="portfolio-container" :class="{ 'dark-theme': isDark }">
+  <div class="portfolio-container" :class="{ 'dark-theme': isDark }" :style="containerStyle">
     <!-- Navbar -->
     <nav class="glass-nav">
       <div class="nav-inner">
@@ -65,8 +93,7 @@ function toggleTheme() {
       <div class="glass-card about-card">
         <h2>个人简介</h2>
         <div class="about-content">
-          <!-- 奇幻森林与远景 -->
-          <img src="https://w.wallhaven.cc/full/5g/wallhaven-5g9q69.jpg" alt="Frieren Magic Forest" class="about-img" />
+          <img :src="aboutImg" alt="about" class="about-img" />
           <div class="about-text">
             <p>
               我是一名前端与后端兼修的开发者，熟练掌握 Vue 3 生态以及 Spring Boot 后端技术栈。
@@ -111,10 +138,9 @@ function toggleTheme() {
       <div class="glass-card contact-card">
         <h2>联系我</h2>
         <p>期待与你交流技术，探讨合作可能。旅途还在继续，一起创造新的魔法吧。</p>
-        
-        <!-- 静谧的旅途 (夜色/黄昏) - 用作装饰图 -->
-        <img src="https://w.wallhaven.cc/full/zy/wallhaven-zy8m9y.jpg" alt="Frieren Journey Night" class="contact-img" />
-        
+
+        <img :src="contactImg" alt="contact" class="contact-img" />
+
         <div class="contact-links">
           <a href="https://github.com" target="_blank">GitHub</a>
           <a href="mailto:hello@example.com">Email</a>
@@ -137,7 +163,7 @@ function toggleTheme() {
   min-height: 100vh;
   /* Light and airy with a touch of magic */
   background: linear-gradient(135deg, rgba(230, 238, 245, 0.8) 0%, rgba(200, 218, 235, 0.9) 100%);
-  background-image: url('https://w.wallhaven.cc/full/jx/wallhaven-jx6e3p.jpg'), linear-gradient(135deg, rgba(230, 238, 245, 0.5) 0%, rgba(200, 218, 235, 0.7) 100%);
+  background-image: var(--bg-day), linear-gradient(135deg, rgba(230, 238, 245, 0.5) 0%, rgba(200, 218, 235, 0.7) 100%);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -153,8 +179,7 @@ function toggleTheme() {
 */
 .portfolio-container.dark-theme {
   background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(42, 27, 61, 0.95) 100%);
-  /* Use a dark night anime background */
-  background-image: url('https://w.wallhaven.cc/full/zy/wallhaven-zy8m9y.jpg'), linear-gradient(135deg, rgba(26, 26, 46, 0.7) 0%, rgba(42, 27, 61, 0.8) 100%);
+  background-image: var(--bg-night), linear-gradient(135deg, rgba(26, 26, 46, 0.7) 0%, rgba(42, 27, 61, 0.8) 100%);
   color: #e2e8f0;
 }
 
