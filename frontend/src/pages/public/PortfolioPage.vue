@@ -32,9 +32,6 @@ function toggleTheme() {
 
 <template>
   <div class="portfolio-container" :class="{ 'dark-theme': isDark }">
-    <!-- Floating Widgets -->
-    <FloatingTools />
-
     <!-- Video Backgrounds -->
     <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
     <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
@@ -42,7 +39,12 @@ function toggleTheme() {
     <!-- Navbar -->
     <nav class="glass-nav">
       <div class="nav-inner">
-        <div class="logo">维寒一念的小站</div>
+        <div class="nav-left">
+          <!-- Floating Widgets inside navbar -->
+          <FloatingTools />
+          
+          <div class="logo">维寒一念的小站</div>
+        </div>
         <div class="links">
           <a @click="scrollTo('about')">关于</a>
           <a @click="scrollTo('skills')">技能</a>
@@ -231,6 +233,11 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 .logo {
   font-size: 1.5rem;

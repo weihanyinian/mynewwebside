@@ -331,13 +331,11 @@ onUnmounted(() => {
 <style scoped>
 /* ================= Base Styles & Theme Colors ================= */
 .floating-widget {
-  position: fixed;
-  top: 90px;
-  left: 20px;
-  z-index: 1000;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  z-index: 1000;
 }
 
 /* Glass UI Mixin */
@@ -354,14 +352,14 @@ onUnmounted(() => {
 
 /* Widget Trigger Button */
 .widget-btn {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   background: linear-gradient(135deg, rgba(102, 217, 255, 0.3) 0%, rgba(252, 162, 229, 0.3) 100%);
 }
 .widget-btn:hover, .widget-btn.is-active {
@@ -372,6 +370,9 @@ onUnmounted(() => {
 
 /* Widget Menu */
 .widget-menu {
+  position: absolute;
+  top: 50px;
+  left: 0;
   display: flex;
   flex-direction: column;
   padding: 8px 0;
@@ -669,14 +670,10 @@ onUnmounted(() => {
 
 /* ================= Mobile Adjustments ================= */
 @media (max-width: 480px) {
-  .floating-widget {
-    top: 70px;
-    left: 15px;
-  }
   .widget-btn {
-    width: 45px;
-    height: 45px;
-    font-size: 1.3rem;
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
   }
   .glass-ui-modal {
     padding: 20px 15px;
