@@ -1,39 +1,54 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { getToken } from '../utils/token'
 
 const router = useRouter()
-const route = useRoute()
-const keyword = ref<string>((route.query.keyword as string) || '')
 
-function onSearch() {
-  router.push({ path: '/blog', query: keyword.value ? { keyword: keyword.value } : {} })
+const isLoggedIn = computed(() => !!getToken())
+
+function goHome(hash: string) {
+  router.push({ path: '/', hash: hash })
 }
 </script>
 
 <template>
   <div class="site-root">
-    <header class="site-header">
-      <div class="site-header__inner">
-        <div class="brand" @click="router.push('/')">MyWebSide</div>
-        <nav class="nav">
-          <a class="nav__link" @click="router.push('/blog')">文章</a>
-          <a class="nav__link" @click="router.push('/categories')">分类</a>
-          <a class="nav__link" @click="router.push('/tags')">标签</a>
-          <a class="nav__link" @click="router.push('/admin/login')">管理</a>
-        </nav>
-        <div class="search">
-          <el-input v-model="keyword" placeholder="搜索文章..." clearable @keyup.enter="onSearch" />
+    <nav class="glass-nav">
+      <div class="nav-inner">
+        <div class="logo" @click="router.push('/')">维寒一念的小站</div>
+        <div class="links">
+          <a @click="goHome('#about')">关于</a>
+          <a @click="goHome('#skills')">技能</a>
+          <a @click="goHome('#works')">作品</a>
+          <a @click="goHome('#contact')">联系</a>
+          <a @click="router.push('/blog')" class="active">前往博客</a>
+          <a v-if="isLoggedIn" @click="router.push('/admin')">管理后台</a>
+          <a v-else @click="router.push('/admin/login')">管理后台</a>
         </div>
       </div>
-    </header>
+    </nav>
 
     <main class="site-main">
       <slot />
     </main>
 
     <footer class="site-footer">
-      <div class="site-footer__inner">© {{ new Date().getFullYear() }} MyWebSide</div>
+      <div class="site-footer__inner">
+        <p>© 2026 维寒一念 | MyWebSide</p>
+        <div class="footer-links">
+          <a href="https://github.com/weihanyinian" target="_blank" title="GitHub">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+          </a>
+          <a href="mailto:1012308753@qq.com" title="Email">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+            </svg>
+          </a>
+        </div>
+      </div>
     </footer>
   </div>
 </template>
@@ -45,48 +60,52 @@ function onSearch() {
   flex-direction: column;
 }
 
-.site-header {
+.glass-nav {
   position: sticky;
   top: 0;
-  z-index: 10;
-  backdrop-filter: blur(14px);
-  background: rgba(255, 255, 255, 0.72);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  z-index: 100;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
-.site-header__inner {
+.nav-inner {
   max-width: 1080px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: auto 1fr 280px;
-  gap: 16px;
-  align-items: center;
-  padding: 14px 16px;
-}
-
-.brand {
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.nav {
+  padding: 16px 24px;
   display: flex;
-  gap: 14px;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
 }
 
-.nav__link {
-  color: rgba(0, 0, 0, 0.72);
-  text-decoration: none;
-  font-weight: 600;
+.logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   cursor: pointer;
 }
 
-.nav__link:hover {
-  color: rgba(0, 0, 0, 0.92);
+.links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.links a {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-color);
+  transition: color 0.3s;
+  text-decoration: none;
+}
+
+.links a:hover, .links a.active {
+  color: var(--primary-color);
 }
 
 .site-main {
@@ -94,30 +113,51 @@ function onSearch() {
   max-width: 1080px;
   width: 100%;
   margin: 0 auto;
-  padding: 22px 16px 44px;
+  padding: 40px 16px;
 }
 
 .site-footer {
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.58);
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  color: var(--text-color);
 }
 
 .site-footer__inner {
   max-width: 1080px;
   margin: 0 auto;
-  padding: 18px 16px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-footer__inner p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-links a {
+  color: var(--text-color);
+  transition: all 0.3s;
+  opacity: 0.7;
+}
+
+.footer-links a:hover {
+  color: var(--primary-color);
+  opacity: 1;
+  transform: translateY(-2px);
 }
 
 @media (max-width: 780px) {
-  .site-header__inner {
-    grid-template-columns: 1fr;
-  }
-  .nav {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-  .search {
-    width: 100%;
+  .links a:not(.active) {
+    display: none;
   }
 }
 </style>

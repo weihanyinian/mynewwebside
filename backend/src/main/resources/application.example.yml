@@ -23,7 +23,7 @@ app:
     allowed-origins: "http://localhost:5173"
   admin:
     username: admin
-    password: CHANGE_ME
+    password: ${ADMIN_PASSWORD:123456}
   jwt:
     secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_FOR_PROD"
     expire-minutes: 10080

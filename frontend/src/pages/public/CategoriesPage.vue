@@ -12,45 +12,70 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card panel">
-    <div class="page-title">分类</div>
+  <div class="card panel page-animation">
+    <div class="page-title">探索分类</div>
     <div class="grid">
       <div
         v-for="c in items"
         :key="c.id"
-        class="cell"
+        class="cell glass-card"
         @click="router.push({ path: '/blog', query: { categoryId: c.id } })"
       >
-        {{ c.name }}
+        <span class="cell-icon">📁</span>
+        <span class="cell-name">{{ c.name }}</span>
       </div>
+      <div v-if="items.length === 0" class="empty-text">分类数据在虚空中游荡...</div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.page-animation {
+  animation: fadeIn 0.4s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .panel {
-  padding: 16px;
+  padding: 30px;
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 .cell {
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.92);
+  border-radius: 16px;
+  padding: 20px;
   cursor: pointer;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 .cell:hover {
-  border-color: rgba(0, 0, 0, 0.14);
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 24px rgba(74, 144, 226, 0.2);
 }
-@media (max-width: 780px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.cell-icon {
+  font-size: 1.5rem;
+}
+.cell-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-color);
+}
+.empty-text {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(44, 62, 80, 0.5);
+  padding: 40px 0;
+  font-weight: 500;
 }
 </style>
 

@@ -12,34 +12,63 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card panel">
-    <div class="page-title">标签</div>
-    <div class="tags">
-      <el-tag
+  <div class="card panel page-animation">
+    <div class="page-title">魔法标签</div>
+    <div class="tags-container">
+      <span
         v-for="t in items"
         :key="t.id"
-        size="large"
-        effect="plain"
-        class="tag"
+        class="anime-tag-lg"
         @click="router.push({ path: '/blog', query: { tagId: t.id } })"
       >
-        {{ t.name }}
-      </el-tag>
+        # {{ t.name }}
+      </span>
+      <div v-if="items.length === 0" class="empty-text">标签数据在虚空中游荡...</div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.panel {
-  padding: 16px;
+.page-animation {
+  animation: fadeIn 0.4s ease-out;
 }
-.tags {
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.panel {
+  padding: 30px;
+}
+.tags-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 16px;
+  margin-top: 20px;
 }
-.tag {
+.anime-tag-lg {
+  font-size: 1rem;
+  padding: 10px 20px;
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--primary-color);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  border-radius: 24px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s;
+}
+.anime-tag-lg:hover {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+}
+.empty-text {
+  width: 100%;
+  text-align: center;
+  color: rgba(44, 62, 80, 0.5);
+  padding: 40px 0;
+  font-weight: 500;
 }
 </style>
 

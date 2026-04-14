@@ -76,8 +76,8 @@ function toggleTheme() {
             </p>
             <br />
             <p>
-              就像在漫长旅途中不断收集新魔法一样，我也在不断积累前沿的 AI 技术（如 GLM4 等）。
-              我期待通过代码与算法解决复杂的现实问题，在人工智能的魔法时代里，留下属于自己的足迹。
+              我也在不断积累前沿的 AI 技术（如 GLM4 等）。
+              我期待通过代码与算法解决复杂的现实问题，在人工智能的时代里，留下属于自己的足迹。
             </p>
           </div>
         </div>
@@ -86,7 +86,7 @@ function toggleTheme() {
 
     <!-- Skills Section -->
     <section class="section" id="skills">
-      <h2>魔法技能 (Skills)</h2>
+      <h2>我学会过的技能</h2>
       <div class="skills-grid">
         <div v-for="(skill, index) in skills" :key="index" class="glass-card skill-card">
           {{ skill }}
@@ -135,7 +135,7 @@ function toggleTheme() {
 .portfolio-container {
   min-height: 100vh;
   /* Light and airy with a touch of magic */
-  background: linear-gradient(135deg, rgba(230, 238, 245, 0.8) 0%, rgba(200, 218, 235, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(230, 238, 245, 0.2) 0%, rgba(200, 218, 235, 0.3) 100%);
   color: #2c3e50;
   font-family: system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
@@ -172,7 +172,7 @@ function toggleTheme() {
   Dark Theme (Frieren Night Theme)
 */
 .portfolio-container.dark-theme {
-  background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(42, 27, 61, 0.95) 100%);
+  background: linear-gradient(135deg, rgba(26, 26, 46, 0.4) 0%, rgba(42, 27, 61, 0.5) 100%);
   color: #e2e8f0;
 }
 
