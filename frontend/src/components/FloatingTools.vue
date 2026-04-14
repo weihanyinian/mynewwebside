@@ -35,6 +35,7 @@ function resetReaction() {
 
 function handleReactionClick() {
   if (reactStatus.value === 'idle' || reactStatus.value === 'result' || reactStatus.value === 'early') {
+    // Start waiting
     reactStatus.value = 'waiting'
     const delay = Math.random() * 3000 + 2000 // 2-5 seconds
     reactTimeout = setTimeout(() => {
@@ -42,10 +43,12 @@ function handleReactionClick() {
       reactStart = performance.now()
     }, delay)
   } else if (reactStatus.value === 'waiting') {
+    // Clicked too early
     if (reactTimeout) clearTimeout(reactTimeout)
     reactStatus.value = 'early'
   } else if (reactStatus.value === 'click') {
-    reactTime.value = Math.round(performance.now() - reactStart)
+    // Clicked correctly
+    reactTime.value = Math.max(0, Math.round(performance.now() - reactStart))
     reactStatus.value = 'result'
   }
 }
