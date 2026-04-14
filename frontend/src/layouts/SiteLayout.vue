@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { getToken } from '../utils/token'
 
 const router = useRouter()
+const { t, locale } = useI18n()
 
 const isLoggedIn = computed(() => !!getToken())
 
 function goHome(hash: string) {
   router.push({ path: '/', hash: hash })
+}
+
+function toggleLocale() {
+  locale.value = locale.value === 'zh' ? 'en' : 'zh'
 }
 </script>
 
@@ -16,16 +22,19 @@ function goHome(hash: string) {
   <div class="site-root">
     <nav class="glass-nav">
       <div class="nav-inner">
-        <div class="logo" @click="router.push('/')">维寒一念的小站</div>
+        <div class="logo" @click="router.push('/')">{{ t('nav.logo') }}</div>
         <div class="links">
-          <a @click="goHome('#about')">关于</a>
-          <a @click="goHome('#skills')">技能</a>
-          <a @click="goHome('#works')">作品</a>
-          <a @click="goHome('#contact')">联系</a>
-          <a @click="router.push('/message')">留言墙</a>
-          <a @click="router.push('/blog')" class="active">前往博客</a>
-          <a v-if="isLoggedIn" @click="router.push('/admin')">管理后台</a>
-          <a v-else @click="router.push('/admin/login')">管理后台</a>
+          <a @click="goHome('#about')">{{ t('nav.about') }}</a>
+          <a @click="goHome('#skills')">{{ t('nav.skills') }}</a>
+          <a @click="goHome('#works')">{{ t('nav.works') }}</a>
+          <a @click="goHome('#contact')">{{ t('nav.contact') }}</a>
+          <a @click="router.push('/message')">{{ t('nav.message') }}</a>
+          <a @click="toggleLocale" class="lang-toggle" :title="t('home.langToggle')">
+            {{ locale === 'zh' ? 'EN' : '中' }}
+          </a>
+          <a @click="router.push('/blog')" class="active">{{ t('nav.blog') }}</a>
+          <a v-if="isLoggedIn" @click="router.push('/admin')">{{ t('nav.admin') }}</a>
+          <a v-else @click="router.push('/admin/login')">{{ t('nav.admin') }}</a>
         </div>
       </div>
     </nav>
@@ -36,7 +45,7 @@ function goHome(hash: string) {
 
     <footer class="site-footer">
       <div class="site-footer__inner">
-        <p>© 2026 维寒一念 | MyWebSide</p>
+        <p>© 2026 {{ t('home.footer') }}</p>
         <div class="footer-links">
           <a href="https://github.com/weihanyinian" target="_blank" title="GitHub">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">

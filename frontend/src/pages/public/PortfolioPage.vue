@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import FloatingTools from '../../components/FloatingTools.vue'
 import HitokotoCard from '../../components/HitokotoCard.vue'
 
 const router = useRouter()
+const { t, locale } = useI18n()
 
 const isDark = ref(false)
+
+function toggleLocale() {
+  locale.value = locale.value === 'zh' ? 'en' : 'zh'
+}
 
 const works = ref([
   { title: '大语言模型微调与部署', desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。', link: '#', tag: 'LLM / GLM4' },
@@ -44,18 +50,21 @@ function toggleTheme() {
           <!-- Floating Widgets inside navbar -->
           <FloatingTools />
           
-          <div class="logo">维寒一念的小站</div>
+          <div class="logo">{{ t('nav.logo') }}</div>
         </div>
         <div class="links">
-          <a @click="scrollTo('about')">关于</a>
-          <a @click="scrollTo('skills')">技能</a>
-          <a @click="scrollTo('works')">作品</a>
-          <a @click="scrollTo('contact')">联系</a>
-          <a @click="router.push('/message')">留言墙</a>
-          <a @click="toggleTheme" class="theme-toggle" :title="isDark ? '切换到白昼' : '切换到星夜'">
+          <a @click="scrollTo('about')">{{ t('nav.about') }}</a>
+          <a @click="scrollTo('skills')">{{ t('nav.skills') }}</a>
+          <a @click="scrollTo('works')">{{ t('nav.works') }}</a>
+          <a @click="scrollTo('contact')">{{ t('nav.contact') }}</a>
+          <a @click="router.push('/message')">{{ t('nav.message') }}</a>
+          <a @click="toggleLocale" class="lang-toggle" :title="t('home.langToggle')">
+            {{ locale === 'zh' ? 'EN' : '中' }}
+          </a>
+          <a @click="toggleTheme" class="theme-toggle" :title="t('home.themeToggle')">
             {{ isDark ? '🌙' : '☀️' }}
           </a>
-          <a @click="router.push('/blog')" class="blog-btn">前往博客</a>
+          <a @click="router.push('/blog')" class="blog-btn">{{ t('nav.blog') }}</a>
         </div>
       </div>
     </nav>
@@ -63,10 +72,10 @@ function toggleTheme() {
     <!-- Hero Section -->
     <section class="hero" id="hero">
       <div class="hero-content">
-        <h1 class="hero-title">你好，我是 <span>维寒一念</span></h1>
+        <h1 class="hero-title">{{ t('home.hello') }} <span>{{ t('home.name') }}</span></h1>
         <div class="hero-actions">
-          <button class="btn-primary" @click="scrollTo('works')">探索作品</button>
-          <button class="btn-outline" @click="router.push('/blog')">阅读博客</button>
+          <button class="btn-primary" @click="scrollTo('works')">{{ t('home.explore') }}</button>
+          <button class="btn-outline" @click="router.push('/blog')">{{ t('home.readBlog') }}</button>
         </div>
       </div>
     </section>
@@ -77,19 +86,13 @@ function toggleTheme() {
     <!-- About Section -->
     <section class="section" id="about">
       <div class="glass-card about-card">
-        <h2>个人简介</h2>
+        <h2>{{ t('home.aboutTitle') }}</h2>
         <div class="about-content">
           <img src="../../assets/images/about-forest.jpg" alt="about" class="about-img" />
           <div class="about-text">
-            <p>
-              我是一名专注于人工智能领域的开发者，致力于大语言模型（LLM）、深度学习以及自然语言处理的前沿探索。
-              熟练掌握 Python 与 PyTorch 框架，对 Transformer 架构及大模型微调（如 LoRA）有着丰富的实战经验。
-            </p>
+            <p>{{ t('home.aboutText1') }}</p>
             <br />
-            <p>
-              我也在不断积累前沿的 AI 技术（如 GLM4 等）。
-              我期待通过代码与算法解决复杂的现实问题，在人工智能的时代里，留下属于自己的足迹。
-            </p>
+            <p>{{ t('home.aboutText2') }}</p>
           </div>
         </div>
       </div>
@@ -97,7 +100,7 @@ function toggleTheme() {
 
     <!-- Skills Section -->
     <section class="section" id="skills">
-      <h2>我学会过的技能</h2>
+      <h2>{{ t('home.skillsTitle') }}</h2>
       <div class="skills-grid">
         <div v-for="(skill, index) in skills" :key="index" class="glass-card skill-card">
           {{ skill }}
@@ -107,14 +110,14 @@ function toggleTheme() {
 
     <!-- Works Section -->
     <section class="section" id="works">
-      <h2>作品展示</h2>
+      <h2>{{ t('home.worksTitle') }}</h2>
       <div class="works-grid">
         <div v-for="(work, index) in works" :key="index" class="glass-card work-card">
           <span class="work-tag">{{ work.tag }}</span>
           <h3>{{ work.title }}</h3>
           <p>{{ work.desc }}</p>
-          <a v-if="work.link.startsWith('/')" @click="router.push(work.link)" class="work-link">查看详情 &rarr;</a>
-          <a v-else :href="work.link" class="work-link">查看详情 &rarr;</a>
+          <a v-if="work.link.startsWith('/')" @click="router.push(work.link)" class="work-link">{{ t('home.worksDetail') }} &rarr;</a>
+          <a v-else :href="work.link" class="work-link">{{ t('home.worksDetail') }} &rarr;</a>
         </div>
       </div>
     </section>
@@ -122,8 +125,8 @@ function toggleTheme() {
     <!-- Contact Section -->
     <section class="section" id="contact">
       <div class="glass-card contact-card">
-        <h2>联系我</h2>
-        <p>期待与你交流技术，探讨合作可能。旅途还在继续，一起创造更多的可能吧。</p>
+        <h2>{{ t('home.contactTitle') }}</h2>
+        <p>{{ t('home.contactText') }}</p>
         <img src="../../assets/images/bg-night.jpg" alt="contact" class="contact-img" />
         <div class="contact-links">
           <a href="https://github.com" target="_blank">GitHub</a>
@@ -134,7 +137,7 @@ function toggleTheme() {
 
     <!-- Footer -->
     <footer class="footer">
-      <p>© {{ new Date().getFullYear() }} MyPortfolio. Built with Vue 3 & Vite.</p>
+      <p>© {{ new Date().getFullYear() }} {{ t('home.footer') }}</p>
     </footer>
   </div>
 </template>

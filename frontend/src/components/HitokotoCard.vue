@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const quotes = [
   '即使是微小的光芒，也能照亮前行的路。✨',
@@ -36,7 +39,7 @@ onMounted(() => {
     </div>
     <div class="actions">
       <button class="refresh-btn" @click="fetchQuote" :disabled="isLoading">
-        <span class="icon" :class="{ 'spin': isLoading }">🔄</span> 换一句
+        <span class="icon" :class="{ 'spin': isLoading }">🔄</span> {{ t('hitokoto.change') }}
       </button>
     </div>
   </div>

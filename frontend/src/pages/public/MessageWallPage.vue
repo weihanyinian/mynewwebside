@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { getToken } from '../../utils/token'
+
+const { t } = useI18n()
 
 // Using token utility to check admin
 function isAdmin() {
@@ -21,13 +24,13 @@ const myMessages = ref<number[]>([])
 
 function submitMessageAndTrack() {
   if (!newContent.value.trim()) {
-    ElMessage.warning('请填写留言内容哦~')
+    ElMessage.warning(t('messageWall.emptyContent'))
     return
   }
   const id = Date.now()
   messages.value.unshift({
     id,
-    author: newAuthor.value.trim() || '匿名用户',
+    author: newAuthor.value.trim() || t('messageWall.anonymous'),
     content: newContent.value,
     time: new Date().toLocaleString(),
     avatar: '✨'
@@ -35,33 +38,33 @@ function submitMessageAndTrack() {
   myMessages.value.push(id)
   newContent.value = ''
   newAuthor.value = ''
-  ElMessage.success('留言发布成功！')
+  ElMessage.success(t('messageWall.success'))
 }
 
 function deleteMessage(id: number) {
   messages.value = messages.value.filter(m => m.id !== id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('messageWall.deleteSuccess'))
 }
 </script>
 
 <template>
   <div class="message-wall-page page-animation">
     <div class="wall-header">
-      <h1 class="wall-title">公共留言墙</h1>
-      <p class="wall-subtitle">在这里留下你的足迹吧...</p>
+      <h1 class="wall-title">{{ t('messageWall.title') }}</h1>
+      <p class="wall-subtitle">{{ t('messageWall.subtitle') }}</p>
     </div>
 
     <div class="message-form glass-card">
-      <el-input v-model="newAuthor" placeholder="昵称（选填，默认匿名）" class="cyber-input mb-3" />
+      <el-input v-model="newAuthor" :placeholder="t('messageWall.nickname')" class="cyber-input mb-3" />
       <el-input
         v-model="newContent"
         type="textarea"
         :rows="3"
-        placeholder="想说点什么？"
+        :placeholder="t('messageWall.placeholder')"
         class="cyber-textarea mb-3"
       />
       <div class="form-actions">
-        <button class="cyber-btn" @click="submitMessageAndTrack">发射留言 🚀</button>
+        <button class="cyber-btn" @click="submitMessageAndTrack">{{ t('messageWall.submit') }}</button>
       </div>
     </div>
 

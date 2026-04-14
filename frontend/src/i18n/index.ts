@@ -1,0 +1,157 @@
+import { createI18n } from 'vue-i18n'
+
+const messages = {
+  zh: {
+    nav: {
+      about: '关于',
+      skills: '技能',
+      works: '作品',
+      contact: '联系',
+      message: '留言墙',
+      blog: '前往博客',
+      admin: '管理后台',
+      logo: '维寒一念的小站'
+    },
+    home: {
+      hello: '你好，我是',
+      name: '维寒一念',
+      explore: '探索作品',
+      readBlog: '阅读博客',
+      aboutTitle: '个人简介',
+      aboutText1: '我是一名专注于人工智能领域的开发者，致力于大语言模型（LLM）、深度学习以及自然语言处理的前沿探索。熟练掌握 Python 与 PyTorch 框架，对 Transformer 架构及大模型微调（如 LoRA）有着丰富的实战经验。',
+      aboutText2: '我也在不断积累前沿的 AI 技术（如 GLM4 等）。我期待通过代码与算法解决复杂的现实问题，在人工智能的时代里，留下属于自己的足迹。',
+      skillsTitle: '我学会过的技能',
+      worksTitle: '作品展示',
+      worksDetail: '查看详情',
+      contactTitle: '联系我',
+      contactText: '期待与你交流技术，探讨合作可能。旅途还在继续，一起创造更多的可能吧。',
+      footer: '维寒一念 | MyWebSide',
+      langToggle: '切换语言',
+      themeToggle: '切换主题'
+    },
+    tools: {
+      reaction: '反应力测试',
+      cps: 'CPS 测试',
+      pomodoro: '番茄钟',
+      password: '随机密码',
+      base64: 'Base64',
+      ready: '准备开始\n(点击区域)',
+      waiting: '等待颜色变绿...',
+      clickNow: '点击！',
+      tooEarly: '太早了！\n点击重试',
+      reactTime: '反应时间: {time} ms\n(点击重试)',
+      pwdLength: '长度',
+      pwdUpper: '大写字母',
+      pwdLower: '小写字母',
+      pwdNum: '数字',
+      pwdSym: '特殊符号',
+      generatePwd: '生成密码',
+      encode: '加密',
+      decode: '解密',
+      inputB64: '输入待处理内容...',
+      outputB64: '输出结果...',
+      work: '专注 (分)',
+      rest: '休息 (分)',
+      working: '🔥 专注中',
+      resting: '☕ 休息中',
+      todayFocus: '今日专注: {count} 次',
+      play: '▶ 开始',
+      pause: '⏸ 暂停',
+      reset: '🔄 重置'
+    },
+    messageWall: {
+      title: '公共留言墙',
+      subtitle: '在这里留下你的足迹吧...',
+      nickname: '昵称（选填，默认匿名）',
+      placeholder: '想说点什么？',
+      submit: '发射留言 🚀',
+      success: '留言发布成功！',
+      deleteSuccess: '删除成功',
+      emptyContent: '请填写留言内容哦~',
+      anonymous: '匿名用户'
+    },
+    hitokoto: {
+      change: '换一句'
+    }
+  },
+  en: {
+    nav: {
+      about: 'About',
+      skills: 'Skills',
+      works: 'Works',
+      contact: 'Contact',
+      message: 'Wall',
+      blog: 'Blog',
+      admin: 'Admin',
+      logo: "Weihan's Site"
+    },
+    home: {
+      hello: "Hi, I'm",
+      name: 'Weihan Yinian',
+      explore: 'Explore Works',
+      readBlog: 'Read Blog',
+      aboutTitle: 'About Me',
+      aboutText1: 'I am a developer focused on Artificial Intelligence, dedicated to exploring Large Language Models (LLMs), Deep Learning, and NLP. Proficient in Python and PyTorch, with extensive experience in Transformer architecture and model fine-tuning (e.g., LoRA).',
+      aboutText2: 'I continuously accumulate cutting-edge AI technologies (like GLM4). I look forward to solving complex real-world problems through code and algorithms, leaving my own mark in the era of AI.',
+      skillsTitle: 'My Skills',
+      worksTitle: 'Portfolio',
+      worksDetail: 'View Details',
+      contactTitle: 'Contact Me',
+      contactText: 'Looking forward to discussing tech and collaborations. The journey continues, let\'s create more possibilities together.',
+      footer: 'Weihan Yinian | MyWebSide',
+      langToggle: 'Switch Language',
+      themeToggle: 'Toggle Theme'
+    },
+    tools: {
+      reaction: 'Reaction Test',
+      cps: 'CPS Test',
+      pomodoro: 'Pomodoro',
+      password: 'Password Gen',
+      base64: 'Base64',
+      ready: 'Ready\n(Click area)',
+      waiting: 'Wait for Green...',
+      clickNow: 'Click!',
+      tooEarly: 'Too Early!\nClick to retry',
+      reactTime: 'Time: {time} ms\n(Click to retry)',
+      pwdLength: 'Length',
+      pwdUpper: 'Uppercase',
+      pwdLower: 'Lowercase',
+      pwdNum: 'Numbers',
+      pwdSym: 'Symbols',
+      generatePwd: 'Generate',
+      encode: 'Encode',
+      decode: 'Decode',
+      inputB64: 'Input text...',
+      outputB64: 'Output...',
+      work: 'Work (min)',
+      rest: 'Rest (min)',
+      working: '🔥 Working',
+      resting: '☕ Resting',
+      todayFocus: 'Today focus: {count}',
+      play: '▶ Play',
+      pause: '⏸ Pause',
+      reset: '🔄 Reset'
+    },
+    messageWall: {
+      title: 'Message Wall',
+      subtitle: 'Leave your footprints here...',
+      nickname: 'Nickname (Optional)',
+      placeholder: 'Say something...',
+      submit: 'Send 🚀',
+      success: 'Message posted!',
+      deleteSuccess: 'Deleted successfully',
+      emptyContent: 'Please enter a message~',
+      anonymous: 'Anonymous'
+    },
+    hitokoto: {
+      change: 'Next'
+    }
+  }
+}
+
+export const i18n = createI18n({
+  legacy: false,
+  locale: 'zh',
+  fallbackLocale: 'en',
+  messages
+})

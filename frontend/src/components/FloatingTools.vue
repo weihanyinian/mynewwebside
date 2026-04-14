@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const isMenuOpen = ref(false)
 const activeTool = ref<'none' | 'reaction' | 'cps' | 'pomodoro' | 'password' | 'base64'>('none')
@@ -55,11 +58,11 @@ function handleReactionClick() {
 
 const reactionMessage = computed(() => {
   switch (reactStatus.value) {
-    case 'idle': return '准备开始\n(点击区域)'
-    case 'waiting': return '等待颜色变绿...'
-    case 'click': return '点击！'
-    case 'early': return '太早了！\n点击重试'
-    case 'result': return `反应时间: ${reactTime.value} ms\n(点击重试)`
+    case 'idle': return t('tools.ready')
+    case 'waiting': return t('tools.waiting')
+    case 'click': return t('tools.clickNow')
+    case 'early': return t('tools.tooEarly')
+    case 'result': return t('tools.reactTime', { time: reactTime.value })
     default: return ''
   }
 })
@@ -287,25 +290,25 @@ onUnmounted(() => {
     </div>
     
     <!-- Floating Menu -->
-    <transition name="fade-slide">
-      <div v-if="isMenuOpen" class="widget-menu glass-ui">
-        <div class="menu-item" @click="openTool('reaction')">
-          <span class="item-icon">⚡</span> 反应力测试
+      <transition name="fade-slide">
+        <div v-if="isMenuOpen" class="widget-menu glass-ui">
+          <div class="menu-item" @click="openTool('reaction')">
+            <span class="item-icon">⚡</span> {{ t('tools.reaction') }}
+          </div>
+          <div class="menu-item" @click="openTool('cps')">
+            <span class="item-icon">🖱️</span> {{ t('tools.cps') }}
+          </div>
+          <div class="menu-item" @click="openTool('pomodoro')">
+            <span class="item-icon">🍅</span> {{ t('tools.pomodoro') }}
+          </div>
+          <div class="menu-item" @click="openTool('password')">
+            <span class="item-icon">🔑</span> {{ t('tools.password') }}
+          </div>
+          <div class="menu-item" @click="openTool('base64')">
+            <span class="item-icon">🔤</span> {{ t('tools.base64') }}
+          </div>
         </div>
-        <div class="menu-item" @click="openTool('cps')">
-          <span class="item-icon">🖱️</span> CPS 测试
-        </div>
-        <div class="menu-item" @click="openTool('pomodoro')">
-          <span class="item-icon">🍅</span> 番茄钟
-        </div>
-        <div class="menu-item" @click="openTool('password')">
-          <span class="item-icon">🔑</span> 随机密码
-        </div>
-        <div class="menu-item" @click="openTool('base64')">
-          <span class="item-icon">🔤</span> Base64
-        </div>
-      </div>
-    </transition>
+      </transition>
 
     <!-- Modals (Teleported to avoid clipping) -->
     <teleport to="body">
@@ -315,7 +318,7 @@ onUnmounted(() => {
           <!-- ================= 1. Reaction Test ================= -->
           <div v-if="activeTool === 'reaction'" class="tool-modal glass-ui-modal">
             <button class="close-btn" @click="closeTool">✕</button>
-            <h2 class="modal-title">⚡ 反应力测试</h2>
+            <h2 class="modal-title">⚡ {{ t('tools.reaction') }}</h2>
             
             <div 
               class="react-area" 
@@ -333,12 +336,12 @@ onUnmounted(() => {
           <!-- ================= 2. CPS Test ================= -->
           <div v-if="activeTool === 'cps'" class="tool-modal glass-ui-modal">
             <button class="close-btn" @click="closeTool">✕</button>
-            <h2 class="modal-title">🖱️ CPS 点击测试</h2>
+            <h2 class="modal-title">🖱️ {{ t('tools.cps') }}</h2>
             
             <div class="cps-modes">
-              <span class="cps-mode-btn" :class="{ active: cpsMode === 1 }" @click="setCpsMode(1)">1秒</span>
-              <span class="cps-mode-btn" :class="{ active: cpsMode === 3 }" @click="setCpsMode(3)">3秒</span>
-              <span class="cps-mode-btn" :class="{ active: cpsMode === 5 }" @click="setCpsMode(5)">5秒</span>
+              <span class="cps-mode-btn" :class="{ active: cpsMode === 1 }" @click="setCpsMode(1)">1s</span>
+              <span class="cps-mode-btn" :class="{ active: cpsMode === 3 }" @click="setCpsMode(3)">3s</span>
+              <span class="cps-mode-btn" :class="{ active: cpsMode === 5 }" @click="setCpsMode(5)">5s</span>
             </div>
 
             <div class="cps-stats">
@@ -356,7 +359,7 @@ onUnmounted(() => {
               class="cps-area" 
               @click="handleCpsClick"
             >
-              <div v-if="cpsStatus === 'idle'" class="cps-msg">点击此区域开始！</div>
+              <div v-if="cpsStatus === 'idle'" class="cps-msg">{{ t('tools.clickNow') }}</div>
               <div v-else-if="cpsStatus === 'running'" class="cps-msg cps-count">{{ cpsClicks }}</div>
               <div v-else class="cps-msg">
                 <div>最高: {{ cpsHighScore }} CPS</div>
@@ -369,31 +372,31 @@ onUnmounted(() => {
           <!-- ================= 3. Pomodoro ================= -->
           <div v-if="activeTool === 'pomodoro'" class="tool-modal glass-ui-modal">
             <button class="close-btn" @click="closeTool">✕</button>
-            <h2 class="modal-title">🍅 番茄专注钟</h2>
+            <h2 class="modal-title">🍅 {{ t('tools.pomodoro') }}</h2>
 
             <div class="pomo-settings">
               <div class="pomo-input-group">
-                <label>专注 (分)</label>
+                <label>{{ t('tools.work') }}</label>
                 <input type="number" v-model="pomoWork" @change="applyPomoSettings" min="1" max="120" :disabled="pomoRunning" />
               </div>
               <div class="pomo-input-group">
-                <label>休息 (分)</label>
+                <label>{{ t('tools.rest') }}</label>
                 <input type="number" v-model="pomoRest" @change="applyPomoSettings" min="1" max="60" :disabled="pomoRunning" />
               </div>
             </div>
 
             <div class="pomo-display">
-              <div class="pomo-mode-label">{{ pomoMode === 'work' ? '🔥 专注中' : '☕ 休息中' }}</div>
+              <div class="pomo-mode-label">{{ pomoMode === 'work' ? '🔥 ' + t('tools.working') : '☕ ' + t('tools.resting') }}</div>
               <div class="pomo-time">{{ pomoDisplay }}</div>
-              <div class="pomo-count">今日专注: {{ pomoCount }} 次</div>
+              <div class="pomo-count">{{ t('tools.todayFocus', { count: pomoCount }) || `今日专注: ${pomoCount} 次` }}</div>
             </div>
 
             <div class="pomo-controls">
               <button class="pomo-btn play-btn" @click="togglePomo">
-                {{ pomoRunning ? '⏸ 暂停' : '▶ 开始' }}
+                {{ pomoRunning ? '⏸ ' + t('tools.pause') : '▶ ' + t('tools.play') }}
               </button>
               <button class="pomo-btn reset-btn" @click="resetPomo">
-                🔄 重置
+                🔄 {{ t('tools.reset') }}
               </button>
             </div>
           </div>
@@ -401,42 +404,42 @@ onUnmounted(() => {
           <!-- ================= 4. Password Generator ================= -->
           <div v-if="activeTool === 'password'" class="tool-modal glass-ui-modal">
             <button class="close-btn" @click="closeTool">✕</button>
-            <h2 class="modal-title">🔑 密码生成器</h2>
+            <h2 class="modal-title">🔑 {{ t('tools.password') }}</h2>
             
             <div class="pwd-result-box" @click="copyPwd">
-              {{ pwdResult || '点击下方生成' }}
+              {{ pwdResult || t('tools.generatePwd') }}
               <span v-if="pwdResult" class="pwd-copy-hint">点击复制</span>
             </div>
 
             <div class="pwd-settings">
               <div class="pwd-row">
-                <label>长度 ({{ pwdLength }})</label>
+                <label>{{ t('tools.pwdLength') }} ({{ pwdLength }})</label>
                 <input type="range" v-model="pwdLength" min="4" max="32" class="pwd-slider" />
               </div>
               <div class="pwd-options">
-                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdUpper" /> <span>大写字母</span></label>
-                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdLower" /> <span>小写字母</span></label>
-                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdNum" /> <span>数字</span></label>
-                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdSym" /> <span>特殊符号</span></label>
+                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdUpper" /> <span>{{ t('tools.pwdUpper') }}</span></label>
+                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdLower" /> <span>{{ t('tools.pwdLower') }}</span></label>
+                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdNum" /> <span>{{ t('tools.pwdNum') }}</span></label>
+                <label class="cyber-checkbox"><input type="checkbox" v-model="pwdSym" /> <span>{{ t('tools.pwdSym') }}</span></label>
               </div>
             </div>
 
-            <button class="cyber-btn-outline pwd-gen-btn" @click="generatePwd">生成密码</button>
+            <button class="cyber-btn-outline pwd-gen-btn" @click="generatePwd">{{ t('tools.generatePwd') }}</button>
           </div>
 
           <!-- ================= 5. Base64 Encode/Decode ================= -->
           <div v-if="activeTool === 'base64'" class="tool-modal glass-ui-modal">
             <button class="close-btn" @click="closeTool">✕</button>
-            <h2 class="modal-title">🔤 Base64 工具</h2>
+            <h2 class="modal-title">🔤 {{ t('tools.base64') }}</h2>
 
             <div class="b64-modes">
-              <span class="b64-mode-btn" :class="{ active: base64Mode === 'encode' }" @click="base64Mode = 'encode'; processBase64()">加密</span>
-              <span class="b64-mode-btn" :class="{ active: base64Mode === 'decode' }" @click="base64Mode = 'decode'; processBase64()">解密</span>
+              <span class="b64-mode-btn" :class="{ active: base64Mode === 'encode' }" @click="base64Mode = 'encode'; processBase64()">{{ t('tools.encode') }}</span>
+              <span class="b64-mode-btn" :class="{ active: base64Mode === 'decode' }" @click="base64Mode = 'decode'; processBase64()">{{ t('tools.decode') }}</span>
             </div>
 
-            <textarea class="cyber-textarea b64-input" v-model="base64Input" @input="processBase64" placeholder="输入待处理内容..."></textarea>
+            <textarea class="cyber-textarea b64-input" v-model="base64Input" @input="processBase64" :placeholder="t('tools.inputB64')"></textarea>
             <div class="b64-arrow">↓</div>
-            <textarea class="cyber-textarea b64-output" v-model="base64Output" readonly placeholder="输出结果..."></textarea>
+            <textarea class="cyber-textarea b64-output" v-model="base64Output" readonly :placeholder="t('tools.outputB64')"></textarea>
           </div>
 
         </div>
