@@ -88,7 +88,7 @@ function toggleTheme() {
       <div class="glass-card about-card">
         <h2>{{ t('home.aboutTitle') }}</h2>
         <div class="about-content">
-          <img src="../../assets/images/about-forest.jpg" alt="about" class="about-img" />
+          <img src="../../assets/images/about-miku.jpg" alt="about miku" class="about-img" />
           <div class="about-text">
             <p>{{ t('home.aboutText1') }}</p>
             <br />
@@ -127,7 +127,7 @@ function toggleTheme() {
       <div class="glass-card contact-card">
         <h2>{{ t('home.contactTitle') }}</h2>
         <p>{{ t('home.contactText') }}</p>
-        <img src="../../assets/images/bg-night.jpg" alt="contact" class="contact-img" />
+        <img src="../../assets/images/contact-miku.jpg" alt="contact miku" class="contact-img" />
         <div class="contact-links">
           <a href="https://github.com" target="_blank">GitHub</a>
           <a href="mailto:hello@example.com">Email</a>
@@ -591,7 +591,7 @@ h2 {
   .hero-title {
     font-size: 2.5rem;
   }
-  .links a:not(.blog-btn):not(.theme-toggle) {
+  .links a:not(.blog-btn):not(.theme-toggle):not(.lang-toggle) {
     display: none;
   }
   .works-grid {
@@ -607,6 +607,10 @@ h2 {
   .about-img {
     width: 100%;
     aspect-ratio: 4/3;
+  }
+  .contact-img {
+    height: auto;
+    aspect-ratio: 16/9;
   }
 }
 </style>
