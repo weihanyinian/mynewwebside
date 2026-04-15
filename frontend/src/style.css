@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --primary-color: #4a90e2;
   --secondary-color: #50e3c2;
@@ -62,4 +66,12 @@ a {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(74, 144, 226, 0.8);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

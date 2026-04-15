@@ -29,3 +29,5 @@ frontend/.env.*.local
 
 # Local large video files in root
 /*.mp4
+
+BGM/
