@@ -158,13 +158,18 @@ onMounted(async () => {
 async function setupLive2D() {
   if (!live2dCanvas.value) return
 
+  // 动态获取父容器尺寸，适配桌面/移动端
+  const parentRect = live2dCanvas.value.parentElement?.getBoundingClientRect()
+  const canvasWidth = parentRect?.width || 250
+  const canvasHeight = parentRect?.height || 250
+
   app = new window.PIXI.Application({
     view: live2dCanvas.value,
     transparent: true,
     autoStart: true,
     backgroundAlpha: 0,
-    width: 350,
-    height: 450,
+    width: canvasWidth,
+    height: canvasHeight,
     resolution: window.devicePixelRatio || 1,
     autoDensity: true
   })
@@ -201,23 +206,27 @@ function resizeModel() {
   // Reset scale to correctly calculate base size
   model.scale.set(1)
   
-  const containerWidth = 350
-  const containerHeight = 450
+  // 动态获取容器尺寸，自动适配桌面端和移动端 
+  const containerWidth = live2dCanvas.value?.parentElement?.clientWidth || 250 
+  const containerHeight = live2dCanvas.value?.parentElement?.clientHeight || 250 
   
-  const scaleX = containerWidth / (model.width || containerWidth)
-  const scaleY = containerHeight / (model.height || containerHeight)
-  const scale = Math.min(scaleX, scaleY) * 1.0 // Scale to fit the container
+  const scaleX = containerWidth / (model.width || containerWidth) 
+  const scaleY = containerHeight / (model.height || containerHeight) 
+  // 核心修改1：把5.0改为1.0~2.0之间，推荐1.2，可根据模型微调 
+  const scale = Math.min(scaleX, scaleY) * 1.5 
   
-  model.scale.set(scale)
+  model.scale.set(scale) 
   
-  if (model.anchor) {
-    model.anchor.set(0.5, 0.5)
-    model.x = containerWidth / 2
-    model.y = containerHeight / 2 + 10
-  } else {
-    model.x = (containerWidth - model.width) / 2
-    model.y = containerHeight - model.height + 20 // Align bottom, push slightly down so head is near top
-  }
+  if (model.anchor) { 
+    model.anchor.set(0.5, 0.5) 
+    model.x = containerWidth / 2 
+    // 核心修改2：Y轴向上偏移，让头部进入画布，数值越小模型越靠上 
+    model.y = containerHeight / 2 - 30 
+  } else { 
+    model.x = (containerWidth - model.width * scale) / 2 
+    // 核心修改3：删除+580的错误偏移，改为小幅向上偏移，数值越小模型越靠上 
+    model.y = containerHeight - model.height * scale + 180 
+  } 
 }
 
 onBeforeUnmount(() => {
@@ -297,8 +306,8 @@ onBeforeUnmount(() => {
 }
 
 .mascot-avatar {
-  width: 350px;
-  height: 450px;
+  width: 250px;
+  height: 250px;
   background: transparent;
   display: flex;
   align-items: center;
@@ -306,6 +315,7 @@ onBeforeUnmount(() => {
   cursor: grab;
   position: relative;
   transition: transform 0.3s ease-out;
+  overflow: hidden; /* Hide the lower body that goes out of bounds */
 }
 .mascot-avatar:active {
   cursor: grabbing;
