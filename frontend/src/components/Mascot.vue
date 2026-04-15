@@ -2,11 +2,19 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 
 const quotes = [
-  '你好呀～欢迎来到我的网站',
-  '今天也要加油哦',
-  '要不要听我唱歌呢',
-  '摸摸头～',
-  '别一直点我啦，痒~'
+  '我也要死吗？',
+  '我也要加班吗？',
+  '我也要上学吗？',
+  '我也要吃土吗？',
+  '我也要卷吗？',
+  '（忍住不吐的恐惧...）',
+  '这药的副作用好大...',
+  '今天也是活人微死的一天',
+  '躺平式 emo 中...',
+  '咋地？我也得没啊？',
+  '我都要扑街咩？',
+  '俺也得走？中不中啊？',
+  '我也要学汉语吗？'
 ]
 
 const currentQuote = ref(quotes[0])
@@ -60,7 +68,7 @@ function handlePoke() {
 
 function onMouseEnter() {
   if (isDragging || isMinimized.value || showBubble.value) return
-  changeQuote('你好呀～欢迎来到我的网站')
+  changeQuote('我也要死吗？')
 }
 
 function resetHideTimer() {
@@ -212,20 +220,19 @@ function resizeModel() {
   
   const scaleX = containerWidth / (model.width || containerWidth) 
   const scaleY = containerHeight / (model.height || containerHeight) 
-  // 核心修改1：把5.0改为1.0~2.0之间，推荐1.2，可根据模型微调 
-  const scale = Math.min(scaleX, scaleY) * 1.5 
+  // 恢复缩放以完整显示模型 
+  const scale = Math.min(scaleX, scaleY) * 1.2 
   
   model.scale.set(scale) 
   
   if (model.anchor) { 
     model.anchor.set(0.5, 0.5) 
     model.x = containerWidth / 2 
-    // 核心修改2：Y轴向上偏移，让头部进入画布，数值越小模型越靠上 
-    model.y = containerHeight / 2 - 30 
+    model.y = containerHeight / 2 + 10 
   } else { 
     model.x = (containerWidth - model.width * scale) / 2 
-    // 核心修改3：删除+580的错误偏移，改为小幅向上偏移，数值越小模型越靠上 
-    model.y = containerHeight - model.height * scale + 180 
+    // 让模型底部对齐容器底部，完整显示
+    model.y = containerHeight - model.height * scale + 150 
   } 
 }
 
@@ -315,7 +322,6 @@ onBeforeUnmount(() => {
   cursor: grab;
   position: relative;
   transition: transform 0.3s ease-out;
-  overflow: hidden; /* Hide the lower body that goes out of bounds */
 }
 .mascot-avatar:active {
   cursor: grabbing;

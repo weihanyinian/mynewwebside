@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import playlistData from '../assets/playlist.json'
 
-const playlist = [
-  { title: '日常の悠闲', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { title: '魔法的低语', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' },
-  { title: '赛博夜空', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' }
-]
+const playlist = playlistData
 
 const audioRef = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
