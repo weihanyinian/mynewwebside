@@ -29,11 +29,11 @@ function toggleLocale() {
           <a @click="goHome('#works')">{{ t('nav.works') }}</a>
           <a @click="goHome('#contact')">{{ t('nav.contact') }}</a>
           <a @click="router.push('/message')">{{ t('nav.message') }}</a>
-          <a @click="router.push('/moyu')">{{ t('nav.moyu') }}</a>
+          <a @click="router.push('/moyu')" :class="{ active: router.currentRoute.value.path === '/moyu', 'moyu-link': true }">{{ t('nav.moyu') }}</a>
           <a @click="toggleLocale" class="lang-toggle" :title="t('home.langToggle')">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
-          <a @click="router.push('/blog')" class="active">{{ t('nav.blog') }}</a>
+          <a @click="router.push('/blog')" :class="{ active: router.currentRoute.value.path.startsWith('/blog') }">{{ t('nav.blog') }}</a>
           <a v-if="isLoggedIn" @click="router.push('/admin')">{{ t('nav.admin') }}</a>
           <a v-else @click="router.push('/admin/login')">{{ t('nav.admin') }}</a>
         </div>
@@ -167,7 +167,7 @@ function toggleLocale() {
 }
 
 @media (max-width: 780px) {
-  .links a:not(.active) {
+  .links a:not(.active):not(.lang-toggle):not(.moyu-link) {
     display: none;
   }
 }

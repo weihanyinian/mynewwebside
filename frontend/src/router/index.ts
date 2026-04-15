@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { getToken } from '../utils/token'
 
 const PortfolioPage = () => import('../pages/public/PortfolioPage.vue')
-const HomePage = () => import('../pages/public/HomePage.vue')
+const HomePage = () => import('../pages/public/BlogHome.vue')
 const ArticlePage = () => import('../pages/public/ArticlePage.vue')
 const CategoriesPage = () => import('../pages/public/CategoriesPage.vue')
 const TagsPage = () => import('../pages/public/TagsPage.vue')

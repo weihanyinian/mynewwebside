@@ -65,6 +65,7 @@ function toggleTheme() {
             {{ isDark ? '🌙' : '☀️' }}
           </a>
           <a @click="router.push('/blog')" class="blog-btn">{{ t('nav.blog') }}</a>
+          <a @click="router.push('/moyu')" class="moyu-btn">{{ t('nav.moyu') }}</a>
         </div>
       </div>
     </nav>
@@ -299,9 +300,20 @@ h2 {
 .dark-theme .blog-btn {
   background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
 }
-.blog-btn:hover {
+.blog-btn:hover, .moyu-btn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
+}
+
+.moyu-btn {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+.dark-theme .moyu-btn {
+  background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
 }
 
 /* Hero Section */
@@ -591,7 +603,7 @@ h2 {
   .hero-title {
     font-size: 2.5rem;
   }
-  .links a:not(.blog-btn):not(.theme-toggle):not(.lang-toggle) {
+  .links a:not(.blog-btn):not(.moyu-btn):not(.theme-toggle):not(.lang-toggle) {
     display: none;
   }
   .works-grid {
