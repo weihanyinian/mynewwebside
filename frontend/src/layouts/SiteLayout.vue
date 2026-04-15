@@ -29,6 +29,7 @@ function toggleLocale() {
           <a @click="goHome('#works')">{{ t('nav.works') }}</a>
           <a @click="goHome('#contact')">{{ t('nav.contact') }}</a>
           <a @click="router.push('/message')">{{ t('nav.message') }}</a>
+          <a @click="router.push('/moyu')">{{ t('nav.moyu') }}</a>
           <a @click="toggleLocale" class="lang-toggle" :title="t('home.langToggle')">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>

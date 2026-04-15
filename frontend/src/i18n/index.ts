@@ -8,6 +8,7 @@ const messages = {
       works: '作品',
       contact: '联系',
       message: '留言墙',
+      moyu: '摸鱼',
       blog: '前往博客',
       admin: '管理后台',
       logo: '维寒一念的小站'
@@ -81,6 +82,7 @@ const messages = {
       works: 'Works',
       contact: 'Contact',
       message: 'Wall',
+      moyu: 'Games',
       blog: 'Blog',
       admin: 'Admin',
       logo: "Weihan's Site"
