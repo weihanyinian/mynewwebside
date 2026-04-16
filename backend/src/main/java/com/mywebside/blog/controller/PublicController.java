@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 访客只读资源（REST 前缀 {@code /api/public}）。
+ * <p>统一响应体为 {@link com.mywebside.blog.common.ApiResponse}，错误由全局异常处理转换为 HTTP 状态码 + JSON。</p>
+ */
 @RestController
 @RequestMapping("/api/public")
 public class PublicController {

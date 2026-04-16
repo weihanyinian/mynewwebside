@@ -10,6 +10,7 @@ const messages = {
       message: '留言墙',
       moyu: '摸鱼',
       blog: '前往博客',
+      oj: '在线 OJ',
       admin: '管理后台',
       logo: '维寒一念的小站'
     },
@@ -28,7 +29,23 @@ const messages = {
       contactText: '期待与你交流技术，探讨合作可能。旅途还在继续，一起创造更多的可能吧。',
       footer: '维寒一念 | MyWebSide',
       langToggle: '切换语言',
-      themeToggle: '切换主题'
+      themeToggle: '切换主题',
+      openOj: '在线 OJ'
+    },
+    breadcrumb: {
+      home: '首页',
+      blog: '博客',
+      article: '文章',
+      categories: '分类',
+      tags: '标签',
+      message: '留言墙',
+      ojProblem: '题目',
+      adminHome: '管理后台',
+      adminArticles: '文章管理',
+      adminEditor: '撰写文章',
+      adminCategories: '分类管理',
+      adminTags: '标签管理',
+      adminMessages: '留言审核'
     },
     tools: {
       reaction: '反应力测试',
@@ -69,7 +86,12 @@ const messages = {
       success: '留言发布成功！',
       deleteSuccess: '删除成功',
       emptyContent: '请填写留言内容哦~',
-      anonymous: '匿名用户'
+      anonymous: '匿名用户',
+      pendingReview: '提交成功！留言将在站长审核通过后公开展示。',
+      loadError: '留言加载失败，请稍后重试',
+      emptyTitle: '还没有通过审核的留言',
+      emptyHint: '来做第一个留言的人吧，或通过管理后台审核待处理留言。',
+      replyFromAdmin: '站长回复'
     },
     hitokoto: {
       change: '换一句'
@@ -84,6 +106,7 @@ const messages = {
       message: 'Wall',
       moyu: 'Games',
       blog: 'Blog',
+      oj: 'OJ',
       admin: 'Admin',
       logo: "Weihan's Site"
     },
@@ -102,7 +125,23 @@ const messages = {
       contactText: 'Looking forward to discussing tech and collaborations. The journey continues, let\'s create more possibilities together.',
       footer: 'Weihan Yinian | MyWebSide',
       langToggle: 'Switch Language',
-      themeToggle: 'Toggle Theme'
+      themeToggle: 'Toggle Theme',
+      openOj: 'Online OJ'
+    },
+    breadcrumb: {
+      home: 'Home',
+      blog: 'Blog',
+      article: 'Article',
+      categories: 'Categories',
+      tags: 'Tags',
+      message: 'Wall',
+      ojProblem: 'Problem',
+      adminHome: 'Admin',
+      adminArticles: 'Articles',
+      adminEditor: 'Editor',
+      adminCategories: 'Categories',
+      adminTags: 'Tags',
+      adminMessages: 'Messages'
     },
     tools: {
       reaction: 'Reaction Test',
@@ -143,7 +182,12 @@ const messages = {
       success: 'Message posted!',
       deleteSuccess: 'Deleted successfully',
       emptyContent: 'Please enter a message~',
-      anonymous: 'Anonymous'
+      anonymous: 'Anonymous',
+      pendingReview: 'Submitted! It will appear after approval.',
+      loadError: 'Failed to load messages.',
+      emptyTitle: 'No approved messages yet',
+      emptyHint: 'Be the first to leave a message, or approve pending items in admin.',
+      replyFromAdmin: 'Reply'
     },
     hitokoto: {
       change: 'Next'

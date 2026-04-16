@@ -12,6 +12,7 @@ import {
   type Category,
   type Tag,
 } from '../../api/blog'
+import MarkdownView from '../../components/MarkdownView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -125,8 +126,22 @@ onMounted(async () => {
           <el-input v-model="form.coverUrl" maxlength="500" />
         </el-form-item>
 
-        <el-form-item label="正文（Markdown）">
-          <el-input v-model="form.contentMd" type="textarea" :rows="18" placeholder="# Hello" />
+        <el-form-item label="正文（Markdown · 左侧编辑 / 右侧实时预览）">
+          <div class="md-split">
+            <el-input
+              v-model="form.contentMd"
+              type="textarea"
+              :rows="22"
+              placeholder="# 标题&#10;&#10;支持 **粗体**、`代码`、列表与代码高亮（与前台 MarkdownView 一致）。"
+              class="md-split__editor"
+            />
+            <div class="md-split__preview">
+              <p class="md-split__preview-title">预览</p>
+              <div class="md-split__preview-body">
+                <MarkdownView :content="form.contentMd" />
+              </div>
+            </div>
+          </div>
         </el-form-item>
       </el-form>
     </el-card>
@@ -158,5 +173,47 @@ onMounted(async () => {
   .row {
     grid-template-columns: 1fr;
   }
+}
+
+/* 管理后台 Markdown 分栏：青蓝玻璃态与前台正文风格对齐 */
+.md-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+@media (max-width: 1100px) {
+  .md-split {
+    grid-template-columns: 1fr;
+  }
+}
+.md-split__editor :deep(textarea) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.md-split__preview {
+  border-radius: 12px;
+  border: 1px solid rgba(74, 144, 226, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+.md-split__preview-title {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #50e3c2;
+  border-bottom: 1px solid rgba(74, 144, 226, 0.25);
+}
+.md-split__preview-body {
+  padding: 12px 14px 16px;
+  overflow: auto;
+  flex: 1;
+  max-height: min(70vh, 640px);
 }
 </style>

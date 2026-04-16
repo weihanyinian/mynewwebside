@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getPublicArticle, type ArticleDetail } from '../../api/blog'
 import MarkdownView from '../../components/MarkdownView.vue'
+import BackToHomeButton from '../../components/BackToHomeButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -173,11 +174,14 @@ watch(
       </aside>
 
       <main class="flex-1 p-6 lg:p-12 xl:p-16 min-h-screen relative pb-44">
-        <div class="flex items-center justify-between gap-4 mb-8">
-          <button class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition text-sm font-medium text-slate-200" @click="go('/blog')">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            返回博客
-          </button>
+        <div class="flex items-center justify-between gap-4 mb-8 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap">
+            <BackToHomeButton />
+            <button class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition text-sm font-medium text-slate-200" @click="go('/blog')">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+              返回博客
+            </button>
+          </div>
 
           <button v-if="toc.length" class="xl:hidden inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition text-sm font-medium text-slate-200" @click="tocOpen = true">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10"></path></svg>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import BackToHomeButton from '../../components/BackToHomeButton.vue'
 
 const games = [
   { id: 1, name: '2048 数字合并', icon: '🔢', desc: '经典数字合并游戏，挑战2048', url: 'https://play2048.co/' },
@@ -45,6 +46,9 @@ function openInNewTab() {
 
 <template>
   <div class="moyu-container">
+    <div class="moyu-back">
+      <BackToHomeButton />
+    </div>
     <div class="header">
       <h1 class="title">摸鱼中心 🎮</h1>
       <p class="subtitle">工作学习累了？来这里放松一下吧！精选 20+ 款经典小游戏。</p>
@@ -101,6 +105,10 @@ function openInNewTab() {
 .moyu-container {
   padding: 20px;
   animation: fadeIn 0.5s ease-out;
+}
+
+.moyu-back {
+  margin-bottom: 12px;
 }
 
 .header {

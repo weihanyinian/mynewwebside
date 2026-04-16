@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getTags, type Tag } from '../../api/blog'
+import BackToHomeButton from '../../components/BackToHomeButton.vue'
 
 const router = useRouter()
 const items = ref<Tag[]>([])
@@ -13,6 +14,9 @@ onMounted(async () => {
 
 <template>
   <div class="card panel page-animation">
+    <div class="page-top">
+      <BackToHomeButton />
+    </div>
     <div class="page-title">探索标签</div>
     <div class="tags-container">
       <span
@@ -38,6 +42,9 @@ onMounted(async () => {
 }
 .panel {
   padding: 30px;
+}
+.page-top {
+  margin-bottom: 12px;
 }
 .tags-container {
   display: flex;

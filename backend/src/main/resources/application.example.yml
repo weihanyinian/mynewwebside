@@ -27,3 +27,12 @@ app:
   jwt:
     secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_FOR_PROD"
     expire-minutes: 10080
+
+# 在线判题 Judge0 CE（可与生产环境分环境配置）
+oj:
+  judge0:
+    base-url: https://ce.judge0.com
+    poll-interval-ms: 400
+    poll-max-rounds: 80
+    rapid-api-key: ""
+    rapid-api-host: ""

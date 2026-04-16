@@ -1,10 +1,12 @@
-import axios from 'axios'
+import axios, { type AxiosError } from 'axios'
 import { getToken } from '../utils/token'
 
 export type ApiResponse<T> = {
   code: number
   message: string
   data: T
+  /** 后端统一时间戳（毫秒），可选 */
+  timestamp?: number
 }
 
 export const http = axios.create({
@@ -29,6 +31,13 @@ http.interceptors.response.use(
     }
     return resp
   },
-  (err) => Promise.reject(err),
+  (err: AxiosError<ApiResponse<unknown>>) => {
+    const data = err.response?.data
+    if (data && typeof data === 'object' && typeof data.message === 'string' && data.message) {
+      return Promise.reject(new Error(data.message))
+    }
+    if (err.message) return Promise.reject(err)
+    return Promise.reject(new Error('网络异常'))
+  },
 )
 

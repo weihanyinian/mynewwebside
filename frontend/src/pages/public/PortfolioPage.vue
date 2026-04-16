@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { goToSiteHome } from '../../utils/siteHome'
 import { useI18n } from 'vue-i18n'
 import FloatingTools from '../../components/FloatingTools.vue'
 import HitokotoCard from '../../components/HitokotoCard.vue'
 
 const router = useRouter()
+const route = useRoute()
 const { t, locale } = useI18n()
 
 const isDark = ref(false)
@@ -17,7 +19,8 @@ function toggleLocale() {
 const works = ref([
   { title: '大语言模型微调与部署', desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。', link: '#', tag: 'LLM / GLM4' },
   { title: 'Transformer 机器翻译', desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。', link: '#', tag: 'Deep Learning' },
-  { title: 'MyWebSide Blog', desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。', link: '/blog', tag: 'Full Stack' }
+  { title: 'MyWebSide Blog', desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。', link: '/blog', tag: 'Full Stack' },
+  { title: '在线判题 OJ', desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。', link: '/oj', tag: 'OJ / Sandbox' },
 ])
 
 const skills = ref([
@@ -35,6 +38,15 @@ function scrollTo(id: string) {
 function toggleTheme() {
   isDark.value = !isDark.value
 }
+
+/** 首页顶栏标题：已在主页则滚回顶部，否则进入 `/` */
+function onSiteLogoClick() {
+  if (route.path === '/') {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  } else {
+    goToSiteHome(router)
+  }
+}
 </script>
 
 <template>
@@ -50,7 +62,16 @@ function toggleTheme() {
           <!-- Floating Widgets inside navbar -->
           <FloatingTools />
           
-          <div class="logo">{{ t('nav.logo') }}</div>
+          <div
+            class="logo"
+            role="link"
+            tabindex="0"
+            :title="locale === 'zh' ? '返回顶部 / 主页' : 'Home / top'"
+            @click="onSiteLogoClick"
+            @keydown.enter.prevent="onSiteLogoClick"
+          >
+            {{ t('nav.logo') }}
+          </div>
         </div>
         <div class="links">
           <a @click="scrollTo('about')">{{ t('nav.about') }}</a>
@@ -58,6 +79,7 @@ function toggleTheme() {
           <a @click="scrollTo('works')">{{ t('nav.works') }}</a>
           <a @click="scrollTo('contact')">{{ t('nav.contact') }}</a>
           <a @click="router.push('/message')">{{ t('nav.message') }}</a>
+          <a class="oj-link" @click="router.push('/oj')">{{ t('nav.oj') }}</a>
           <a @click="toggleLocale" class="lang-toggle" :title="t('home.langToggle')">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
@@ -75,8 +97,9 @@ function toggleTheme() {
       <div class="hero-content">
         <h1 class="hero-title">{{ t('home.hello') }} <span>{{ t('home.name') }}</span></h1>
         <div class="hero-actions">
-          <button class="btn-primary" @click="scrollTo('works')">{{ t('home.explore') }}</button>
-          <button class="btn-outline" @click="router.push('/blog')">{{ t('home.readBlog') }}</button>
+          <button type="button" class="btn-primary" @click="scrollTo('works')">{{ t('home.explore') }}</button>
+          <button type="button" class="btn-outline" @click="router.push('/blog')">{{ t('home.readBlog') }}</button>
+          <button type="button" class="btn-outline btn-oj" @click="router.push('/oj')">{{ t('home.openOj') }}</button>
         </div>
       </div>
     </section>
@@ -253,8 +276,10 @@ h2 {
   font-weight: 800;
   letter-spacing: -0.5px;
   background: linear-gradient(to right, #4a90e2, #50e3c2);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  cursor: pointer;
 }
 .dark-theme .logo {
   background: linear-gradient(to right, #a18cd1, #fbc2eb);
@@ -351,8 +376,17 @@ h2 {
 
 .hero-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   justify-content: center;
+}
+.btn-oj {
+  border-color: #50e3c2;
+  color: #2a9d8f;
+}
+.dark-theme .btn-oj {
+  border-color: #50e3c2;
+  color: #7bedd3;
 }
 .btn-primary, .btn-outline {
   padding: 12px 28px;
@@ -603,7 +637,7 @@ h2 {
   .hero-title {
     font-size: 2.5rem;
   }
-  .links a:not(.blog-btn):not(.moyu-btn):not(.theme-toggle):not(.lang-toggle) {
+  .links a:not(.blog-btn):not(.moyu-btn):not(.oj-link):not(.theme-toggle):not(.lang-toggle) {
     display: none;
   }
   .works-grid {

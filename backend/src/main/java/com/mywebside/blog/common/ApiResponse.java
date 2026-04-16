@@ -3,16 +3,16 @@ package com.mywebside.blog.common;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record ApiResponse<T>(int code, String message, T data) {
+public record ApiResponse<T>(int code, String message, T data, Long timestamp) {
   public static <T> ApiResponse<T> ok(T data) {
-    return new ApiResponse<>(0, "OK", data);
+    return new ApiResponse<>(0, "OK", data, System.currentTimeMillis());
   }
 
   public static ApiResponse<Void> ok() {
-    return new ApiResponse<>(0, "OK", null);
+    return new ApiResponse<>(0, "OK", null, System.currentTimeMillis());
   }
 
   public static ApiResponse<Void> error(int code, String message) {
-    return new ApiResponse<>(code, message, null);
+    return new ApiResponse<>(code, message, null, System.currentTimeMillis());
   }
 }

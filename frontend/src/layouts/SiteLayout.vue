@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getToken } from '../utils/token'
+import { goToSiteHome } from '../utils/siteHome'
+import GlassBreadcrumb from '../components/GlassBreadcrumb.vue'
 
 type ThemeMode = 'light' | 'dark'
 
@@ -15,13 +17,24 @@ const isLoggedIn = computed(() => !!getToken())
 /** 博客/文章等页需要更宽主栏，避免卡片栅格被 1080px 挤乱 */
 const isWideMain = computed(() => {
   const p = route.path
-  return p.startsWith('/blog') || p.startsWith('/article') || p === '/categories' || p === '/tags'
+  return (
+    p.startsWith('/blog') ||
+    p.startsWith('/article') ||
+    p === '/categories' ||
+    p === '/tags' ||
+    p.startsWith('/oj')
+  )
 })
 
 const colorTheme = ref<ThemeMode>('light')
 
 function goHome(hash: string) {
   router.push({ path: '/', hash: hash })
+}
+
+/** 顶栏 Logo：全局回主页入口（清除 hash，子页状态随卸载而结束） */
+function onSiteLogoClick() {
+  goToSiteHome(router)
 }
 
 function toggleLocale() {
@@ -68,7 +81,16 @@ onMounted(() => {
   <div class="site-root">
     <nav class="glass-nav">
       <div class="nav-inner">
-        <div class="logo" @click="router.push('/')">{{ t('nav.logo') }}</div>
+        <div
+          class="logo"
+          role="link"
+          tabindex="0"
+          :title="locale === 'zh' ? '返回主页' : 'Home'"
+          @click="onSiteLogoClick"
+          @keydown.enter.prevent="onSiteLogoClick"
+        >
+          {{ t('nav.logo') }}
+        </div>
         <div class="links">
           <a @click="goHome('#about')">{{ t('nav.about') }}</a>
           <a @click="goHome('#skills')">{{ t('nav.skills') }}</a>
@@ -79,6 +101,10 @@ onMounted(() => {
           <a @click="toggleLocale" class="lang-toggle" :title="t('home.langToggle')">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
+          <a
+            @click="router.push('/oj')"
+            :class="{ active: route.path.startsWith('/oj'), 'oj-link': true }"
+          >{{ t('nav.oj') }}</a>
           <a
             @click="router.push('/blog')"
             :class="{ active: route.path.startsWith('/blog') || route.path.startsWith('/article') }"
@@ -93,6 +119,7 @@ onMounted(() => {
     </nav>
 
     <main class="site-main" :class="{ 'site-main--wide': isWideMain }">
+      <GlassBreadcrumb />
       <slot />
     </main>
 
@@ -220,7 +247,7 @@ onMounted(() => {
 }
 
 @media (max-width: 780px) {
-  .links a:not(.active):not(.lang-toggle):not(.moyu-link):not(.theme-toggle) {
+  .links a:not(.active):not(.lang-toggle):not(.moyu-link):not(.oj-link):not(.theme-toggle) {
     display: none;
   }
 }

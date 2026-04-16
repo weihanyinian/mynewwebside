@@ -375,7 +375,8 @@ onUnmounted(() => {
 .mp-panel__title {
   font-size: 0.88rem;
   font-weight: 700;
-  color: #b8f0ff;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   line-height: 1.35;
   flex: 1;
   min-width: 0;

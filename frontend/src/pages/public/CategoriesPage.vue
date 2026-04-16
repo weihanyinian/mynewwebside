@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCategories, type Category } from '../../api/blog'
+import BackToHomeButton from '../../components/BackToHomeButton.vue'
 
 const router = useRouter()
 const items = ref<Category[]>([])
@@ -13,6 +14,9 @@ onMounted(async () => {
 
 <template>
   <div class="card panel page-animation">
+    <div class="page-top">
+      <BackToHomeButton />
+    </div>
     <div class="page-title">探索分类</div>
     <div class="grid">
       <div
@@ -39,6 +43,9 @@ onMounted(async () => {
 }
 .panel {
   padding: 30px;
+}
+.page-top {
+  margin-bottom: 12px;
 }
 .grid {
   display: grid;

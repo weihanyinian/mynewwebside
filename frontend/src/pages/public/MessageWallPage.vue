@@ -1,54 +1,71 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+/**
+ * 留言墙：对接后端审核流；列表仅展示已通过记录；提交后为待审核状态。
+ */
+import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import { getToken } from '../../utils/token'
+import BackToHomeButton from '../../components/BackToHomeButton.vue'
+import { fetchWallMessages, submitWallMessage, type WallMessagePublic } from '../../api/wall'
 
 const { t } = useI18n()
 
-// Using token utility to check admin
-function isAdmin() {
-  const token = getToken()
-  return token === 'mock-token-admin' || (token && token.length > 20)
-}
-
-const messages = ref([
-  { id: 1, author: '旅行者', content: '这里真好看！', time: '2026-04-14 10:00', avatar: '🌸' },
-  { id: 2, author: '代码之神', content: '测试一下留言功能。', time: '2026-04-14 11:30', avatar: '💻' }
-])
+const loading = ref(true)
+const loadError = ref(false)
+const messages = ref<WallMessagePublic[]>([])
 
 const newAuthor = ref('')
 const newContent = ref('')
+const submitting = ref(false)
 
-const myMessages = ref<number[]>([])
+async function load() {
+  loading.value = true
+  loadError.value = false
+  try {
+    messages.value = await fetchWallMessages()
+  } catch {
+    loadError.value = true
+    messages.value = []
+  } finally {
+    loading.value = false
+  }
+}
 
-function submitMessageAndTrack() {
+function formatTime(iso: string) {
+  try {
+    return new Date(iso).toLocaleString()
+  } catch {
+    return iso
+  }
+}
+
+async function submitMessage() {
   if (!newContent.value.trim()) {
     ElMessage.warning(t('messageWall.emptyContent'))
     return
   }
-  const id = Date.now()
-  messages.value.unshift({
-    id,
-    author: newAuthor.value.trim() || t('messageWall.anonymous'),
-    content: newContent.value,
-    time: new Date().toLocaleString(),
-    avatar: '✨'
-  })
-  myMessages.value.push(id)
-  newContent.value = ''
-  newAuthor.value = ''
-  ElMessage.success(t('messageWall.success'))
+  submitting.value = true
+  try {
+    await submitWallMessage(newAuthor.value, newContent.value)
+    newContent.value = ''
+    newAuthor.value = ''
+    ElMessage.success(t('messageWall.pendingReview'))
+    await load()
+  } catch (e: unknown) {
+    ElMessage.error(e instanceof Error ? e.message : '提交失败')
+  } finally {
+    submitting.value = false
+  }
 }
 
-function deleteMessage(id: number) {
-  messages.value = messages.value.filter(m => m.id !== id)
-  ElMessage.success(t('messageWall.deleteSuccess'))
-}
+onMounted(load)
 </script>
 
 <template>
   <div class="message-wall-page page-animation">
+    <div class="wall-back">
+      <BackToHomeButton />
+    </div>
     <div class="wall-header">
       <h1 class="wall-title">{{ t('messageWall.title') }}</h1>
       <p class="wall-subtitle">{{ t('messageWall.subtitle') }}</p>
@@ -64,34 +81,50 @@ function deleteMessage(id: number) {
         class="cyber-textarea mb-3"
       />
       <div class="form-actions">
-        <button class="cyber-btn" @click="submitMessageAndTrack">{{ t('messageWall.submit') }}</button>
+        <button type="button" class="cyber-btn" :disabled="submitting" @click="submitMessage">
+          {{ t('messageWall.submit') }}
+        </button>
       </div>
     </div>
 
-    <div class="messages-grid">
-      <transition-group name="list">
-        <div v-for="m in messages" :key="m.id" class="message-card glass-card">
-          <div class="msg-header">
-            <div class="msg-author-info">
-              <span class="msg-avatar">{{ m.avatar }}</span>
-              <span class="msg-author">{{ m.author }}</span>
-            </div>
-            <div class="msg-time">{{ m.time }}</div>
-          </div>
-          <div class="msg-content">{{ m.content }}</div>
-          
-          <!-- Delete button for admin or self -->
-          <button 
-            v-if="isAdmin() || myMessages.includes(m.id)" 
-            class="delete-btn" 
-            @click="deleteMessage(m.id)"
-            title="删除留言"
-          >
-            🗑️
-          </button>
-        </div>
-      </transition-group>
+    <!-- 骨架屏 -->
+    <div v-if="loading" class="messages-grid" aria-busy="true">
+      <div v-for="n in 4" :key="'sk-' + n" class="message-card glass-card skeleton-card">
+        <div class="sk-line sk-line--short" />
+        <div class="sk-line" />
+        <div class="sk-line" />
+        <div class="sk-line sk-line--meta" />
+      </div>
     </div>
+
+    <p v-else-if="loadError" class="wall-error glass-inline">{{ t('messageWall.loadError') }}</p>
+
+    <template v-else>
+      <div v-if="messages.length" class="messages-grid">
+        <transition-group name="list">
+          <div v-for="m in messages" :key="m.id" class="message-card glass-card">
+            <div class="msg-header">
+              <div class="msg-author-info">
+                <span class="msg-avatar">💬</span>
+                <span class="msg-author">{{ m.nickname }}</span>
+              </div>
+              <div class="msg-time">{{ formatTime(m.createdAt) }}</div>
+            </div>
+            <div class="msg-content">{{ m.content }}</div>
+            <div v-if="m.adminReply" class="msg-reply glass-reply">
+              <span class="msg-reply__label">{{ t('messageWall.replyFromAdmin') }}</span>
+              <p class="msg-reply__text">{{ m.adminReply }}</p>
+            </div>
+          </div>
+        </transition-group>
+      </div>
+
+      <div v-else class="wall-empty glass-card">
+        <div class="wall-empty__icon">🍃</div>
+        <h2 class="wall-empty__title">{{ t('messageWall.emptyTitle') }}</h2>
+        <p class="wall-empty__hint">{{ t('messageWall.emptyHint') }}</p>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -100,183 +133,228 @@ function deleteMessage(id: number) {
   animation: fadeIn 0.5s ease-out;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px 20px 7rem;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wall-back {
+  margin-bottom: 16px;
 }
 
 .wall-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
+
 .wall-title {
   font-size: 2.5rem;
   font-weight: 800;
-  background: linear-gradient(to right, #66d9ff, #fca2e5);
+  margin-bottom: 8px;
+  background: linear-gradient(to right, #fff, #a5d8ff);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 10px;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
 .wall-subtitle {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 1.1rem;
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(102, 217, 255, 0.1);
-  border-radius: 20px;
-  padding: 24px;
-  color: #fff;
-  transition: all 0.3s ease;
-}
-
 .message-form {
+  padding: 24px;
   margin-bottom: 40px;
-  background: linear-gradient(135deg, rgba(102, 217, 255, 0.15) 0%, rgba(252, 162, 229, 0.15) 100%);
-}
-
-.mb-3 {
-  margin-bottom: 15px;
-}
-
-/* Override element-plus input styles to match cyber theme */
-:deep(.el-input__wrapper), :deep(.el-textarea__inner) {
-  background-color: rgba(0, 0, 0, 0.2) !important;
-  box-shadow: 0 0 0 1px rgba(102, 217, 255, 0.3) inset !important;
-  color: #fff !important;
-}
-:deep(.el-input__wrapper.is-focus), :deep(.el-textarea__inner:focus) {
-  box-shadow: 0 0 0 1px #fca2e5 inset !important;
-}
-:deep(.el-input__inner::placeholder), :deep(.el-textarea__inner::placeholder) {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(102, 217, 255, 0.2);
 }
 
 .cyber-btn {
-  background: linear-gradient(135deg, #66d9ff, #fca2e5);
-  color: #fff;
-  border: none;
+  background: rgba(74, 144, 226, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
   padding: 10px 24px;
-  border-radius: 20px;
-  font-size: 1rem;
-  font-weight: bold;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s;
+  font-weight: 600;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
-.cyber-btn:hover {
+
+.cyber-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(252, 162, 229, 0.4);
+  box-shadow: 0 8px 24px rgba(102, 217, 255, 0.25);
+}
+
+.cyber-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .messages-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  gap: 24px;
 }
 
 .message-card {
+  padding: 20px;
+  border-radius: 16px;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(102, 217, 255, 0.2);
 }
+
 .message-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(102, 217, 255, 0.2);
-  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(102, 217, 255, 0.28);
 }
 
 .msg-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px dashed rgba(255,255,255,0.2);
-  padding-bottom: 10px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
 }
+
 .msg-author-info {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: bold;
 }
-.msg-avatar {
-  font-size: 1.5rem;
-  background: rgba(255,255,255,0.2);
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-.msg-author {
-  font-weight: 600;
-  color: #66d9ff;
-}
-.msg-time {
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.5);
-}
+
 .msg-content {
-  font-size: 1.05rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   white-space: pre-wrap;
-  word-break: break-all;
 }
 
-.delete-btn {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  background: transparent;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  opacity: 0;
-  transition: all 0.2s;
-  filter: grayscale(1);
-}
-.message-card:hover .delete-btn {
-  opacity: 1;
-}
-.delete-btn:hover {
-  filter: grayscale(0);
-  transform: scale(1.1);
+.msg-reply {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(80, 227, 194, 0.35);
+  background: rgba(0, 40, 60, 0.2);
 }
 
-/* List Transitions */
-.list-enter-active, .list-leave-active {
+.msg-reply__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #50e3c2;
+}
+
+.msg-reply__text {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: pre-wrap;
+}
+
+.list-move,
+.list-enter-active,
+.list-leave-active {
   transition: all 0.4s ease;
 }
-.list-enter-from {
-  opacity: 0;
-  transform: translateY(20px) scale(0.95);
-}
+
+.list-enter-from,
 .list-leave-to {
   opacity: 0;
-  transform: scale(0.9);
+  transform: translateY(20px);
 }
 
-@media (max-width: 768px) {
-  .messages-grid {
-    grid-template-columns: 1fr;
+.skeleton-card {
+  min-height: 140px;
+  pointer-events: none;
+}
+
+.sk-line {
+  height: 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  margin-bottom: 10px;
+}
+
+.sk-line--short {
+  width: 40%;
+}
+
+.sk-line--meta {
+  width: 55%;
+  margin-top: 16px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
   }
-  .wall-title {
-    font-size: 2rem;
+  100% {
+    background-position: -200% 0;
   }
-  .delete-btn {
-    opacity: 0.5; /* Always partially visible on mobile */
-  }
+}
+
+.wall-error {
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: #ffe0e0;
+  margin-bottom: 16px;
+}
+
+.glass-inline {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 180, 180, 0.4);
+}
+
+.wall-empty {
+  text-align: center;
+  padding: 48px 24px;
+  border-radius: 16px;
+}
+
+.wall-empty__icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.wall-empty__title {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+.wall-empty__hint {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mb-3 {
+  margin-bottom: 12px;
 }
 </style>

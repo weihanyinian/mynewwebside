@@ -68,7 +68,14 @@ onMounted(load)
         </div>
       </template>
 
-      <el-table :data="items">
+      <el-empty
+        v-if="!loading && items.length === 0"
+        description="暂无分类"
+      >
+        <p class="empty-tip">在上方输入分类名称并点击「新增」，用于博客文章归类与前台筛选。</p>
+      </el-empty>
+
+      <el-table v-else :data="items">
         <el-table-column prop="id" label="ID" width="100" />
         <el-table-column prop="name" label="名称" />
         <el-table-column label="操作" width="180">
@@ -100,6 +107,13 @@ onMounted(load)
   display: flex;
   gap: 10px;
   align-items: center;
+}
+.empty-tip {
+  margin-top: 8px;
+  max-width: 420px;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 </style>
 

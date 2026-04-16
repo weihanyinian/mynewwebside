@@ -9,6 +9,8 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { getCategories, getPublicArticles, getTags, type ArticleListItem, type Category, type Tag } from '../../api/blog'
+import BackToHomeButton from '../../components/BackToHomeButton.vue'
+import { goToSiteHome } from '../../utils/siteHome'
 
 // ---------- 可调整参数（设计 token，改这里即可全局微调）----------
 const STYLE = {
@@ -51,6 +53,7 @@ const clueCount = ref(Number(localStorage.getItem('blogClueCount') || '0'))
 const sideNavItems = computed(() => [
   { label: locale.value === 'zh' ? '首页' : 'Home', path: '/', active: false },
   { label: locale.value === 'zh' ? '博客列表' : 'Blog', path: '/blog', active: route.path === '/blog' },
+  { label: t('nav.oj'), path: '/oj', active: route.path.startsWith('/oj') },
   { label: locale.value === 'zh' ? '分类' : 'Categories', path: '/categories', active: route.path === '/categories' },
   { label: locale.value === 'zh' ? '标签' : 'Tags', path: '/tags', active: route.path === '/tags' },
   { label: t('nav.message'), path: '/message', active: route.path === '/message' },
@@ -101,7 +104,11 @@ function goArticleDetail(articleId: number) {
 
 function goPath(path: string) {
   sidebarOpen.value = false
-  router.push(path)
+  if (path === '/') {
+    goToSiteHome(router)
+  } else {
+    router.push(path)
+  }
 }
 
 function onCardVisible(index: number) {
@@ -189,6 +196,7 @@ onUnmounted(() => {
   <section class="blog-home">
     <!-- 移动端：折叠侧栏入口（z-index 低于看板娘 999，避免挡住 Live2D） -->
     <div class="blog-mobile-bar lg:hidden">
+      <BackToHomeButton wrapper-class="shrink-0" />
       <button type="button" class="blog-btn blog-btn--ghost" @click="sidebarOpen = true">
         ☰ {{ locale === 'zh' ? '本站导航' : 'Menu' }}
       </button>
@@ -224,6 +232,9 @@ onUnmounted(() => {
           >
             ✕
           </button>
+
+          <!-- 桌面侧栏顶部：与顶栏 Logo 一致的「回主页」入口 -->
+          <BackToHomeButton wrapper-class="blog-back-home" />
 
           <div class="blog-profile">
             <img
@@ -420,6 +431,12 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+/* 侧栏内「回主页」占满宽度，避免与头像区挤在一行 */
+.blog-back-home {
+  width: 100%;
+  justify-content: flex-start;
 }
 
 .blog-layout {

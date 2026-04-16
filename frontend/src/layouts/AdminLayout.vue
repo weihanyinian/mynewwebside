@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
 import { clearToken } from '../utils/token'
-import { Document, Edit, Folder, CollectionTag } from '@element-plus/icons-vue'
+import { Document, Edit, Folder, CollectionTag, ChatDotRound } from '@element-plus/icons-vue'
+import GlassBreadcrumb from '../components/GlassBreadcrumb.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -43,15 +44,18 @@ function logout() {
           <el-icon><CollectionTag /></el-icon>
           <span>标签管理</span>
         </el-menu-item>
+        <el-menu-item index="/admin/messages">
+          <el-icon><ChatDotRound /></el-icon>
+          <span>留言审核</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
     <el-container class="admin-content-wrapper">
       <el-header class="admin-header">
         <div class="admin-header__inner">
-          <div class="admin-header__title">
-            <!-- Icon or Breadcrumb could go here -->
-            <span>控制面板</span>
+          <div class="admin-header__title admin-header__crumb">
+            <GlassBreadcrumb variant="admin" />
           </div>
           <div class="admin-header__actions">
             <el-button class="cyber-btn-outline" @click="router.push('/blog')">返回前台</el-button>
@@ -143,15 +147,18 @@ function logout() {
   background: rgba(26, 26, 46, 0.6);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(74, 144, 226, 0.2);
-  padding: 0 24px;
-  height: 64px;
+  padding: 10px 24px;
+  min-height: 64px;
+  height: auto;
 }
 
 .admin-header__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 100%;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 44px;
 }
 
 .admin-header__title {
@@ -159,6 +166,28 @@ function logout() {
   font-size: 1.1rem;
   color: #a18cd1;
   letter-spacing: 1px;
+}
+
+/* 后台顶栏面包屑：深色背景下单独调色，保持玻璃层次 */
+.admin-header__crumb {
+  flex: 1;
+  min-width: 220px;
+}
+
+.admin-header__crumb :deep(.glass-crumb) {
+  margin-bottom: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(74, 144, 226, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.admin-header__crumb :deep(.glass-crumb__list) {
+  color: #e2e8f0;
+  text-shadow: none;
+}
+
+.admin-header__crumb :deep(.glass-crumb__current) {
+  color: #50e3c2;
 }
 
 .admin-header__actions {

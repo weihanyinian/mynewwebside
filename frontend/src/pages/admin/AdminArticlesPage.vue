@@ -61,7 +61,15 @@ onMounted(load)
         <el-button @click="() => { page = 0; load() }">查询</el-button>
       </div>
 
-      <el-table :data="items" v-loading="loading" style="width: 100%">
+      <el-empty
+        v-if="!loading && items.length === 0"
+        description="暂无文章"
+      >
+        <el-button type="primary" @click="router.push('/admin/editor')">去撰写第一篇文章</el-button>
+        <p class="empty-tip">写好标题、摘要与 Markdown 正文后，将状态设为「已发布」即可在博客首页展示。</p>
+      </el-empty>
+
+      <el-table v-else :data="items" v-loading="loading" style="width: 100%">
         <el-table-column prop="id" label="ID" width="90" />
         <el-table-column prop="title" label="标题" min-width="260" />
         <el-table-column prop="status" label="状态" width="120">
@@ -90,7 +98,7 @@ onMounted(load)
         </el-table-column>
       </el-table>
 
-      <div class="pager">
+      <div v-if="total > 0" class="pager">
         <el-pagination
           background
           layout="prev, pager, next, total"
@@ -126,6 +134,13 @@ onMounted(load)
   display: flex;
   justify-content: flex-end;
   margin-top: 14px;
+}
+.empty-tip {
+  margin: 12px 0 0;
+  max-width: 400px;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.55;
 }
 </style>
 
