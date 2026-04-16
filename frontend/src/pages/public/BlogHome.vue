@@ -42,32 +42,16 @@ const categories = ref<Category[]>([])
 const tags = ref<Tag[]>([])
 const items = ref<ArticleListItem[]>([])
 const visibleCards = ref<number[]>([])
-/** 移动端侧栏抽屉 */
-const sidebarOpen = ref(false)
 
 const hasGuardianBadge = ref(localStorage.getItem('guardianBadgeUnlocked') === 'true')
 const clueCount = ref(Number(localStorage.getItem('blogClueCount') || '0'))
 
 /**
- * 【核心修改1】侧栏/移动端顶条「返回博客」：进入博客列表 /blog（清空 query），
- * 若已在无筛选的博客列表则仅滚回顶部——与「回网站首页」区分。
+ * 左侧二级导航（与顶栏区分：不含 OJ，顶栏已有独立入口；返回博客由面包屑承担）
  */
-const backToBlogLabel = computed(() => (locale.value === 'zh' ? '← 返回博客' : '← Back to blog'))
-
-function goBackToBlogList() {
-  sidebarOpen.value = false
-  if (route.path === '/blog' && Object.keys(route.query).length === 0) {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    return
-  }
-  router.push({ path: '/blog' })
-}
-
-/** 左侧二级导航（与顶部主导航区分，不包含重复的全站链接堆叠） */
 const sideNavItems = computed(() => [
-  { label: locale.value === 'zh' ? '首页' : 'Home', path: '/', active: false },
+  { label: locale.value === 'zh' ? '首页' : 'Home', path: '/', active: route.path === '/' },
   { label: locale.value === 'zh' ? '博客列表' : 'Blog', path: '/blog', active: route.path === '/blog' },
-  { label: t('nav.oj'), path: '/oj', active: route.path.startsWith('/oj') },
   { label: locale.value === 'zh' ? '分类' : 'Categories', path: '/categories', active: route.path === '/categories' },
   { label: locale.value === 'zh' ? '标签' : 'Tags', path: '/tags', active: route.path === '/tags' },
   { label: t('nav.message'), path: '/message', active: route.path === '/message' },
@@ -112,12 +96,10 @@ function clearTagFilter() {
 }
 
 function goArticleDetail(articleId: number) {
-  sidebarOpen.value = false
   router.push(`/article/${articleId}`)
 }
 
 function goPath(path: string) {
-  sidebarOpen.value = false
   if (path === '/') {
     goToSiteHome(router)
   } else {
@@ -208,17 +190,7 @@ onUnmounted(() => {
 
 <template>
   <section class="blog-home">
-    <!-- 移动端：折叠侧栏入口（z-index 低于看板娘 999，避免挡住 Live2D） -->
-    <div class="blog-mobile-bar lg:hidden">
-      <!-- 【核心修改1】移动端顶条同步为「返回博客」，与侧栏顶部按钮一致 -->
-      <button type="button" class="blog-side-nav__btn blog-side-nav__btn--back blog-side-nav__btn--mobile-bar" @click="goBackToBlogList">
-        {{ backToBlogLabel }}
-      </button>
-      <button type="button" class="blog-btn blog-btn--ghost" @click="sidebarOpen = true">
-        ☰ {{ locale === 'zh' ? '本站导航' : 'Menu' }}
-      </button>
-      <span class="blog-mobile-hint text-sm opacity-80">{{ t('nav.blog') }}</span>
-    </div>
+    <!-- 顶栏面包屑已承担「本站 / 博客」路径；此处不再重复「返回博客 / 本站导航」条 -->
 
     <div
       class="blog-layout"
@@ -228,33 +200,8 @@ onUnmounted(() => {
         '--blog-grid-max': STYLE.gridMaxWidth,
       }"
     >
-      <!-- 移动端抽屉遮罩 -->
-      <div
-        v-show="sidebarOpen"
-        class="blog-drawer-backdrop lg:hidden"
-        aria-hidden="true"
-        @click="sidebarOpen = false"
-      />
-
-      <aside
-        class="blog-sidebar glass-surface"
-        :class="{ 'blog-sidebar--open': sidebarOpen }"
-      >
+      <aside class="blog-sidebar glass-surface">
         <div class="blog-sidebar__inner">
-          <button
-            type="button"
-            class="blog-sidebar__close lg:hidden"
-            aria-label="close"
-            @click="sidebarOpen = false"
-          >
-            ✕
-          </button>
-
-          <!-- 【核心修改1】桌面侧栏顶部：返回博客列表（非 Portfolio 首页） -->
-          <button type="button" class="blog-side-nav__btn blog-side-nav__btn--back" @click="goBackToBlogList">
-            {{ backToBlogLabel }}
-          </button>
-
           <div class="blog-profile">
             <img
               src="../../assets/images/about-miku.jpg"
@@ -275,8 +222,11 @@ onUnmounted(() => {
               v-for="item in sideNavItems"
               :key="item.path"
               type="button"
-              class="blog-side-nav__btn"
-              :class="{ 'blog-side-nav__btn--active': item.active }"
+              class="site-pill site-pill--block"
+              :class="{
+                'site-pill--active': item.active && item.path !== '/moyu',
+                'site-pill--pink': item.active && item.path === '/moyu',
+              }"
               @click="goPath(item.path)"
             >
               {{ item.label }}
@@ -294,7 +244,8 @@ onUnmounted(() => {
 
       <main class="blog-main">
         <!-- 搜索与筛选：单列堆叠 → 宽屏横向，避免溢出 -->
-        <section class="blog-toolbar glass-surface">
+        <!-- site-el-round-16：Element Plus 输入/下拉圆角与全站 16px 对齐 -->
+        <section class="blog-toolbar glass-surface site-el-round-16">
           <div class="blog-toolbar__grid">
             <el-input
               v-model="keyword"
@@ -316,7 +267,7 @@ onUnmounted(() => {
             >
               <el-option v-for="tItem in tags" :key="tItem.id" :label="tItem.name" :value="tItem.id" />
             </el-select>
-            <button type="button" class="blog-btn blog-btn--primary" @click="syncToRoute">
+            <button type="button" class="site-pill" @click="syncToRoute">
               {{ locale === 'zh' ? '搜索' : 'Search' }}
             </button>
           </div>
@@ -326,13 +277,13 @@ onUnmounted(() => {
               v-for="tab in categoryTabs"
               :key="tab.id"
               type="button"
-              class="blog-chip"
-              :class="{ 'blog-chip--active': (categoryId ?? 0) === tab.id }"
+              class="site-pill site-pill--chip"
+              :class="{ 'site-pill--active': (categoryId ?? 0) === tab.id }"
               @click="selectCategory(tab.id)"
             >
               {{ tab.name }}
             </button>
-            <button v-if="tagId" type="button" class="blog-chip" @click="clearTagFilter">
+            <button v-if="tagId" type="button" class="site-pill site-pill--chip" @click="clearTagFilter">
               {{ locale === 'zh' ? '清除标签' : 'Clear tag' }}
             </button>
           </div>
@@ -381,7 +332,7 @@ onUnmounted(() => {
                   v-for="tg in article.tags"
                   :key="tg.id"
                   type="button"
-                  class="blog-chip blog-chip--sm"
+                  class="site-pill site-pill--chip site-pill--chip-sm"
                   @click.stop="selectTag(tg.id)"
                 >
                   # {{ tg.name }}
@@ -429,7 +380,7 @@ onUnmounted(() => {
       enter-from-class="blog-fade-enter-from"
       leave-to-class="blog-fade-leave-to"
     >
-      <button v-if="showBackTop" type="button" class="blog-back-top" @click="backToTop">
+      <button v-if="showBackTop" type="button" class="site-pill site-pill--active blog-back-top" @click="backToTop">
         ↑ {{ locale === 'zh' ? '顶部' : 'Top' }}
       </button>
     </transition>
@@ -443,13 +394,6 @@ onUnmounted(() => {
   --on-glass-muted: var(--blog-on-glass-muted, rgba(26, 58, 82, 0.75));
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   padding-bottom: 4rem;
-}
-
-.blog-mobile-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
 }
 
 .blog-layout {
@@ -514,18 +458,6 @@ onUnmounted(() => {
   gap: 1.25rem;
 }
 
-.blog-sidebar__close {
-  align-self: flex-end;
-  margin: -0.25rem 0 0;
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.25);
-  color: var(--on-glass);
-  cursor: pointer;
-}
-
 .blog-profile {
   display: flex;
   align-items: center;
@@ -567,73 +499,7 @@ onUnmounted(() => {
   gap: 0.5rem;
 }
 
-/**
- * 【核心修改2】侧栏导航按钮：对齐首页顶栏「前往博客」——16px 圆角、毛玻璃底、
- * 选中为青蓝渐变高亮；浅色主题下未选中为深色字，选中为白字+阴影；hover 轻微上浮+对比加深。
- */
-.blog-side-nav__btn {
-  display: inline-flex;
-  align-items: center;
-  text-align: left;
-  padding: 0.65rem 1rem;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: var(--blog-on-glass, #1a3a52);
-  font-size: 0.875rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
-  box-shadow: 0 4px 16px rgba(102, 217, 255, 0.12);
-}
-
-:root[data-theme='dark'] .blog-side-nav__btn {
-  color: rgba(240, 251, 255, 0.9);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.38);
-}
-
-.blog-side-nav__btn:hover:not(.blog-side-nav__btn--active) {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.32);
-  border-color: rgba(74, 144, 226, 0.45);
-  color: #124872;
-  box-shadow: 0 8px 26px rgba(102, 217, 255, 0.22);
-}
-
-:root[data-theme='dark'] .blog-side-nav__btn:hover:not(.blog-side-nav__btn--active) {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(102, 217, 255, 0.35);
-}
-
-.blog-side-nav__btn--active {
-  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
-  border-color: rgba(255, 255, 255, 0.55);
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
-  box-shadow: 0 8px 28px rgba(102, 217, 255, 0.32);
-}
-
-.blog-side-nav__btn--active:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.06);
-}
-
-/* 【核心修改1】「返回博客」占满侧栏宽；移动端顶条为紧凑宽度 */
-.blog-side-nav__btn--back {
-  width: 100%;
-  justify-content: flex-start;
-}
-
-.blog-side-nav__btn--mobile-bar {
-  width: auto;
-  flex-shrink: 0;
-  padding: 0.5rem 0.85rem;
-  font-size: 0.8125rem;
-}
+/* 侧栏导航视觉由全局 styles/site-ui.css 的 .site-pill* 统一提供 */
 
 .blog-clue {
   padding: 0.75rem 1rem;
@@ -668,33 +534,15 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #4a90e2, #50e3c2);
 }
 
-/* 移动端抽屉 */
+/* 移动端：侧栏改为栅格内联展示（与桌面同为「侧栏 + 主栏」顺序），无需抽屉/关闭钮 */
 @media (max-width: 1023px) {
   .blog-sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 120;
-    width: min(300px, 86vw);
-    height: 100vh;
+    position: relative;
+    top: auto;
+    width: 100%;
     max-height: none;
-    margin: 0;
-    border-radius: 0 16px 16px 0;
-    transform: translateX(-105%);
-    transition: transform v-bind('STYLE.transition');
+    margin-bottom: 0.5rem;
   }
-
-  .blog-sidebar--open {
-    transform: translateX(0);
-  }
-}
-
-.blog-drawer-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 115;
-  background: rgba(15, 30, 45, 0.35);
-  backdrop-filter: blur(4px);
 }
 
 /* ---------- 主内容 ---------- */
@@ -956,65 +804,6 @@ onUnmounted(() => {
   color: var(--on-glass);
 }
 
-/* 按钮 / 标签 */
-.blog-btn {
-  border-radius: v-bind('STYLE.radius');
-  font-weight: 700;
-  font-size: 0.875rem;
-  cursor: pointer;
-  border: 1px solid v-bind('STYLE.glassBorder');
-  transition: all v-bind('STYLE.transition');
-}
-
-.blog-btn--ghost {
-  padding: 0.5rem 0.9rem;
-  background: rgba(255, 255, 255, 0.2);
-  color: var(--on-glass);
-}
-
-.blog-btn--primary {
-  padding: 0 1.25rem;
-  min-height: 40px;
-  background: linear-gradient(135deg, rgba(74, 144, 226, 0.9) 0%, rgba(80, 227, 194, 0.92) 100%);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.45);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.blog-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(102, 217, 255, 0.22);
-}
-
-.blog-chip {
-  padding: 0.35rem 0.75rem;
-  border-radius: v-bind('STYLE.radius');
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.15);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--on-glass);
-  cursor: pointer;
-  transition: all v-bind('STYLE.transition');
-}
-
-.blog-chip--sm {
-  padding: 0.2rem 0.55rem;
-  font-size: 0.75rem;
-}
-
-.blog-chip:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(102, 217, 255, 0.18);
-}
-
-.blog-chip--active {
-  background: linear-gradient(135deg, rgba(74, 144, 226, 0.88) 0%, rgba(80, 227, 194, 0.9) 100%);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.55);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
 /* Element Plus 与主题统一 */
 :deep(.el-input__wrapper),
 :deep(.el-select .el-input__wrapper) {
@@ -1070,20 +859,10 @@ onUnmounted(() => {
   right: 1.25rem;
   bottom: 1.25rem;
   z-index: 50;
-  padding: 0.6rem 0.9rem;
-  border-radius: v-bind('STYLE.radius');
-  border: 1px solid v-bind('STYLE.glassBorder');
-  background: linear-gradient(135deg, rgba(74, 144, 226, 0.92) 0%, rgba(80, 227, 194, 0.92) 100%);
-  color: #fff;
   font-weight: 800;
   font-size: 0.8125rem;
   cursor: pointer;
   box-shadow: v-bind('STYLE.glassShadow');
-  transition: all v-bind('STYLE.transition');
-}
-
-.blog-back-top:hover {
-  transform: translateY(-2px);
 }
 
 .blog-fade-enter-active,
