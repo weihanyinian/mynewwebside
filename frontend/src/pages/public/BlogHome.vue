@@ -55,7 +55,6 @@ const sideNavItems = computed(() => [
   { label: locale.value === 'zh' ? '分类' : 'Categories', path: '/categories', active: route.path === '/categories' },
   { label: locale.value === 'zh' ? '标签' : 'Tags', path: '/tags', active: route.path === '/tags' },
   { label: t('nav.message'), path: '/message', active: route.path === '/message' },
-  { label: t('nav.moyu'), path: '/moyu', active: route.path === '/moyu' },
 ])
 
 const categoryTabs = computed(() => {

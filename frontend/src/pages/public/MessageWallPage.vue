@@ -5,7 +5,7 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
-import BackToHomeButton from '../../components/BackToHomeButton.vue'
+import BackToBlogButton from '../../components/BackToBlogButton.vue'
 import { fetchWallMessages, submitWallMessage, type WallMessagePublic } from '../../api/wall'
 
 const { t } = useI18n()
@@ -64,24 +64,26 @@ onMounted(load)
 <template>
   <div class="message-wall-page page-animation">
     <div class="wall-back">
-      <BackToHomeButton />
+      <BackToBlogButton />
     </div>
     <div class="wall-header">
       <h1 class="wall-title">{{ t('messageWall.title') }}</h1>
       <p class="wall-subtitle">{{ t('messageWall.subtitle') }}</p>
     </div>
 
-    <div class="message-form glass-card">
-      <el-input v-model="newAuthor" :placeholder="t('messageWall.nickname')" class="cyber-input mb-3" />
+    <!-- site-el-round-16：输入框圆角 16px 与全站统一 -->
+    <div class="message-form glass-card site-el-round-16">
+      <el-input v-model="newAuthor" :placeholder="t('messageWall.nickname')" class="mb-3" />
       <el-input
         v-model="newContent"
         type="textarea"
         :rows="3"
         :placeholder="t('messageWall.placeholder')"
-        class="cyber-textarea mb-3"
+        class="mb-3"
       />
       <div class="form-actions">
-        <button type="button" class="cyber-btn" :disabled="submitting" @click="submitMessage">
+        <!-- 「发射留言」→ 与首页「摸鱼」一致的粉系渐变主按钮 -->
+        <button type="button" class="site-pill site-pill--pink" :disabled="submitting" @click="submitMessage">
           {{ t('messageWall.submit') }}
         </button>
       </div>
@@ -182,29 +184,6 @@ onMounted(load)
   box-shadow: 0 8px 32px rgba(102, 217, 255, 0.2);
 }
 
-.cyber-btn {
-  background: rgba(74, 144, 226, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  color: white;
-  padding: 10px 24px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 600;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.cyber-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 217, 255, 0.25);
-}
-
-.cyber-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .messages-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -254,7 +233,7 @@ onMounted(load)
 .msg-reply {
   margin-top: 12px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid rgba(80, 227, 194, 0.35);
   background: rgba(0, 40, 60, 0.2);
 }
@@ -318,7 +297,7 @@ onMounted(load)
 
 .wall-error {
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   color: #ffe0e0;
   margin-bottom: 16px;
 }
