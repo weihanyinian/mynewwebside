@@ -1,0 +1,177 @@
+/**
+ * 【全站 UI 统一】导航与按钮规范：圆角 16px、玻璃态、青蓝渐变选中、粉系主行动按钮。
+ * 与首页 Portfolio「前往博客」（青蓝渐变）、「摸鱼」（粉渐变）视觉对齐。
+ * 引入顺序：在 main.ts 中于 ./style.css 之后加载。
+ */
+
+/* ---------- 基础玻璃 pill：未选中深色字 + 轻阴影 ---------- */
+.site-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  padding: 8px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--blog-on-glass, #1a3a52);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.42);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    filter 0.25s ease;
+  box-shadow: 0 4px 16px rgba(102, 217, 255, 0.12);
+}
+
+:root[data-theme='dark'] .site-pill {
+  color: rgba(240, 251, 255, 0.92);
+  text-shadow: 0 1px 2px rgba(0, 30, 60, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+.site-pill:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.34);
+  border-color: rgba(74, 144, 226, 0.48);
+  box-shadow: 0 8px 26px rgba(102, 217, 255, 0.24);
+}
+
+:root[data-theme='dark'] .site-pill:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.site-pill:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---------- 选中 / 主 CTA：青蓝渐变（同「前往博客」） ---------- */
+.site-pill--active {
+  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%) !important;
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) !important;
+  box-shadow: 0 8px 28px rgba(102, 217, 255, 0.32);
+}
+
+.site-pill--active:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-2px);
+}
+
+/* ---------- 粉系主按钮（同「摸鱼」、留言墙「发射留言」） ---------- */
+.site-pill--pink {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%) !important;
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.22) !important;
+  box-shadow: 0 8px 26px rgba(255, 154, 158, 0.35);
+}
+
+:root[data-theme='dark'] .site-pill--pink {
+  background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%) !important;
+}
+
+.site-pill--pink:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+/* ---------- 尺寸 / 布局变体 ---------- */
+.site-pill--nav {
+  padding: 8px 14px;
+  font-size: 0.8125rem;
+}
+
+.site-pill--lg {
+  padding: 12px 28px;
+  font-size: 1rem;
+}
+
+.site-pill--block {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.site-pill--mobile-bar {
+  width: auto;
+  flex-shrink: 0;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8125rem;
+}
+
+.site-pill--chip {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+/** 博客卡片内较小标签 chip */
+.site-pill--chip-sm {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/** 目录项：整行左对齐 */
+.site-pill--toc {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.site-pill--crumb {
+  padding: 4px 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.site-pill--icon {
+  padding: 8px 12px;
+  min-width: 2.5rem;
+}
+
+/** Portfolio 窄屏：仅保留带此类的顶栏链接，避免误藏 */
+.site-pill--keep-mobile {
+  /* 标记用 */
+}
+
+/* ---------- 文章页等深色玻璃背景上的 pill（仍为 16px + 毛玻璃） ---------- */
+.site-pill--on-dark {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: rgba(248, 250, 252, 0.95);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.site-pill--on-dark:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(102, 217, 255, 0.38);
+}
+
+/* ---------- Element Plus：圆角 16px 与全站统一（父级加 class） ---------- */
+.site-el-round-16 .el-input__wrapper,
+.site-el-round-16 .el-textarea__inner {
+  border-radius: 16px !important;
+}
+
+.site-el-round-16 .el-select .el-input__wrapper {
+  border-radius: 16px !important;
+}

@@ -286,7 +286,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="oj-detail">
     <div class="top-row">
-      <button type="button" class="btn ghost" @click="router.push('/oj')">← 题目列表</button>
+      <button type="button" class="site-pill site-pill--on-dark" @click="router.push('/oj')">← 题目列表</button>
       <span v-if="problem" class="pill">{{ problem.difficulty }} · {{ problem.judgeMode === 'LEETCODE' ? '力扣' : 'ACM' }}</span>
     </div>
 
@@ -331,11 +331,11 @@ onBeforeUnmount(() => {
                 <option v-for="l in problem.supportedLangs" :key="l" :value="l">{{ l }}</option>
               </select>
             </label>
-            <button type="button" class="btn" :disabled="busy" @click="runCode">运行</button>
-            <button type="button" class="btn primary" :disabled="busy" @click="submitCode">提交判题</button>
-            <button type="button" class="btn ghost" :disabled="busy" @click="formatSimple">整理空白</button>
-            <button type="button" class="btn ghost" :disabled="busy" @click="loadTemplate">载入模板</button>
-            <button type="button" class="btn ghost" :disabled="busy" @click="clearCode">清空</button>
+            <button type="button" class="site-pill site-pill--on-dark" :disabled="busy" @click="runCode">运行</button>
+            <button type="button" class="site-pill site-pill--active" :disabled="busy" @click="submitCode">提交判题</button>
+            <button type="button" class="site-pill site-pill--on-dark" :disabled="busy" @click="formatSimple">整理空白</button>
+            <button type="button" class="site-pill site-pill--on-dark" :disabled="busy" @click="loadTemplate">载入模板</button>
+            <button type="button" class="site-pill site-pill--on-dark" :disabled="busy" @click="clearCode">清空</button>
           </div>
           <p class="tip">Java 请保持 <code>public class Main</code>；判题使用 Judge0 公共实例，高峰期可能较慢。</p>
           <div ref="editorHost" class="editor-host" />
@@ -386,7 +386,7 @@ onBeforeUnmount(() => {
 .glass-inline {
   display: inline-block;
   padding: 0.5rem 0.75rem;
-  border-radius: 12px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.45);
 }
@@ -464,7 +464,7 @@ onBeforeUnmount(() => {
 .mono {
   margin: 0;
   padding: 0.5rem 0.65rem;
-  border-radius: 10px;
+  border-radius: 16px;
   background: rgba(0, 30, 60, 0.28);
   border: 1px solid rgba(255, 255, 255, 0.35);
   overflow: auto;
@@ -492,40 +492,11 @@ onBeforeUnmount(() => {
 }
 
 .select {
-  border-radius: 10px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.55);
   background: rgba(0, 40, 80, 0.2);
   color: #fff;
   padding: 0.35rem 0.5rem;
-}
-
-.btn {
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background: rgba(102, 217, 255, 0.18);
-  color: #fff;
-  padding: 0.4rem 0.75rem;
-  cursor: pointer;
-  font-weight: 600;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(102, 217, 255, 0.22);
-}
-
-.btn.primary {
-  background: rgba(80, 200, 255, 0.35);
-}
-
-.btn.ghost {
-  background: rgba(255, 255, 255, 0.08);
 }
 
 .tip {
@@ -541,7 +512,7 @@ onBeforeUnmount(() => {
 }
 
 .editor-host {
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.35);
   margin-bottom: 0.75rem;
@@ -555,7 +526,7 @@ onBeforeUnmount(() => {
   width: 100%;
   box-sizing: border-box;
   margin-top: 0.35rem;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.45);
   background: rgba(0, 30, 60, 0.25);
   color: #fff;
@@ -582,7 +553,7 @@ onBeforeUnmount(() => {
   font-weight: 800;
   letter-spacing: 0.02em;
   padding: 0.2rem 0.55rem;
-  border-radius: 10px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.45);
   background: rgba(255, 255, 255, 0.12);
 }
