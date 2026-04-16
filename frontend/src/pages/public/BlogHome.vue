@@ -9,7 +9,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { getCategories, getPublicArticles, getTags, type ArticleListItem, type Category, type Tag } from '../../api/blog'
-import BackToHomeButton from '../../components/BackToHomeButton.vue'
 import { goToSiteHome } from '../../utils/siteHome'
 
 // ---------- 可调整参数（设计 token，改这里即可全局微调）----------
@@ -48,6 +47,21 @@ const sidebarOpen = ref(false)
 
 const hasGuardianBadge = ref(localStorage.getItem('guardianBadgeUnlocked') === 'true')
 const clueCount = ref(Number(localStorage.getItem('blogClueCount') || '0'))
+
+/**
+ * 【核心修改1】侧栏/移动端顶条「返回博客」：进入博客列表 /blog（清空 query），
+ * 若已在无筛选的博客列表则仅滚回顶部——与「回网站首页」区分。
+ */
+const backToBlogLabel = computed(() => (locale.value === 'zh' ? '← 返回博客' : '← Back to blog'))
+
+function goBackToBlogList() {
+  sidebarOpen.value = false
+  if (route.path === '/blog' && Object.keys(route.query).length === 0) {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    return
+  }
+  router.push({ path: '/blog' })
+}
 
 /** 左侧二级导航（与顶部主导航区分，不包含重复的全站链接堆叠） */
 const sideNavItems = computed(() => [
@@ -196,7 +210,10 @@ onUnmounted(() => {
   <section class="blog-home">
     <!-- 移动端：折叠侧栏入口（z-index 低于看板娘 999，避免挡住 Live2D） -->
     <div class="blog-mobile-bar lg:hidden">
-      <BackToHomeButton wrapper-class="shrink-0" />
+      <!-- 【核心修改1】移动端顶条同步为「返回博客」，与侧栏顶部按钮一致 -->
+      <button type="button" class="blog-side-nav__btn blog-side-nav__btn--back blog-side-nav__btn--mobile-bar" @click="goBackToBlogList">
+        {{ backToBlogLabel }}
+      </button>
       <button type="button" class="blog-btn blog-btn--ghost" @click="sidebarOpen = true">
         ☰ {{ locale === 'zh' ? '本站导航' : 'Menu' }}
       </button>
@@ -233,8 +250,10 @@ onUnmounted(() => {
             ✕
           </button>
 
-          <!-- 桌面侧栏顶部：与顶栏 Logo 一致的「回主页」入口 -->
-          <BackToHomeButton wrapper-class="blog-back-home" />
+          <!-- 【核心修改1】桌面侧栏顶部：返回博客列表（非 Portfolio 首页） -->
+          <button type="button" class="blog-side-nav__btn blog-side-nav__btn--back" @click="goBackToBlogList">
+            {{ backToBlogLabel }}
+          </button>
 
           <div class="blog-profile">
             <img
@@ -433,12 +452,6 @@ onUnmounted(() => {
   margin-bottom: 0.75rem;
 }
 
-/* 侧栏内「回主页」占满宽度，避免与头像区挤在一行 */
-.blog-back-home {
-  width: 100%;
-  justify-content: flex-start;
-}
-
 .blog-layout {
   display: grid;
   grid-template-columns: var(--blog-sidebar-width) minmax(0, 1fr);
@@ -474,12 +487,25 @@ onUnmounted(() => {
 }
 
 /* ---------- 侧栏 ---------- */
+/**
+ * 【核心修改2】侧栏容器：16px 圆角 + 强化玻璃态（与全站青蓝毛玻璃统一），
+ * 不改动 grid 布局与 sticky 行为，避免影响主栏与左下角看板娘区域。
+ */
 .blog-sidebar {
   position: sticky;
   top: 5.75rem;
-  padding: 1rem;
+  padding: 1.25rem 1.125rem;
   max-height: calc(100vh - 6.5rem);
   overflow: auto;
+  background: rgba(255, 255, 255, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow: 0 8px 32px rgba(102, 217, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+:root[data-theme='dark'] .blog-sidebar {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.42) !important;
+  box-shadow: 0 8px 28px rgba(0, 30, 60, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .blog-sidebar__inner {
@@ -541,29 +567,72 @@ onUnmounted(() => {
   gap: 0.5rem;
 }
 
+/**
+ * 【核心修改2】侧栏导航按钮：对齐首页顶栏「前往博客」——16px 圆角、毛玻璃底、
+ * 选中为青蓝渐变高亮；浅色主题下未选中为深色字，选中为白字+阴影；hover 轻微上浮+对比加深。
+ */
 .blog-side-nav__btn {
+  display: inline-flex;
+  align-items: center;
   text-align: left;
-  padding: 0.65rem 0.875rem;
-  border-radius: v-bind('STYLE.radius');
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--on-glass);
+  padding: 0.65rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--blog-on-glass, #1a3a52);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all v-bind('STYLE.transition');
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 4px 16px rgba(102, 217, 255, 0.12);
 }
 
-.blog-side-nav__btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(102, 217, 255, 0.2);
+:root[data-theme='dark'] .blog-side-nav__btn {
+  color: rgba(240, 251, 255, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+.blog-side-nav__btn:hover:not(.blog-side-nav__btn--active) {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.32);
+  border-color: rgba(74, 144, 226, 0.45);
+  color: #124872;
+  box-shadow: 0 8px 26px rgba(102, 217, 255, 0.22);
+}
+
+:root[data-theme='dark'] .blog-side-nav__btn:hover:not(.blog-side-nav__btn--active) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(102, 217, 255, 0.35);
 }
 
 .blog-side-nav__btn--active {
-  background: linear-gradient(135deg, rgba(74, 144, 226, 0.85) 0%, rgba(80, 227, 194, 0.88) 100%);
+  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
   border-color: rgba(255, 255, 255, 0.55);
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 8px 28px rgba(102, 217, 255, 0.32);
+}
+
+.blog-side-nav__btn--active:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+
+/* 【核心修改1】「返回博客」占满侧栏宽；移动端顶条为紧凑宽度 */
+.blog-side-nav__btn--back {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.blog-side-nav__btn--mobile-bar {
+  width: auto;
+  flex-shrink: 0;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8125rem;
 }
 
 .blog-clue {
