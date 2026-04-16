@@ -9,7 +9,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { getCategories, getPublicArticles, getTags, type ArticleListItem, type Category, type Tag } from '../../api/blog'
-import { goToSiteHome } from '../../utils/siteHome'
 
 // ---------- 可调整参数（设计 token，改这里即可全局微调）----------
 const STYLE = {
@@ -47,10 +46,9 @@ const hasGuardianBadge = ref(localStorage.getItem('guardianBadgeUnlocked') === '
 const clueCount = ref(Number(localStorage.getItem('blogClueCount') || '0'))
 
 /**
- * 左侧二级导航（与顶栏区分：不含 OJ，顶栏已有独立入口；返回博客由面包屑承担）
+ * 左侧二级导航（与顶栏区分：不含首页/OJ；回主页用顶栏 Logo / 面包屑）
  */
 const sideNavItems = computed(() => [
-  { label: locale.value === 'zh' ? '首页' : 'Home', path: '/', active: route.path === '/' },
   { label: locale.value === 'zh' ? '博客列表' : 'Blog', path: '/blog', active: route.path === '/blog' },
   { label: locale.value === 'zh' ? '分类' : 'Categories', path: '/categories', active: route.path === '/categories' },
   { label: locale.value === 'zh' ? '标签' : 'Tags', path: '/tags', active: route.path === '/tags' },
@@ -99,11 +97,7 @@ function goArticleDetail(articleId: number) {
 }
 
 function goPath(path: string) {
-  if (path === '/') {
-    goToSiteHome(router)
-  } else {
-    router.push(path)
-  }
+  router.push(path)
 }
 
 function onCardVisible(index: number) {
