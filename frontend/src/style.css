@@ -10,6 +10,9 @@
   --glass-border: rgba(255, 255, 255, 0.6);
   --glass-shadow: 0 8px 32px 0 rgba(74, 144, 226, 0.15);
   --text-color: #2c3e50;
+  /* 博客玻璃卡片上的主/次文字（SiteLayout 切换主题时会覆盖） */
+  --blog-on-glass: #1a3a52;
+  --blog-on-glass-muted: rgba(26, 58, 82, 0.75);
   
   color: var(--text-color);
   background: var(--bg-gradient);

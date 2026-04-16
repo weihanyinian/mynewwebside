@@ -1,13 +1,24 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getToken } from '../utils/token'
 
+type ThemeMode = 'light' | 'dark'
+
 const router = useRouter()
+const route = useRoute()
 const { t, locale } = useI18n()
 
 const isLoggedIn = computed(() => !!getToken())
+
+/** 博客/文章等页需要更宽主栏，避免卡片栅格被 1080px 挤乱 */
+const isWideMain = computed(() => {
+  const p = route.path
+  return p.startsWith('/blog') || p.startsWith('/article') || p === '/categories' || p === '/tags'
+})
+
+const colorTheme = ref<ThemeMode>('light')
 
 function goHome(hash: string) {
   router.push({ path: '/', hash: hash })
@@ -16,6 +27,41 @@ function goHome(hash: string) {
 function toggleLocale() {
   locale.value = locale.value === 'zh' ? 'en' : 'zh'
 }
+
+/** 全站主题：同步 CSS 变量，供博客玻璃态与正文对比度使用 */
+function applyTheme(mode: ThemeMode) {
+  const root = document.documentElement
+  if (mode === 'dark') {
+    root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, rgba(20, 38, 51, 0.96) 0%, rgba(18, 28, 40, 0.96) 100%)')
+    root.style.setProperty('--text-color', '#eaf8ff')
+    root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.12)')
+    root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.45)')
+    root.style.setProperty('--glass-shadow', '0 8px 32px rgba(102, 217, 255, 0.18)')
+    root.style.setProperty('--blog-on-glass', '#f0fbff')
+    root.style.setProperty('--blog-on-glass-muted', 'rgba(240, 251, 255, 0.82)')
+  } else {
+    root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, rgba(230, 238, 245, 0.85) 0%, rgba(200, 218, 235, 0.92) 100%)')
+    root.style.setProperty('--text-color', '#2c3e50')
+    root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.4)')
+    root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.6)')
+    root.style.setProperty('--glass-shadow', '0 8px 32px 0 rgba(74, 144, 226, 0.15)')
+    root.style.setProperty('--blog-on-glass', '#1a3a52')
+    root.style.setProperty('--blog-on-glass-muted', 'rgba(26, 58, 82, 0.75)')
+  }
+  root.dataset.theme = mode
+}
+
+function toggleTheme() {
+  colorTheme.value = colorTheme.value === 'light' ? 'dark' : 'light'
+  localStorage.setItem('site-theme', colorTheme.value)
+  applyTheme(colorTheme.value)
+}
+
+onMounted(() => {
+  const saved = localStorage.getItem('site-theme') as ThemeMode | null
+  colorTheme.value = saved === 'dark' || saved === 'light' ? saved : 'light'
+  applyTheme(colorTheme.value)
+})
 </script>
 
 <template>
@@ -33,14 +79,20 @@ function toggleLocale() {
           <a @click="toggleLocale" class="lang-toggle" :title="t('home.langToggle')">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
-          <a @click="router.push('/blog')" :class="{ active: router.currentRoute.value.path.startsWith('/blog') }">{{ t('nav.blog') }}</a>
+          <a
+            @click="router.push('/blog')"
+            :class="{ active: route.path.startsWith('/blog') || route.path.startsWith('/article') }"
+          >{{ t('nav.blog') }}</a>
           <a v-if="isLoggedIn" @click="router.push('/admin')">{{ t('nav.admin') }}</a>
           <a v-else @click="router.push('/admin/login')">{{ t('nav.admin') }}</a>
+          <a class="theme-toggle" :title="t('home.themeToggle')" @click="toggleTheme">
+            {{ colorTheme === 'light' ? '🌙' : '☀️' }}
+          </a>
         </div>
       </div>
     </nav>
 
-    <main class="site-main">
+    <main class="site-main" :class="{ 'site-main--wide': isWideMain }">
       <slot />
     </main>
 
@@ -96,6 +148,7 @@ function toggleLocale() {
   font-weight: 800;
   letter-spacing: -0.5px;
   background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   cursor: pointer;
@@ -167,9 +220,20 @@ function toggleLocale() {
 }
 
 @media (max-width: 780px) {
-  .links a:not(.active):not(.lang-toggle):not(.moyu-link) {
+  .links a:not(.active):not(.lang-toggle):not(.moyu-link):not(.theme-toggle) {
     display: none;
   }
+}
+
+.site-main--wide {
+  max-width: min(1320px, 100%);
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.theme-toggle {
+  font-size: 1.1rem;
+  opacity: 0.9;
 }
 </style>
 

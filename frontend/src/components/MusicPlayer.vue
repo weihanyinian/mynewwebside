@@ -1,43 +1,98 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import playlistData from '../assets/playlist.json'
+/**
+ * 全局在线音乐播放器（HTML5 Audio）
+ *
+ * 【使用方法】在 App.vue 中已挂载则全站生效（非 admin 布局）。
+ *
+ * 【歌单配置】
+ * 1. 推荐：在 public/music/ 下放音频，并维护 public/music/playlist.json（见该目录 README）。
+ * 2. 若该 JSON 为空或加载失败，将自动回退到 src/assets/playlist.json。
+ */
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import fallbackPlaylist from '../assets/playlist.json'
 
-const playlist = playlistData
+// ---------- 布局 / 层级（低于 14 酱 Live2D 的 z-index: 999）----------
+const PLAYER_Z_INDEX = 90
+const OFFSET_LEFT = '90px'
+const OFFSET_BOTTOM = '20px'
 
+// ---------- 玻璃态 UI 规范（与站点统一）----------
+const GLASS = {
+  bg: 'rgba(255, 255, 255, 0.2)',
+  blur: '10px',
+  border: '1px solid rgba(255, 255, 255, 0.5)',
+  shadow: '0 8px 32px rgba(102, 217, 255, 0.2)',
+  radius: '16px',
+} as const
+
+type MusicTrack = {
+  title: string
+  url: string
+}
+
+const PLAYLIST_PUBLIC_URL = '/music/playlist.json'
+
+function formatTime(sec: number) {
+  if (!Number.isFinite(sec) || sec < 0) return '0:00'
+  const s = Math.floor(sec % 60)
+  const m = Math.floor(sec / 60)
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
+
+const playlist = ref<MusicTrack[]>([])
 const audioRef = ref<HTMLAudioElement | null>(null)
-const isPlaying = ref(false)
-const currentIndex = ref(0)
 const isExpanded = ref(false)
-const volume = ref(0.5)
+const isPlaying = ref(false)
+/** 拖动进度条时不与时间更新抢写 */
+const isSeeking = ref(false)
 
-function togglePlay() {
-  if (!audioRef.value) return
-  if (isPlaying.value) {
-    audioRef.value.pause()
-  } else {
-    audioRef.value.play().catch(err => {
-      console.log('Autoplay prevented', err)
-    })
+const currentIndex = ref(0)
+const volume = ref(0.65)
+const currentTime = ref(0)
+const duration = ref(0)
+
+const currentTrack = computed(() => playlist.value[currentIndex.value] ?? null)
+
+/** 供 range 渐变填充 */
+const progressFillStr = computed(() =>
+  duration.value > 0 ? `${(currentTime.value / duration.value) * 100}%` : '0%',
+)
+const volumeFillStr = computed(() => `${volume.value * 100}%`)
+
+/** 加载 public/music/playlist.json，失败或空则使用 assets 内建列表 */
+async function loadPlaylist() {
+  try {
+    const res = await fetch(`${PLAYLIST_PUBLIC_URL}?t=${Date.now()}`, { cache: 'no-store' })
+    if (res.ok) {
+      const data = (await res.json()) as unknown
+      if (Array.isArray(data) && data.length > 0) {
+        playlist.value = data as MusicTrack[]
+        currentIndex.value = 0
+        return
+      }
+    }
+  } catch {
+    /* 使用回退 */
   }
-  isPlaying.value = !isPlaying.value
+  playlist.value = fallbackPlaylist as MusicTrack[]
+  currentIndex.value = 0
 }
 
-function playNext() {
-  currentIndex.value = (currentIndex.value + 1) % playlist.length
-  if (isPlaying.value && audioRef.value) {
-    setTimeout(() => {
-      audioRef.value?.play()
-    }, 50)
-  }
+function clampIndex(i: number) {
+  const n = playlist.value.length
+  if (n === 0) return 0
+  return ((i % n) + n) % n
 }
 
-function handleEnded() {
-  playNext()
-}
-
-function updateVolume() {
-  if (audioRef.value) {
-    audioRef.value.volume = volume.value
+async function playFromCurrentIndex() {
+  await nextTick()
+  const el = audioRef.value
+  if (!el || !currentTrack.value) return
+  el.currentTime = 0
+  try {
+    await el.play()
+  } catch {
+    isPlaying.value = false
   }
 }
 
@@ -45,193 +100,444 @@ function toggleExpand() {
   isExpanded.value = !isExpanded.value
 }
 
-onMounted(() => {
-  if (audioRef.value) {
-    audioRef.value.volume = volume.value
+function collapse() {
+  isExpanded.value = false
+}
+
+async function togglePlay() {
+  const el = audioRef.value
+  if (!el || !currentTrack.value) return
+  if (isPlaying.value) {
+    el.pause()
+    return
   }
+  try {
+    await el.play()
+  } catch {
+    isPlaying.value = false
+  }
+}
+
+function playPrev() {
+  if (!playlist.value.length) return
+  currentIndex.value = clampIndex(currentIndex.value - 1)
+  void playFromCurrentIndex()
+}
+
+function playNext() {
+  if (!playlist.value.length) return
+  currentIndex.value = clampIndex(currentIndex.value + 1)
+  void playFromCurrentIndex()
+}
+
+function onEnded() {
+  playNext()
+}
+
+function onTimeUpdate() {
+  const el = audioRef.value
+  if (!el || isSeeking.value) return
+  currentTime.value = el.currentTime
+}
+
+function onLoadedMetadata() {
+  const el = audioRef.value
+  if (!el) return
+  duration.value = el.duration || 0
+}
+
+function onPlay() {
+  isPlaying.value = true
+}
+
+function onPause() {
+  isPlaying.value = false
+}
+
+function applyVolume() {
+  const el = audioRef.value
+  if (el) el.volume = volume.value
+}
+
+function onVolumeInput(e: Event) {
+  volume.value = Number((e.target as HTMLInputElement).value)
+  applyVolume()
+}
+
+function onSeekStart() {
+  isSeeking.value = true
+}
+
+function onSeekInput(e: Event) {
+  const el = audioRef.value
+  if (!el) return
+  const v = Number((e.target as HTMLInputElement).value)
+  el.currentTime = v
+  currentTime.value = v
+}
+
+function onSeekEnd() {
+  isSeeking.value = false
+}
+
+let rafId = 0
+function tick() {
+  /* 部分浏览器 timeupdate 偏稀疏，用 raf 辅助刷新显示（拖动时跳过） */
+  if (!isSeeking.value && audioRef.value && isPlaying.value) {
+    currentTime.value = audioRef.value.currentTime
+  }
+  rafId = requestAnimationFrame(tick)
+}
+
+watch(currentIndex, () => {
+  duration.value = 0
+  currentTime.value = 0
+})
+
+watch(
+  playlist,
+  (list) => {
+    if (!list.length) return
+    currentIndex.value = clampIndex(currentIndex.value)
+  },
+  { deep: true },
+)
+
+onMounted(async () => {
+  await loadPlaylist()
+  applyVolume()
+  rafId = requestAnimationFrame(tick)
+})
+
+onUnmounted(() => {
+  cancelAnimationFrame(rafId)
 })
 </script>
 
 <template>
-  <div class="music-player-wrapper" :class="{ 'is-expanded': isExpanded }">
-    <div class="music-trigger glass-ui" @click="toggleExpand">
-      <span class="music-icon" :class="{ 'spin-anim': isPlaying }">🎵</span>
-    </div>
-    
-    <div class="music-panel glass-ui">
-      <div class="panel-header">
-        <span class="song-title">{{ playlist[currentIndex].title }}</span>
-        <button class="close-btn" @click="toggleExpand">✕</button>
-      </div>
-      
-      <div class="controls">
-        <button class="control-btn" @click="togglePlay">
-          {{ isPlaying ? '⏸' : '▶' }}
-        </button>
-        <button class="control-btn" @click="playNext">⏭</button>
-      </div>
-      
-      <div class="volume-control">
-        <span class="vol-icon">🔊</span>
-        <input type="range" v-model="volume" min="0" max="1" step="0.01" @input="updateVolume" class="vol-slider" />
-      </div>
-    </div>
+  <div
+    class="mp-root"
+    :style="{
+      zIndex: PLAYER_Z_INDEX,
+      left: OFFSET_LEFT,
+      bottom: OFFSET_BOTTOM,
+    }"
+  >
+    <!-- 最小化：圆形触发钮（青蓝 + 粉紫渐变，与参考图一致） -->
+    <button
+      type="button"
+      class="mp-trigger glass-surface"
+      :class="{ 'mp-trigger--pulse': isPlaying }"
+      aria-label="展开音乐播放器"
+      @click="toggleExpand"
+    >
+      <span class="mp-trigger__icon">🎵</span>
+    </button>
 
-    <audio 
-      ref="audioRef" 
-      :src="playlist[currentIndex].url" 
-      @ended="handleEnded"
-      @play="isPlaying = true"
-      @pause="isPlaying = false"
-    ></audio>
+    <!-- 展开面板 -->
+    <transition name="mp-panel">
+      <div v-show="isExpanded" class="mp-panel glass-surface">
+        <header class="mp-panel__head">
+          <span class="mp-panel__title" :title="currentTrack?.title ?? ''">
+            {{ currentTrack?.title ?? '暂无曲目' }}
+          </span>
+          <button type="button" class="mp-panel__close" aria-label="收起" @click="collapse">
+            ✕
+          </button>
+        </header>
+
+        <div class="mp-controls">
+          <button type="button" class="mp-round" aria-label="上一首" @click="playPrev">⏮</button>
+          <button type="button" class="mp-round mp-round--lg" aria-label="播放或暂停" @click="togglePlay">
+            {{ isPlaying ? '⏸' : '▶' }}
+          </button>
+          <button type="button" class="mp-round" aria-label="下一首" @click="playNext">⏭</button>
+        </div>
+
+        <div class="mp-row">
+          <span class="mp-time">{{ formatTime(currentTime) }}</span>
+          <input
+            type="range"
+            class="mp-range mp-range--progress"
+            :min="0"
+            :max="duration > 0 ? duration : 0"
+            :step="0.1"
+            :value="currentTime"
+            @pointerdown="onSeekStart"
+            @pointerup="onSeekEnd"
+            @pointerleave="onSeekEnd"
+            @input="onSeekInput"
+          />
+          <span class="mp-time">{{ formatTime(duration) }}</span>
+        </div>
+
+        <div class="mp-row mp-row--vol">
+          <span class="mp-vol-ico" aria-hidden="true">🔊</span>
+          <input
+            type="range"
+            class="mp-range mp-range--vol"
+            min="0"
+            max="1"
+            step="0.01"
+            :value="volume"
+            @input="onVolumeInput"
+          />
+        </div>
+      </div>
+    </transition>
+
+    <audio
+      ref="audioRef"
+      :src="currentTrack?.url"
+      preload="metadata"
+      @ended="onEnded"
+      @timeupdate="onTimeUpdate"
+      @loadedmetadata="onLoadedMetadata"
+      @play="onPlay"
+      @pause="onPause"
+    />
   </div>
 </template>
 
 <style scoped>
-.music-player-wrapper {
+.mp-root {
   position: fixed;
-  left: 20px;
-  bottom: 20px;
-  z-index: 998;
   display: flex;
+  flex-direction: row;
   align-items: flex-end;
-  gap: 15px;
-  transition: all 0.3s ease;
-}
-
-.glass-ui {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 15px rgba(102, 217, 255, 0.2);
-  border-radius: 16px;
-  color: #fff;
-}
-
-.music-trigger {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  background: linear-gradient(135deg, rgba(102, 217, 255, 0.3) 0%, rgba(252, 162, 229, 0.3) 100%);
-  transition: all 0.3s;
-}
-.music-trigger:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(102, 217, 255, 0.4);
-}
-
-.music-icon {
-  font-size: 1.5rem;
-  display: inline-block;
-}
-.spin-anim {
-  animation: spin 3s linear infinite;
-}
-@keyframes spin {
-  100% { transform: rotate(360deg); }
-}
-
-.music-panel {
-  width: 220px;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  position: absolute;
-  left: 60px;
-  bottom: 0;
-  opacity: 0;
+  gap: 12px;
   pointer-events: none;
-  transform: translateX(-10px);
-  transition: all 0.3s ease;
 }
 
-.is-expanded .music-panel {
-  opacity: 1;
+.mp-root > * {
   pointer-events: auto;
-  transform: translateX(0);
 }
 
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.song-title {
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: #66d9ff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 150px;
-}
-.close-btn {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.6);
-  cursor: pointer;
-}
-.close-btn:hover {
-  color: #fca2e5;
+.glass-surface {
+  background: v-bind('GLASS.bg');
+  backdrop-filter: blur(v-bind('GLASS.blur'));
+  -webkit-backdrop-filter: blur(v-bind('GLASS.blur'));
+  border: v-bind('GLASS.border');
+  box-shadow: v-bind('GLASS.shadow');
+  border-radius: v-bind('GLASS.radius');
 }
 
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-.control-btn {
-  background: rgba(255,255,255,0.2);
-  border: none;
+.mp-trigger {
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  border: v-bind('GLASS.border');
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.control-btn:hover {
-  background: rgba(102, 217, 255, 0.4);
+  background: linear-gradient(135deg, rgba(102, 217, 255, 0.45) 0%, rgba(252, 162, 229, 0.42) 100%);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: v-bind('GLASS.shadow');
 }
 
-.volume-control {
+.mp-trigger:hover {
+  transform: scale(1.06);
+  box-shadow: 0 10px 28px rgba(102, 217, 255, 0.35);
+}
+
+.mp-trigger--pulse .mp-trigger__icon {
+  animation: mp-spin 4s linear infinite;
+}
+
+@keyframes mp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mp-trigger__icon {
+  font-size: 1.45rem;
+  line-height: 1;
+  display: block;
+}
+
+.mp-panel {
+  width: min(300px, calc(100vw - 100px));
+  padding: 14px 16px 16px;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mp-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mp-panel__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #b8f0ff;
+  line-height: 1.35;
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mp-panel__close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.mp-panel__close:hover {
+  background: rgba(252, 162, 229, 0.35);
+  color: #fff;
+}
+
+.mp-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.mp-round {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.mp-round:hover {
+  transform: scale(1.08);
+  background: rgba(102, 217, 255, 0.35);
+  box-shadow: 0 6px 18px rgba(102, 217, 255, 0.25);
+}
+
+.mp-round--lg {
+  width: 48px;
+  height: 48px;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.mp-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 10px;
 }
-.vol-icon {
-  font-size: 0.8rem;
+
+.mp-row--vol {
+  margin-bottom: 0;
 }
-.vol-slider {
+
+.mp-time {
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.9;
+  width: 2.25rem;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.mp-vol-ico {
+  font-size: 0.85rem;
+  width: 1.5rem;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+/* 进度 / 音量：轨道深色，已选段青蓝渐变（用 accent-color + background-size 模拟） */
+.mp-range {
   flex: 1;
-  accent-color: #fca2e5;
+  height: 6px;
+  border-radius: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: linear-gradient(
+    to right,
+    #4a90e2 0%,
+    #50e3c2 var(--fill, 0%),
+    rgba(30, 40, 50, 0.55) var(--fill, 0%),
+    rgba(30, 40, 50, 0.55) 100%
+  );
+  cursor: pointer;
+}
+
+.mp-range--progress {
+  --fill: v-bind(progressFillStr);
+}
+
+.mp-range--vol {
+  --fill: v-bind(volumeFillStr);
+}
+
+.mp-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fca2e5, #66d9ff);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(102, 217, 255, 0.45);
+  cursor: grab;
+  transition: transform 0.2s ease;
+}
+
+.mp-range::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+
+.mp-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fca2e5, #66d9ff);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(102, 217, 255, 0.45);
+}
+
+.mp-panel-enter-active,
+.mp-panel-leave-active {
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.mp-panel-enter-from,
+.mp-panel-leave-to {
+  opacity: 0;
+  transform: translateX(-8px);
 }
 
 @media (max-width: 480px) {
-  .music-player-wrapper {
-    left: 10px;
-    bottom: 10px;
+  .mp-root {
+    left: 12px !important;
+    bottom: 16px !important;
+    flex-direction: column-reverse;
+    align-items: flex-start;
   }
-  .music-trigger {
-    width: 40px;
-    height: 40px;
-  }
-  .music-icon {
-    font-size: 1.2rem;
-  }
-  .music-panel {
-    left: 50px;
-    width: 200px;
+
+  .mp-panel {
+    width: calc(100vw - 24px);
+    max-width: 320px;
   }
 }
 </style>
