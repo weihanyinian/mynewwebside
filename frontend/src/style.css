@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * 主题：日间/夜间由 Pinia stores/theme.ts 写入
+ * - document.documentElement.dataset.theme = 'light' | 'dark'
+ * - html.dark-mode / body.dark-mode 与 isDarkMode 同步，可与 [data-theme] 并列使用
+ */
+
 :root {
   --primary-color: #4a90e2;
   --secondary-color: #50e3c2;

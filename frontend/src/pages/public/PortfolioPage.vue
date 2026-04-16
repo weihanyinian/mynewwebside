@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { goToSiteHome } from '../../utils/siteHome'
 import { useI18n } from 'vue-i18n'
 import FloatingTools from '../../components/FloatingTools.vue'
 import HitokotoCard from '../../components/HitokotoCard.vue'
+import { useThemeStore } from '../../stores/theme'
 
 const router = useRouter()
 const route = useRoute()
 const { t, locale } = useI18n()
 
-const isDark = ref(false)
+/** 【主题】与 SiteLayout 共用 Pinia，首页仅负责视频/局部 dark-theme 类 */
+const themeStore = useThemeStore()
+const { isDarkMode } = storeToRefs(themeStore)
 
 function toggleLocale() {
   locale.value = locale.value === 'zh' ? 'en' : 'zh'
@@ -35,10 +39,6 @@ function scrollTo(id: string) {
   }
 }
 
-function toggleTheme() {
-  isDark.value = !isDark.value
-}
-
 /** 首页顶栏标题：已在主页则滚回顶部，否则进入 `/` */
 function onSiteLogoClick() {
   if (route.path === '/') {
@@ -50,7 +50,7 @@ function onSiteLogoClick() {
 </script>
 
 <template>
-  <div class="portfolio-container" :class="{ 'dark-theme': isDark }">
+  <div class="portfolio-container" :class="{ 'dark-theme': isDarkMode }">
     <!-- Video Backgrounds -->
     <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
     <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
@@ -74,20 +74,26 @@ function onSiteLogoClick() {
           </div>
         </div>
         <div class="links">
-          <a @click="scrollTo('about')">{{ t('nav.about') }}</a>
-          <a @click="scrollTo('skills')">{{ t('nav.skills') }}</a>
-          <a @click="scrollTo('works')">{{ t('nav.works') }}</a>
-          <a @click="scrollTo('contact')">{{ t('nav.contact') }}</a>
-          <a @click="router.push('/message')">{{ t('nav.message') }}</a>
-          <a class="oj-link" @click="router.push('/oj')">{{ t('nav.oj') }}</a>
-          <a @click="toggleLocale" class="lang-toggle" :title="t('home.langToggle')">
+          <!-- 【全站统一】首页顶栏与 site-ui .site-pill 一致；窄屏保留项见 site-pill--keep-mobile -->
+          <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('about')">{{ t('nav.about') }}</a>
+          <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('skills')">{{ t('nav.skills') }}</a>
+          <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('works')">{{ t('nav.works') }}</a>
+          <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('contact')">{{ t('nav.contact') }}</a>
+          <a href="#" class="site-pill site-pill--nav" @click.prevent="router.push('/message')">{{ t('nav.message') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav oj-link site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/oj') }"
+            @click.prevent="router.push('/oj')"
+          >{{ t('nav.oj') }}</a>
+          <a href="#" class="site-pill site-pill--nav lang-toggle site-pill--keep-mobile" :title="t('home.langToggle')" @click.prevent="toggleLocale">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
-          <a @click="toggleTheme" class="theme-toggle" :title="t('home.themeToggle')">
-            {{ isDark ? '🌙' : '☀️' }}
+          <a href="#" class="site-pill site-pill--nav theme-toggle site-pill--keep-mobile" :title="t('home.themeToggle')" @click.prevent="themeStore.toggleTheme">
+            {{ !isDarkMode ? '🌙' : '☀️' }}
           </a>
-          <a @click="router.push('/blog')" class="blog-btn">{{ t('nav.blog') }}</a>
-          <a @click="router.push('/moyu')" class="moyu-btn">{{ t('nav.moyu') }}</a>
+          <a href="#" class="site-pill site-pill--nav site-pill--active site-pill--keep-mobile" @click.prevent="router.push('/blog')">{{ t('nav.blog') }}</a>
+          <a href="#" class="site-pill site-pill--nav site-pill--pink site-pill--keep-mobile" @click.prevent="router.push('/moyu')">{{ t('nav.moyu') }}</a>
         </div>
       </div>
     </nav>
@@ -97,9 +103,9 @@ function onSiteLogoClick() {
       <div class="hero-content">
         <h1 class="hero-title">{{ t('home.hello') }} <span>{{ t('home.name') }}</span></h1>
         <div class="hero-actions">
-          <button type="button" class="btn-primary" @click="scrollTo('works')">{{ t('home.explore') }}</button>
-          <button type="button" class="btn-outline" @click="router.push('/blog')">{{ t('home.readBlog') }}</button>
-          <button type="button" class="btn-outline btn-oj" @click="router.push('/oj')">{{ t('home.openOj') }}</button>
+          <button type="button" class="site-pill site-pill--lg site-pill--active" @click="scrollTo('works')">{{ t('home.explore') }}</button>
+          <button type="button" class="site-pill site-pill--lg" @click="router.push('/blog')">{{ t('home.readBlog') }}</button>
+          <button type="button" class="site-pill site-pill--lg" @click="router.push('/oj')">{{ t('home.openOj') }}</button>
         </div>
       </div>
     </section>
@@ -289,56 +295,17 @@ h2 {
 
 .links {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
+  justify-content: flex-end;
 }
-.links a {
-  cursor: pointer;
-  font-weight: 600;
-  color: #2c3e50;
-  transition: color 0.3s;
-}
-.links a:hover {
-  color: #4a90e2;
-}
-.dark-theme .links a {
-  color: #e2e8f0;
-}
-.dark-theme .links a:hover {
-  color: #fbc2eb;
+.links a.site-pill {
+  text-decoration: none;
 }
 .theme-toggle {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   user-select: none;
-}
-.theme-toggle:hover {
-  transform: scale(1.1);
-}
-
-.blog-btn {
-  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
-  color: white !important;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-}
-.dark-theme .blog-btn {
-  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-}
-.blog-btn:hover, .moyu-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.moyu-btn {
-  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-  color: white !important;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-}
-.dark-theme .moyu-btn {
-  background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
 }
 
 /* Hero Section */
@@ -379,53 +346,6 @@ h2 {
   flex-wrap: wrap;
   gap: 16px;
   justify-content: center;
-}
-.btn-oj {
-  border-color: #50e3c2;
-  color: #2a9d8f;
-}
-.dark-theme .btn-oj {
-  border-color: #50e3c2;
-  color: #7bedd3;
-}
-.btn-primary, .btn-outline {
-  padding: 12px 28px;
-  border-radius: 30px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-}
-.btn-primary {
-  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
-}
-.dark-theme .btn-primary {
-  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-  box-shadow: 0 4px 15px rgba(161, 140, 209, 0.3);
-}
-.btn-primary:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.05);
-}
-.btn-outline {
-  background: rgba(255, 255, 255, 0.8);
-  border: 2px solid #4a90e2;
-  color: #4a90e2;
-  backdrop-filter: blur(4px);
-}
-.dark-theme .btn-outline {
-  background: rgba(0, 0, 0, 0.3);
-  border-color: #fbc2eb;
-  color: #fbc2eb;
-}
-.btn-outline:hover {
-  background: rgba(74, 144, 226, 0.1);
-}
-.dark-theme .btn-outline:hover {
-  background: rgba(251, 194, 235, 0.1);
 }
 
 /* General Sections */
@@ -637,7 +557,7 @@ h2 {
   .hero-title {
     font-size: 2.5rem;
   }
-  .links a:not(.blog-btn):not(.moyu-btn):not(.oj-link):not(.theme-toggle):not(.lang-toggle) {
+  .links a.site-pill:not(.site-pill--keep-mobile) {
     display: none;
   }
   .works-grid {

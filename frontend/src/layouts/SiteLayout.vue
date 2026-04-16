@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getToken } from '../utils/token'
 import { goToSiteHome } from '../utils/siteHome'
 import GlassBreadcrumb from '../components/GlassBreadcrumb.vue'
-
-type ThemeMode = 'light' | 'dark'
+import { useThemeStore } from '../stores/theme'
 
 const router = useRouter()
 const route = useRoute()
 const { t, locale } = useI18n()
+
+/** 【主题】全站共享 Pinia，与首页 Portfolio 同一套日间/夜间状态 */
+const themeStore = useThemeStore()
+const { isDarkMode } = storeToRefs(themeStore)
 
 const isLoggedIn = computed(() => !!getToken())
 
@@ -26,10 +30,13 @@ const isWideMain = computed(() => {
   )
 })
 
-const colorTheme = ref<ThemeMode>('light')
-
 function goHome(hash: string) {
   router.push({ path: '/', hash: hash })
+}
+
+/** Portfolio 锚点区高亮：仅当当前在首页且 hash 一致 */
+function isSectionActive(hash: string) {
+  return route.path === '/' && route.hash === hash
 }
 
 /** 顶栏 Logo：全局回主页入口（清除 hash，子页状态随卸载而结束） */
@@ -41,40 +48,6 @@ function toggleLocale() {
   locale.value = locale.value === 'zh' ? 'en' : 'zh'
 }
 
-/** 全站主题：同步 CSS 变量，供博客玻璃态与正文对比度使用 */
-function applyTheme(mode: ThemeMode) {
-  const root = document.documentElement
-  if (mode === 'dark') {
-    root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, rgba(20, 38, 51, 0.96) 0%, rgba(18, 28, 40, 0.96) 100%)')
-    root.style.setProperty('--text-color', '#eaf8ff')
-    root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.12)')
-    root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.45)')
-    root.style.setProperty('--glass-shadow', '0 8px 32px rgba(102, 217, 255, 0.18)')
-    root.style.setProperty('--blog-on-glass', '#f0fbff')
-    root.style.setProperty('--blog-on-glass-muted', 'rgba(240, 251, 255, 0.82)')
-  } else {
-    root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, rgba(230, 238, 245, 0.85) 0%, rgba(200, 218, 235, 0.92) 100%)')
-    root.style.setProperty('--text-color', '#2c3e50')
-    root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.4)')
-    root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.6)')
-    root.style.setProperty('--glass-shadow', '0 8px 32px 0 rgba(74, 144, 226, 0.15)')
-    root.style.setProperty('--blog-on-glass', '#1a3a52')
-    root.style.setProperty('--blog-on-glass-muted', 'rgba(26, 58, 82, 0.75)')
-  }
-  root.dataset.theme = mode
-}
-
-function toggleTheme() {
-  colorTheme.value = colorTheme.value === 'light' ? 'dark' : 'light'
-  localStorage.setItem('site-theme', colorTheme.value)
-  applyTheme(colorTheme.value)
-}
-
-onMounted(() => {
-  const saved = localStorage.getItem('site-theme') as ThemeMode | null
-  colorTheme.value = saved === 'dark' || saved === 'light' ? saved : 'light'
-  applyTheme(colorTheme.value)
-})
 </script>
 
 <template>
@@ -92,27 +65,74 @@ onMounted(() => {
           {{ t('nav.logo') }}
         </div>
         <div class="links">
-          <a @click="goHome('#about')">{{ t('nav.about') }}</a>
-          <a @click="goHome('#skills')">{{ t('nav.skills') }}</a>
-          <a @click="goHome('#works')">{{ t('nav.works') }}</a>
-          <a @click="goHome('#contact')">{{ t('nav.contact') }}</a>
-          <a @click="router.push('/message')">{{ t('nav.message') }}</a>
-          <a @click="router.push('/moyu')" :class="{ active: router.currentRoute.value.path === '/moyu', 'moyu-link': true }">{{ t('nav.moyu') }}</a>
-          <a @click="toggleLocale" class="lang-toggle" :title="t('home.langToggle')">
+          <!-- 【全站统一】顶栏导航：site-pill 玻璃态 + 路由/锚点高亮 -->
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-top-anchor"
+            :class="{ 'site-pill--active': isSectionActive('#about') }"
+            @click.prevent="goHome('#about')"
+          >{{ t('nav.about') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-top-anchor"
+            :class="{ 'site-pill--active': isSectionActive('#skills') }"
+            @click.prevent="goHome('#skills')"
+          >{{ t('nav.skills') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-top-anchor"
+            :class="{ 'site-pill--active': isSectionActive('#works') }"
+            @click.prevent="goHome('#works')"
+          >{{ t('nav.works') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-top-anchor"
+            :class="{ 'site-pill--active': isSectionActive('#contact') }"
+            @click.prevent="goHome('#contact')"
+          >{{ t('nav.contact') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav"
+            :class="{ 'site-pill--active': route.path === '/message' }"
+            @click.prevent="router.push('/message')"
+          >{{ t('nav.message') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav moyu-link"
+            :class="{ 'site-pill--pink': route.path === '/moyu' }"
+            @click.prevent="router.push('/moyu')"
+          >{{ t('nav.moyu') }}</a>
+          <a href="#" class="site-pill site-pill--nav lang-toggle" :title="t('home.langToggle')" @click.prevent="toggleLocale">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
           <a
-            @click="router.push('/oj')"
-            :class="{ active: route.path.startsWith('/oj'), 'oj-link': true }"
+            href="#"
+            class="site-pill site-pill--nav oj-link"
+            :class="{ 'site-pill--active': route.path.startsWith('/oj') }"
+            @click.prevent="router.push('/oj')"
           >{{ t('nav.oj') }}</a>
           <a
-            @click="router.push('/blog')"
-            :class="{ active: route.path.startsWith('/blog') || route.path.startsWith('/article') }"
+            href="#"
+            class="site-pill site-pill--nav"
+            :class="{ 'site-pill--active': route.path.startsWith('/blog') || route.path.startsWith('/article') }"
+            @click.prevent="router.push('/blog')"
           >{{ t('nav.blog') }}</a>
-          <a v-if="isLoggedIn" @click="router.push('/admin')">{{ t('nav.admin') }}</a>
-          <a v-else @click="router.push('/admin/login')">{{ t('nav.admin') }}</a>
-          <a class="theme-toggle" :title="t('home.themeToggle')" @click="toggleTheme">
-            {{ colorTheme === 'light' ? '🌙' : '☀️' }}
+          <a
+            v-if="isLoggedIn"
+            href="#"
+            class="site-pill site-pill--nav"
+            :class="{ 'site-pill--active': route.path.startsWith('/admin') && route.path !== '/admin/login' }"
+            @click.prevent="router.push('/admin')"
+          >{{ t('nav.admin') }}</a>
+          <a
+            v-else
+            href="#"
+            class="site-pill site-pill--nav"
+            :class="{ 'site-pill--active': route.path === '/admin/login' }"
+            @click.prevent="router.push('/admin/login')"
+          >{{ t('nav.admin') }}</a>
+          <a href="#" class="site-pill site-pill--nav theme-toggle" :title="t('home.themeToggle')" @click.prevent="themeStore.toggleTheme">
+            {{ !isDarkMode ? '🌙' : '☀️' }}
           </a>
         </div>
       </div>
@@ -183,20 +203,14 @@ onMounted(() => {
 
 .links {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
+  justify-content: flex-end;
 }
 
-.links a {
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--text-color);
-  transition: color 0.3s;
+.links a.site-pill {
   text-decoration: none;
-}
-
-.links a:hover, .links a.active {
-  color: var(--primary-color);
 }
 
 .site-main {
@@ -246,8 +260,12 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
+/* 窄屏：Portfolio 区块锚点始终收起（与原顶栏一致）；其余项仅保留高亮 + 语言/主题/摸鱼/OJ */
 @media (max-width: 780px) {
-  .links a:not(.active):not(.lang-toggle):not(.moyu-link):not(.oj-link):not(.theme-toggle) {
+  .links > a.site-top-anchor {
+    display: none;
+  }
+  .links > a.site-pill:not(.site-pill--active):not(.lang-toggle):not(.moyu-link):not(.oj-link):not(.theme-toggle):not(.site-pill--pink) {
     display: none;
   }
 }
