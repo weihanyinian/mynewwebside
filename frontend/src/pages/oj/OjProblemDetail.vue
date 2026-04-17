@@ -286,7 +286,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="oj-detail">
     <div class="top-row">
-      <button type="button" class="site-pill site-pill--on-dark" @click="router.push('/oj')">← 题目列表</button>
+      <button type="button" class="site-pill site-pill--on-dark" @click="router.push('/tools/oj')">← 题目列表</button>
       <span v-if="problem" class="pill">{{ problem.difficulty }} · {{ problem.judgeMode === 'LEETCODE' ? '力扣' : 'ACM' }}</span>
     </div>
 

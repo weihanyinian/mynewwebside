@@ -39,7 +39,7 @@ onMounted(async () => {
 })
 
 function goDetail(id: string) {
-  router.push(`/oj/p/${id}`)
+  router.push(`/tools/oj/p/${id}`)
 }
 
 function badgeMode(m: string) {
@@ -61,6 +61,7 @@ function badgeMode(m: string) {
         <option value="">全部难度</option>
         <option v-for="d in difficultyOptions" :key="d" :value="d">{{ d }}</option>
       </select>
+      <button type="button" class="site-pill site-pill--active" @click="router.push('/tools/oj/submissions')">我的提交</button>
     </div>
 
     <p v-if="loading" class="hint">加载中…</p>
@@ -125,7 +126,7 @@ function badgeMode(m: string) {
 .input,
 .select {
   flex: 1 1 200px;
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.55);
   background: rgba(0, 40, 80, 0.15);
   color: #fff;

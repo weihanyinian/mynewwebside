@@ -33,7 +33,7 @@ const isWideMain = computed(() => {
     p.startsWith('/article') ||
     p === '/categories' ||
     p === '/tags' ||
-    p.startsWith('/oj')
+    p.startsWith('/tools')
   )
 })
 
@@ -108,10 +108,10 @@ function toggleLocale() {
           </a>
           <a
             href="#"
-            class="site-pill site-pill--nav oj-link"
-            :class="{ 'site-pill--active': route.path.startsWith('/oj') }"
-            @click.prevent="router.push('/oj')"
-          >{{ t('nav.oj') }}</a>
+            class="site-pill site-pill--nav"
+            :class="{ 'site-pill--active': route.path.startsWith('/tools') }"
+            @click.prevent="router.push('/tools')"
+          >{{ t('nav.tools') }}</a>
           <a
             href="#"
             class="site-pill site-pill--nav"

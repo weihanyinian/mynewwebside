@@ -9,6 +9,7 @@ const messages = {
       message: '留言墙',
       moyu: '摸鱼',
       blog: '前往博客',
+      tools: '工具栏',
       oj: '在线 OJ',
       admin: '管理后台',
       login: '登录',
@@ -30,11 +31,11 @@ const messages = {
       contactText: '期待与你交流技术，探讨合作可能。旅途还在继续，一起创造更多的可能吧。',
       footer: '维寒一念 | MyWebSide',
       langToggle: '切换语言',
-      themeToggle: '切换主题',
-      openOj: '在线 OJ'
+      themeToggle: '切换主题'
     },
     breadcrumb: {
       home: '首页',
+      tools: '工具栏',
       blog: '博客',
       article: '文章',
       categories: '分类',
@@ -84,6 +85,32 @@ const messages = {
       pause: '⏸ 暂停',
       reset: '🔄 重置'
     },
+    toolsHub: {
+      title: '工具栏',
+      subtitle: '实用小工具与在线 OJ、思维导图编辑器，纯前端即可使用（OJ 评测需后端）。',
+      back: '返回工具栏',
+      cardOjTitle: '在线 OJ',
+      cardOjDesc: '算法题库与远程评测，支持多语言提交。',
+      cardMarkmapTitle: '思维导图',
+      cardMarkmapDesc: 'Markmap：Markdown 实时转思维导图，可导出 PNG / SVG / HTML。',
+      cardReactionDesc: '测一测从信号出现到点击的反应时间。',
+      cardCpsDesc: '限时内连点，计算每秒点击次数。',
+      cardPomodoroDesc: '专注与休息计时，简单番茄工作法。',
+      cardPasswordDesc: '本地生成随机强密码，一键复制。',
+      cardBase64Desc: '文本 Base64 加密与解密（UTF-8）。'
+    },
+    markmap: {
+      save: '保存',
+      exportSvg: '导出 SVG',
+      exportPng: '导出 PNG',
+      exportHtml: '导出 HTML',
+      clear: '清空',
+      reset: '重置',
+      placeholder: '在此编辑 Markdown…',
+      savedHint: '已保存到本地',
+      exportPngFail: '导出 PNG 失败（可能含跨域图片）',
+      cdnHint: '首次使用代码高亮或公式时，markmap 会从 jsDelivr 加载 KaTeX / Highlight.js 资源；离线环境请确保网络可达或自行配置反向代理。'
+    },
     messageWall: {
       title: '公共留言墙',
       subtitle: '在这里留下你的足迹吧...',
@@ -112,6 +139,7 @@ const messages = {
       message: 'Wall',
       moyu: 'Games',
       blog: 'Blog',
+      tools: 'Toolbox',
       oj: 'OJ',
       admin: 'Admin',
       login: 'Login',
@@ -133,11 +161,11 @@ const messages = {
       contactText: 'Looking forward to discussing tech and collaborations. The journey continues, let\'s create more possibilities together.',
       footer: 'Weihan Yinian | MyWebSide',
       langToggle: 'Switch Language',
-      themeToggle: 'Toggle Theme',
-      openOj: 'Online OJ'
+      themeToggle: 'Toggle Theme'
     },
     breadcrumb: {
       home: 'Home',
+      tools: 'Toolbox',
       blog: 'Blog',
       article: 'Article',
       categories: 'Categories',
@@ -186,6 +214,32 @@ const messages = {
       play: '▶ Play',
       pause: '⏸ Pause',
       reset: '🔄 Reset'
+    },
+    toolsHub: {
+      title: 'Toolbox',
+      subtitle: 'Gadgets, online OJ, and Markmap mindmaps. Gadgets are static; OJ judging needs the backend.',
+      back: 'Back to toolbox',
+      cardOjTitle: 'Online OJ',
+      cardOjDesc: 'Problem set and remote judge; multi-language.',
+      cardMarkmapTitle: 'Mindmap',
+      cardMarkmapDesc: 'Markmap: live Markdown mindmap; export PNG / SVG / HTML.',
+      cardReactionDesc: 'Measure reaction time from stimulus to click.',
+      cardCpsDesc: 'Clicks per second in a time window.',
+      cardPomodoroDesc: 'Focus / break Pomodoro timer.',
+      cardPasswordDesc: 'Generate strong passwords locally.',
+      cardBase64Desc: 'UTF-8 Base64 encode & decode.'
+    },
+    markmap: {
+      save: 'Save',
+      exportSvg: 'SVG',
+      exportPng: 'PNG',
+      exportHtml: 'HTML',
+      clear: 'Clear',
+      reset: 'Reset',
+      placeholder: 'Edit Markdown here…',
+      savedHint: 'Saved locally',
+      exportPngFail: 'PNG export failed (cross-origin images?)',
+      cdnHint: 'Code blocks and math may load KaTeX / Highlight.js from jsDelivr on first use; ensure network access or proxy if needed.'
     },
     messageWall: {
       title: 'Message Wall',

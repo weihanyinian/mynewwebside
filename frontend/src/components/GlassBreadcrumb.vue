@@ -44,6 +44,18 @@ const items = computed<Crumb[]>(() => {
       list.push({ label: t('breadcrumb.adminMessages') })
       return list
     }
+    if (path === '/admin/users') {
+      list.push({ label: t('breadcrumb.adminUsers') })
+      return list
+    }
+    if (path === '/admin/oj/problems') {
+      list.push({ label: t('breadcrumb.adminOjProblems') })
+      return list
+    }
+    if (path === '/admin/oj/submissions') {
+      list.push({ label: t('breadcrumb.adminOjSubmissions') })
+      return list
+    }
     return list
   }
 
@@ -70,11 +82,38 @@ const items = computed<Crumb[]>(() => {
     list.push({ label: t('breadcrumb.message') })
     return list
   }
-  if (path.startsWith('/oj')) {
-    list.push({ label: t('nav.oj'), to: '/oj' })
-    if (route.params.id) {
-      list.push({ label: t('breadcrumb.ojProblem') })
+  if (path.startsWith('/tools')) {
+    list.push({ label: t('breadcrumb.tools'), to: '/tools' })
+    if (path === '/tools') return list
+    if (path.startsWith('/tools/oj')) {
+      list.push({ label: t('nav.oj'), to: '/tools/oj' })
+      if (path === '/tools/oj/submissions') {
+        list.push({ label: t('breadcrumb.ojSubmissions') })
+        return list
+      }
+      if (route.params.id) {
+        list.push({ label: t('breadcrumb.ojProblem') })
+      }
+      return list
     }
+    const seg = path.replace('/tools/', '')
+    const labelMap: Record<string, string> = {
+      reaction: t('tools.reaction'),
+      cps: t('tools.cps'),
+      pomodoro: t('tools.pomodoro'),
+      password: t('tools.password'),
+      base64: t('tools.base64'),
+      markmap: t('toolsHub.cardMarkmapTitle'),
+    }
+    list.push({ label: labelMap[seg] || seg })
+    return list
+  }
+  if (path === '/login') {
+    list.push({ label: t('breadcrumb.login') })
+    return list
+  }
+  if (path === '/register') {
+    list.push({ label: t('breadcrumb.register') })
     return list
   }
   return []
@@ -87,10 +126,15 @@ const visible = computed(() => items.value.length >= 2)
   <nav v-if="visible" class="glass-crumb" aria-label="Breadcrumb">
     <ol class="glass-crumb__list">
       <li v-for="(c, i) in items" :key="i" class="glass-crumb__item">
-        <RouterLink v-if="c.to && i < items.length - 1" :to="c.to" class="glass-crumb__link">
+        <!-- 【全站统一】面包屑链接使用 site-pill--crumb -->
+        <RouterLink
+          v-if="c.to && i < items.length - 1"
+          :to="c.to"
+          class="site-pill site-pill--crumb glass-crumb__link"
+        >
           {{ c.label }}
         </RouterLink>
-        <span v-else class="glass-crumb__current">{{ c.label }}</span>
+        <span v-else class="site-pill site-pill--crumb glass-crumb__current">{{ c.label }}</span>
         <span v-if="i < items.length - 1" class="glass-crumb__sep" aria-hidden="true">/</span>
       </li>
     </ol>
@@ -128,23 +172,18 @@ const visible = computed(() => items.value.length >= 2)
   text-shadow: 0 1px 2px rgba(0, 30, 60, 0.35);
 }
 
+/* 面包屑：最后一级用主色强调，链接 hover 由 .site-pill 统一 */
 .glass-crumb__link {
-  color: inherit;
   text-decoration: none;
-  opacity: 0.88;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
 }
 
-.glass-crumb__link:hover {
-  opacity: 1;
-  transform: translateY(-1px);
-}
-
-.glass-crumb__current {
-  opacity: 1;
-  color: var(--primary-color, #4a90e2);
+.glass-crumb__current.site-pill {
+  cursor: default;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.88) 0%, rgba(80, 227, 194, 0.9) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
 }
 
 .glass-crumb__sep {

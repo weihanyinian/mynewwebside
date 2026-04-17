@@ -4,7 +4,6 @@ import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { goToSiteHome } from '../../utils/siteHome'
 import { useI18n } from 'vue-i18n'
-import FloatingTools from '../../components/FloatingTools.vue'
 import HitokotoCard from '../../components/HitokotoCard.vue'
 import { useThemeStore } from '../../stores/theme'
 import { useUserStore } from '../../stores/user'
@@ -34,7 +33,7 @@ const works = ref([
   { title: '大语言模型微调与部署', desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。', link: '#', tag: 'LLM / GLM4' },
   { title: 'Transformer 机器翻译', desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。', link: '#', tag: 'Deep Learning' },
   { title: 'MyWebSide Blog', desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。', link: '/blog', tag: 'Full Stack' },
-  { title: '在线判题 OJ', desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。', link: '/oj', tag: 'OJ / Sandbox' },
+  { title: '在线判题 OJ', desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。', link: '/tools/oj', tag: 'OJ / Sandbox' },
 ])
 
 // Smooth scroll for nav anchors
@@ -65,9 +64,6 @@ function onSiteLogoClick() {
     <nav class="glass-nav site-nav-unified">
       <div class="nav-inner">
         <div class="nav-left">
-          <!-- Floating Widgets inside navbar -->
-          <FloatingTools />
-          
           <div
             class="logo"
             role="link"
@@ -87,10 +83,10 @@ function onSiteLogoClick() {
           <a href="#" class="site-pill site-pill--nav" @click.prevent="router.push('/message')">{{ t('nav.message') }}</a>
           <a
             href="#"
-            class="site-pill site-pill--nav oj-link site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path.startsWith('/oj') }"
-            @click.prevent="router.push('/oj')"
-          >{{ t('nav.oj') }}</a>
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/tools') }"
+            @click.prevent="router.push('/tools')"
+          >{{ t('nav.tools') }}</a>
           <a href="#" class="site-pill site-pill--nav lang-toggle site-pill--keep-mobile" :title="t('home.langToggle')" @click.prevent="toggleLocale">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
@@ -137,7 +133,6 @@ function onSiteLogoClick() {
         <div class="hero-actions">
           <button type="button" class="site-pill site-pill--lg site-pill--active" @click="scrollTo('works')">{{ t('home.explore') }}</button>
           <button type="button" class="site-pill site-pill--lg" @click="router.push('/blog')">{{ t('home.readBlog') }}</button>
-          <button type="button" class="site-pill site-pill--lg" @click="router.push('/oj')">{{ t('home.openOj') }}</button>
         </div>
       </div>
     </section>
