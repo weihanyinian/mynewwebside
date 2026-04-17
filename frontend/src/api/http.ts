@@ -1,5 +1,5 @@
 import axios, { type AxiosError } from 'axios'
-import { getToken } from '../utils/token'
+import { clearToken, getToken } from '../utils/token'
 
 export type ApiResponse<T> = {
   code: number
@@ -32,6 +32,19 @@ http.interceptors.response.use(
     return resp
   },
   (err: AxiosError<ApiResponse<unknown>>) => {
+    const reqUrl = err.config?.url || ''
+    if (
+      err.response?.status === 401
+      && !reqUrl.includes('/api/auth/login')
+      && !reqUrl.includes('/api/auth/register')
+    ) {
+      clearToken()
+      try {
+        localStorage.removeItem('blog_user_profile')
+      } catch {
+        /* ignore */
+      }
+    }
     const data = err.response?.data
     if (data && typeof data === 'object' && typeof data.message === 'string' && data.message) {
       return Promise.reject(new Error(data.message))

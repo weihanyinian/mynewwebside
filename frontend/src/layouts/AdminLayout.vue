@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { clearToken } from '../utils/token'
-import { Document, Edit, Folder, CollectionTag, ChatDotRound } from '@element-plus/icons-vue'
+import { useUserStore } from '../stores/user'
+import { Document, Edit, Folder, CollectionTag, ChatDotRound, User, Cpu, List } from '@element-plus/icons-vue'
 import GlassBreadcrumb from '../components/GlassBreadcrumb.vue'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 
 function logout() {
-  clearToken()
-  router.push('/admin/login')
+  userStore.logout()
+  router.push('/login')
 }
 </script>
 
@@ -48,11 +49,23 @@ function logout() {
           <el-icon><ChatDotRound /></el-icon>
           <span>留言审核</span>
         </el-menu-item>
+        <el-menu-item index="/admin/users">
+          <el-icon><User /></el-icon>
+          <span>用户管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/oj/problems">
+          <el-icon><Cpu /></el-icon>
+          <span>OJ 题目</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/oj/submissions">
+          <el-icon><List /></el-icon>
+          <span>OJ 提交记录</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
     <el-container class="admin-content-wrapper">
-      <el-header class="admin-header">
+      <el-header class="admin-header site-admin-header-unified">
         <div class="admin-header__inner">
           <div class="admin-header__title admin-header__crumb">
             <GlassBreadcrumb variant="admin" />
@@ -150,6 +163,10 @@ function logout() {
   padding: 10px 24px;
   min-height: 64px;
   height: auto;
+}
+
+.admin-header.site-admin-header-unified {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .admin-header__inner {

@@ -12,10 +12,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class OjJudgeService {
 
-  private final ProblemJsonStore problemStore;
+  private final OjProblemStore problemStore;
   private final Judge0Service judge0Service;
 
-  public OjJudgeService(ProblemJsonStore problemStore, Judge0Service judge0Service) {
+  public OjJudgeService(OjProblemStore problemStore, Judge0Service judge0Service) {
     this.problemStore = problemStore;
     this.judge0Service = judge0Service;
   }

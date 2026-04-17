@@ -103,7 +103,8 @@ const items = computed<Crumb[]>(() => {
       pomodoro: t('tools.pomodoro'),
       password: t('tools.password'),
       base64: t('tools.base64'),
-      markmap: t('toolsHub.cardMarkmapTitle'),
+      mindmap: t('toolsHub.cardMindmapTitle'),
+      markmap: t('toolsHub.cardMindmapTitle'),
     }
     list.push({ label: labelMap[seg] || seg })
     return list

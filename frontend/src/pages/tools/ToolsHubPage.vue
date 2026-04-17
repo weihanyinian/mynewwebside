@@ -9,7 +9,7 @@ type Card = { id: string; icon: string; titleKey: string; descKey: string; to: s
 
 const cards: Card[] = [
   { id: 'oj', icon: '⌨️', titleKey: 'toolsHub.cardOjTitle', descKey: 'toolsHub.cardOjDesc', to: '/tools/oj' },
-  { id: 'markmap', icon: '🧠', titleKey: 'toolsHub.cardMarkmapTitle', descKey: 'toolsHub.cardMarkmapDesc', to: '/tools/markmap', accent: true },
+  { id: 'mindmap', icon: '🧠', titleKey: 'toolsHub.cardMindmapTitle', descKey: 'toolsHub.cardMindmapDesc', to: '/tools/mindmap', accent: true },
   { id: 'reaction', icon: '⚡', titleKey: 'tools.reaction', descKey: 'toolsHub.cardReactionDesc', to: '/tools/reaction' },
   { id: 'cps', icon: '🖱️', titleKey: 'tools.cps', descKey: 'toolsHub.cardCpsDesc', to: '/tools/cps' },
   { id: 'pomodoro', icon: '🍅', titleKey: 'tools.pomodoro', descKey: 'toolsHub.cardPomodoroDesc', to: '/tools/pomodoro' },

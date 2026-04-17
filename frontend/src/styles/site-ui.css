@@ -4,6 +4,19 @@
  * 引入顺序：在 main.ts 中于 ./style.css 之后加载。
  */
 
+/* ---------- 顶栏统一：顶部 1px 青蓝边线（不写 box-shadow，避免覆盖各页 .glass-nav 原有阴影） ---------- */
+.site-nav-unified {
+  border-top: 1px solid rgba(102, 217, 255, 0.42);
+}
+
+:root[data-theme='dark'] .site-nav-unified {
+  border-top-color: rgba(102, 217, 255, 0.34);
+}
+
+.site-admin-header-unified {
+  border-top: 1px solid rgba(102, 217, 255, 0.32);
+}
+
 /* ---------- 基础玻璃 pill：未选中深色字 + 轻阴影 ---------- */
 .site-pill {
   display: inline-flex;

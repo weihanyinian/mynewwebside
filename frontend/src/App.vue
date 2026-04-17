@@ -7,6 +7,7 @@ import Mascot from './components/Mascot.vue'
 import MusicPlayer from './components/MusicPlayer.vue'
 
 const route = useRoute()
+/** 后台壳子：不含已废弃的 /admin/login（已重定向到 /login） */
 const isAdmin = computed(() => route.path.startsWith('/admin'))
 const isPortfolio = computed(() => route.path === '/')
 </script>

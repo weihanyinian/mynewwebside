@@ -1,14 +1,19 @@
 /**
- * 全站主题（Pinia）：日间/夜间跨页面持久化。
- * - localStorage 主键 `theme`（'light' | 'dark'），并同步旧键 `site-theme` 以兼容历史数据
- * - 同步设置 document.documentElement 的 data-theme、CSS 变量，以及 html/body 的 .dark-mode 类
+ * 全站主题（Pinia）
+ * - 首次访问：跟随系统 prefers-color-scheme（手机/浏览器暗黑设置）
+ * - 用户点击顶栏切换：写入 theme-user，永久覆盖系统直至清除（与旧版 theme 键兼容迁移）
+ * - 跟随系统时监听 matchMedia('change')，全页同步
  */
 import { defineStore } from 'pinia'
 
 const STORAGE_THEME = 'theme'
 const STORAGE_LEGACY = 'site-theme'
+/** 存在且为 light|dark 表示用户手动选择，优先级高于系统 */
+const STORAGE_THEME_USER = 'theme-user'
 
-/** 将主题写入 DOM（供博客玻璃态、OJ 浅色覆盖 data-theme=light 等逻辑使用） */
+let mediaQuery: MediaQueryList | null = null
+let mediaHandler: (() => void) | null = null
+
 export function syncDocumentTheme(isDark: boolean) {
   const root = document.documentElement
   const mode = isDark ? 'dark' : 'light'
@@ -42,26 +47,76 @@ export function syncDocumentTheme(isDark: boolean) {
   document.body.classList.toggle('dark-mode', isDark)
 }
 
+function readSystemDark(): boolean {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+}
+
 export const useThemeStore = defineStore('theme', {
   state: () => ({
-    /** false = 日间，true = 夜间 */
     isDarkMode: false,
+    /** true：跟随系统；false：使用用户手动选择的 isDarkMode */
+    followSystem: true,
   }),
   actions: {
-    /** 应用启动时调用：读 localStorage 并同步 DOM */
-    initTheme() {
-      const raw = localStorage.getItem(STORAGE_THEME) ?? localStorage.getItem(STORAGE_LEGACY)
-      this.isDarkMode = raw === 'dark'
-      syncDocumentTheme(this.isDarkMode)
+    /** 绑定/解绑系统主题监听 */
+    _attachSystemListener() {
+      if (mediaHandler && mediaQuery) {
+        mediaQuery.removeEventListener('change', mediaHandler)
+        mediaHandler = null
+        mediaQuery = null
+      }
+      if (!this.followSystem) return
+
+      mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+      mediaHandler = () => {
+        if (this.followSystem) {
+          this.isDarkMode = mediaQuery!.matches
+          syncDocumentTheme(this.isDarkMode)
+        }
+      }
+      mediaQuery.addEventListener('change', mediaHandler)
     },
 
-    /** 切换主题并持久化 */
+    /**
+     * 应用启动时调用。
+     * - 无 theme-user：若存在旧 theme 键则视为历史手动选择并迁移；否则跟随系统。
+     */
+    initTheme() {
+      let user = localStorage.getItem(STORAGE_THEME_USER) as 'light' | 'dark' | null
+
+      if (user !== 'light' && user !== 'dark') {
+        const legacy = localStorage.getItem(STORAGE_THEME) ?? localStorage.getItem(STORAGE_LEGACY)
+        if (legacy === 'light' || legacy === 'dark') {
+          user = legacy
+          localStorage.setItem(STORAGE_THEME_USER, user)
+        }
+      }
+
+      if (user === 'light' || user === 'dark') {
+        this.followSystem = false
+        this.isDarkMode = user === 'dark'
+      } else {
+        this.followSystem = true
+        this.isDarkMode = readSystemDark()
+      }
+
+      syncDocumentTheme(this.isDarkMode)
+      localStorage.setItem(STORAGE_THEME, this.isDarkMode ? 'dark' : 'light')
+      localStorage.setItem(STORAGE_LEGACY, this.isDarkMode ? 'dark' : 'light')
+
+      this._attachSystemListener()
+    },
+
+    /** 用户手动切换：不再跟随系统，持久化 */
     toggleTheme() {
+      this.followSystem = false
       this.isDarkMode = !this.isDarkMode
       const token = this.isDarkMode ? 'dark' : 'light'
+      localStorage.setItem(STORAGE_THEME_USER, token)
       localStorage.setItem(STORAGE_THEME, token)
       localStorage.setItem(STORAGE_LEGACY, token)
       syncDocumentTheme(this.isDarkMode)
+      this._attachSystemListener()
     },
   },
 })

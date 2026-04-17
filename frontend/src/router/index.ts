@@ -23,7 +23,7 @@ const OjProblemDetail = () => import('../pages/oj/OjProblemDetail.vue')
 const OjMySubmissions = () => import('../pages/oj/OjMySubmissions.vue')
 const ToolsHubPage = () => import('../pages/tools/ToolsHubPage.vue')
 const ToolsWidgetPage = () => import('../pages/tools/ToolsWidgetPage.vue')
-const ToolMarkmapPage = () => import('../pages/tools/ToolMarkmapPage.vue')
+const ToolMindmapPage = () => import('../pages/tools/ToolMindmapPage.vue')
 const LoginPage = () => import('../pages/auth/LoginPage.vue')
 const RegisterPage = () => import('../pages/auth/RegisterPage.vue')
 const AdminArticlesPage = () => import('../pages/admin/AdminArticlesPage.vue')
@@ -88,7 +88,8 @@ export const router = createRouter({
       component: ToolsWidgetPage,
       meta: { toolId: 'base64' },
     },
-    { path: '/tools/markmap', component: ToolMarkmapPage },
+    { path: '/tools/mindmap', component: ToolMindmapPage, meta: { requiresAuth: true } },
+    { path: '/tools/markmap', redirect: '/tools/mindmap' },
     {
       path: '/tools/oj',
       component: OjView,

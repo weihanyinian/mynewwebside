@@ -148,17 +148,20 @@ watch(
           <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8be6ff] to-[#a78bfa] mb-2 tracking-wide">维寒一念</h1>
           <p class="text-sm text-slate-400 mb-10 font-medium tracking-wide">保持热爱，奔赴山海</p>
 
-          <nav class="flex lg:flex-col gap-4 lg:gap-3 w-full overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide">
+          <!-- 【全站统一】侧栏导航：玻璃 pill + 青蓝/粉高亮（摸鱼） -->
+          <nav class="flex lg:flex-col gap-3 w-full overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide">
             <a
               v-for="item in navItems"
               :key="item.name"
-              :href="item.path"
-              class="px-5 py-3 rounded-2xl text-sm font-medium transition-all duration-300 whitespace-nowrap flex items-center group relative overflow-hidden"
-              :class="isNavActive(item.path) ? 'text-white bg-white/10 shadow-[0_4px_16px_rgba(0,0,0,0.2)] border border-white/10' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
+              href="#"
+              class="site-pill site-pill--block site-pill--on-dark text-sm whitespace-nowrap flex-shrink-0"
+              :class="{
+                'site-pill--active': isNavActive(item.path) && item.path !== '/moyu',
+                'site-pill--pink': isNavActive(item.path) && item.path === '/moyu',
+              }"
               @click.prevent="go(item.path)"
             >
-              <span class="relative z-10">{{ item.name }}</span>
-              <div v-if="isNavActive(item.path)" class="absolute left-0 w-1 h-full bg-gradient-to-b from-[#8be6ff] to-[#a78bfa] rounded-r-full"></div>
+              {{ item.name }}
             </a>
           </nav>
         </div>
@@ -176,14 +179,14 @@ watch(
       <main class="flex-1 p-6 lg:p-12 xl:p-16 min-h-screen relative pb-44">
         <div class="flex items-center justify-between gap-4 mb-8 flex-wrap">
           <div class="flex items-center gap-2 flex-wrap">
-            <BackToHomeButton />
-            <button class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition text-sm font-medium text-slate-200" @click="go('/blog')">
+            <BackToHomeButton variant="on-dark" />
+            <button type="button" class="site-pill site-pill--on-dark site-pill--active inline-flex items-center gap-2" @click="go('/blog')">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
               返回博客
             </button>
           </div>
 
-          <button v-if="toc.length" class="xl:hidden inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 transition text-sm font-medium text-slate-200" @click="tocOpen = true">
+          <button v-if="toc.length" type="button" class="site-pill site-pill--on-dark xl:hidden inline-flex items-center gap-2" @click="tocOpen = true">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10"></path></svg>
             目录
           </button>
@@ -231,7 +234,8 @@ watch(
                   <button
                     v-for="t in article.tags"
                     :key="t.id"
-                    class="px-3 py-1 rounded-full text-xs font-semibold bg-black/40 backdrop-blur-md text-white border border-white/10 hover:border-white/20 hover:bg-black/30 transition"
+                    type="button"
+                    class="site-pill site-pill--chip site-pill--chip-sm site-pill--on-dark"
                     @click="router.push({ path: '/blog', query: { tagId: t.id } })"
                   >
                     #{{ t.name }}
@@ -261,8 +265,9 @@ watch(
                   <button
                     v-for="item in toc"
                     :key="item.id"
-                    class="w-full text-left rounded-xl px-3 py-2 text-sm transition border border-transparent hover:bg-white/[0.04] hover:border-white/10"
-                    :class="activeTocId === item.id ? 'bg-white/[0.06] border-white/10 text-white' : 'text-slate-400'"
+                    type="button"
+                    class="site-pill site-pill--toc site-pill--on-dark"
+                    :class="{ 'site-pill--active': activeTocId === item.id }"
                     :style="{ paddingLeft: `${Math.max(0, (item.level - 1) * 12)}px` }"
                     @click="scrollToHeading(item.id)"
                   >
@@ -283,7 +288,8 @@ watch(
     <transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 translate-y-2" enter-to-class="opacity-100 translate-y-0" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-2">
       <button
         v-if="showBackTop"
-        class="fixed bottom-8 right-24 md:right-28 z-50 inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/[0.08] border border-white/15 backdrop-blur-xl text-white shadow-[0_20px_40px_rgba(0,0,0,0.35)] hover:bg-white/[0.12] hover:border-white/25 transition"
+        type="button"
+        class="site-pill site-pill--active fixed bottom-8 right-24 md:right-28 z-50 inline-flex items-center gap-2"
         @click="backToTop"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
@@ -297,7 +303,7 @@ watch(
         <div class="absolute right-0 top-0 h-full w-[86vw] max-w-[360px] bg-[#111318]/80 border-l border-white/10 backdrop-blur-2xl p-5">
           <div class="flex items-center justify-between">
             <div class="text-sm font-semibold text-white">目录</div>
-            <button class="text-slate-300 hover:text-white transition" @click="tocOpen = false">
+            <button type="button" class="site-pill site-pill--icon site-pill--on-dark" aria-label="关闭目录" @click="tocOpen = false">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
           </div>
@@ -305,8 +311,9 @@ watch(
             <button
               v-for="item in toc"
               :key="item.id"
-              class="w-full text-left rounded-xl px-3 py-2 text-sm transition border border-transparent hover:bg-white/[0.04] hover:border-white/10"
-              :class="activeTocId === item.id ? 'bg-white/[0.06] border-white/10 text-white' : 'text-slate-300'"
+              type="button"
+              class="site-pill site-pill--toc site-pill--on-dark"
+              :class="{ 'site-pill--active': activeTocId === item.id }"
               :style="{ paddingLeft: `${Math.max(0, (item.level - 1) * 12)}px` }"
               @click="scrollToHeading(item.id)"
             >

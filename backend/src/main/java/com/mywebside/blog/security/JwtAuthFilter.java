@@ -1,5 +1,6 @@
 package com.mywebside.blog.security;
 
+import com.mywebside.blog.user.UserRoles;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,10 +30,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       String token = auth.substring(7);
       try {
         String username = jwtService.parseUsername(token);
+        String role = UserRoles.isBuiltInAdmin(username) ? "ROLE_ADMIN" : "ROLE_USER";
         var authentication = new UsernamePasswordAuthenticationToken(
-            username, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+            username, null, List.of(new SimpleGrantedAuthority(role)));
         SecurityContextHolder.getContext().setAuthentication(authentication);
       } catch (Exception ignored) {
+        SecurityContextHolder.clearContext();
       }
     }
     filterChain.doFilter(request, response);

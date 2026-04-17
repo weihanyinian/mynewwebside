@@ -1,0 +1,13 @@
+# 无 MySQL 时使用：mvn spring-boot:run -Dspring-boot.run.profiles=h2
+# 或环境变量 SPRING_PROFILES_ACTIVE=h2
+# 数据在内存中，进程结束即清空；适合本地调试 OJ / 前端联调。
+spring:
+  datasource:
+    url: jdbc:h2:mem:blogdb;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update

@@ -20,6 +20,7 @@ public class JwtService {
     this.key = Keys.hmacShaKeyFor(props.getJwt().getSecret().getBytes(StandardCharsets.UTF_8));
   }
 
+  /** 令牌仅携带用户名；是否管理员由服务端根据用户名判定，避免与 JWT claim 不一致。 */
   public String issueToken(String username) {
     Instant now = Instant.now();
     Instant exp = now.plusSeconds(props.getJwt().getExpireMinutes() * 60);

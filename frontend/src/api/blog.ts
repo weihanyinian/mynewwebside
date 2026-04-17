@@ -32,9 +32,20 @@ export type AdminArticleListItem = ArticleListItem & {
   updatedAt: string
 }
 
+export type LoginResult = {
+  token: string
+  username: string
+  nickname: string
+  admin: boolean
+}
+
 export async function login(username: string, password: string) {
-  const resp = await http.post<ApiResponse<{ token: string }>>('/api/auth/login', { username, password })
-  return resp.data.data.token
+  const resp = await http.post<ApiResponse<LoginResult>>('/api/auth/login', { username, password })
+  return resp.data.data
+}
+
+export async function register(payload: { username: string; password: string; nickname: string }) {
+  await http.post<ApiResponse<unknown>>('/api/auth/register', payload)
 }
 
 export async function getPublicArticles(params: {

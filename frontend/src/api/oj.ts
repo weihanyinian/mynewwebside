@@ -58,3 +58,28 @@ export async function postOjJudge(body: JudgeRequestBody) {
   const res = await http.post<ApiResponse<JudgeResult>>('/api/oj/judge', body, { timeout: 120_000 })
   return res.data.data
 }
+
+export type OjSubmissionRow = {
+  id: number
+  username: string
+  problemId: string
+  language: string
+  submitted: boolean
+  verdict: string
+  message: string
+  timeSeconds: number | null
+  memoryKb: number | null
+  createdAt: string
+}
+
+export type OjSubmissionPage = {
+  items: OjSubmissionRow[]
+  total: number
+  page: number
+  size: number
+}
+
+export async function fetchMyOjSubmissions(params?: { page?: number; size?: number }) {
+  const res = await http.get<ApiResponse<OjSubmissionPage>>('/api/oj/submissions/mine', { params })
+  return res.data.data
+}

@@ -20,14 +20,24 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http,
+      JwtAuthFilter jwtAuthFilter,
+      RestAuthEntryPoint restAuthEntryPoint,
+      RestAccessDeniedHandler restAccessDeniedHandler
+  ) throws Exception {
     http.csrf(csrf -> csrf.disable());
     http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     http.cors(Customizer.withDefaults());
+    http.exceptionHandling(ex -> ex
+        .authenticationEntryPoint(restAuthEntryPoint)
+        .accessDeniedHandler(restAccessDeniedHandler));
     http.authorizeHttpRequests(auth -> auth
-        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
+        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
         .requestMatchers("/api/public/**").permitAll()
-        .requestMatchers("/api/oj/**").permitAll()
+        .requestMatchers("/api/oj/**").authenticated()
+        .requestMatchers("/api/mind-maps/**").authenticated()
         .requestMatchers("/api/admin/**").hasRole("ADMIN")
         .anyRequest().denyAll()
     );

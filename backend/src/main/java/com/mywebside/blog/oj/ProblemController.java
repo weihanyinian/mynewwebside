@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 题目查询：数据来自 JSON 文件。 */
+/** 题目查询：数据来自数据库 oj_problem。 */
 @RestController
 @RequestMapping("/api/oj")
 public class ProblemController {
 
-  private final ProblemJsonStore store;
+  private final OjProblemStore store;
 
-  public ProblemController(ProblemJsonStore store) {
+  public ProblemController(OjProblemStore store) {
     this.store = store;
   }
 

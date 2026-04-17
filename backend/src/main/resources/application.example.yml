@@ -21,14 +21,19 @@ spring:
 app:
   cors:
     allowed-origins: "http://localhost:5173"
-  admin:
-    username: admin
-    password: ${ADMIN_PASSWORD:123456}
+  # 首次启动且数据库中尚无 admin 用户时，用该明文密码创建用户名为 admin 的账号（务必用环境变量注入，勿提交仓库）
+  bootstrap-admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+  # 为 true 时每次启动都会用上一项覆盖已有 admin 的密码；仅用于本地重置，生产请保持 false
+  bootstrap-admin-sync-on-startup: false
   jwt:
     secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_FOR_PROD"
     expire-minutes: 10080
 
 # 在线判题 Judge0 CE（可与生产环境分环境配置）
+# 本地无 MySQL 时可启用内存库（需 pom 已含 h2）：
+# spring.profiles.active: h2
+# 或命令行：mvn spring-boot:run -Dspring-boot.run.profiles=h2
+
 oj:
   judge0:
     base-url: https://ce.judge0.com
