@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getToken } from '../utils/token'
+import { useUserStore } from '../stores/user'
 import { goToSiteHome } from '../utils/siteHome'
 import GlassBreadcrumb from '../components/GlassBreadcrumb.vue'
 import { useThemeStore } from '../stores/theme'
@@ -16,7 +16,14 @@ const { t, locale } = useI18n()
 const themeStore = useThemeStore()
 const { isDarkMode } = storeToRefs(themeStore)
 
-const isLoggedIn = computed(() => !!getToken())
+const userStore = useUserStore()
+const isLoggedIn = computed(() => userStore.isLoggedIn)
+const isAdminUser = computed(() => userStore.isAdmin)
+
+function logout() {
+  userStore.logout()
+  router.push('/login')
+}
 
 /** 博客/文章等页需要更宽主栏，避免卡片栅格被 1080px 挤乱 */
 const isWideMain = computed(() => {
@@ -52,7 +59,7 @@ function toggleLocale() {
 
 <template>
   <div class="site-root">
-    <nav class="glass-nav">
+    <nav class="glass-nav site-nav-unified">
       <div class="nav-inner">
         <div
           class="logo"
@@ -72,12 +79,6 @@ function toggleLocale() {
             :class="{ 'site-pill--active': isSectionActive('#about') }"
             @click.prevent="goHome('#about')"
           >{{ t('nav.about') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-top-anchor"
-            :class="{ 'site-pill--active': isSectionActive('#skills') }"
-            @click.prevent="goHome('#skills')"
-          >{{ t('nav.skills') }}</a>
           <a
             href="#"
             class="site-pill site-pill--nav site-top-anchor"
@@ -118,19 +119,32 @@ function toggleLocale() {
             @click.prevent="router.push('/blog')"
           >{{ t('nav.blog') }}</a>
           <a
-            v-if="isLoggedIn"
+            v-if="isAdminUser"
             href="#"
-            class="site-pill site-pill--nav"
-            :class="{ 'site-pill--active': route.path.startsWith('/admin') && route.path !== '/admin/login' }"
+            class="site-pill site-pill--nav site-nav-auth"
+            :class="{ 'site-pill--active': route.path.startsWith('/admin') }"
             @click.prevent="router.push('/admin')"
           >{{ t('nav.admin') }}</a>
           <a
-            v-else
+            v-if="!isLoggedIn"
             href="#"
-            class="site-pill site-pill--nav"
-            :class="{ 'site-pill--active': route.path === '/admin/login' }"
-            @click.prevent="router.push('/admin/login')"
-          >{{ t('nav.admin') }}</a>
+            class="site-pill site-pill--nav site-nav-auth"
+            :class="{ 'site-pill--active': route.path === '/login' }"
+            @click.prevent="router.push('/login')"
+          >{{ t('nav.login') }}</a>
+          <a
+            v-if="!isLoggedIn"
+            href="#"
+            class="site-pill site-pill--nav site-nav-auth"
+            :class="{ 'site-pill--active': route.path === '/register' }"
+            @click.prevent="router.push('/register')"
+          >{{ t('nav.register') }}</a>
+          <a
+            v-if="isLoggedIn"
+            href="#"
+            class="site-pill site-pill--nav site-nav-auth"
+            @click.prevent="logout"
+          >{{ t('nav.logout') }}</a>
           <a href="#" class="site-pill site-pill--nav theme-toggle" :title="t('home.themeToggle')" @click.prevent="themeStore.toggleTheme">
             {{ !isDarkMode ? '🌙' : '☀️' }}
           </a>
@@ -181,19 +195,37 @@ function toggleLocale() {
   box-shadow: var(--glass-shadow);
 }
 
+/* 与全局 .site-nav-unified 顶边线叠加一层内高光，不替换整段 box-shadow */
+.glass-nav.site-nav-unified {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    var(--glass-shadow);
+}
+
+:root[data-theme='dark'] .glass-nav.site-nav-unified {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--glass-shadow);
+}
+
 .nav-inner {
-  max-width: 1080px;
+  max-width: min(1400px, 100%);
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 12px 16px;
   display: flex;
+  flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
 }
 
 .logo {
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
   font-weight: 800;
   letter-spacing: -0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
   background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
   background-clip: text;
   -webkit-background-clip: text;
@@ -203,14 +235,40 @@ function toggleLocale() {
 
 .links {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-wrap: nowrap;
+  gap: 5px;
   align-items: center;
   justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.links::-webkit-scrollbar {
+  height: 3px;
+}
+
+.links::-webkit-scrollbar-thumb {
+  background: rgba(102, 217, 255, 0.35);
+  border-radius: 3px;
 }
 
 .links a.site-pill {
   text-decoration: none;
+  flex-shrink: 0;
+}
+
+.site-root .links .site-pill--nav {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+.site-root .links .theme-toggle {
+  font-size: 1rem;
+  padding: 6px 10px;
 }
 
 .site-main {
@@ -265,7 +323,7 @@ function toggleLocale() {
   .links > a.site-top-anchor {
     display: none;
   }
-  .links > a.site-pill:not(.site-pill--active):not(.lang-toggle):not(.moyu-link):not(.oj-link):not(.theme-toggle):not(.site-pill--pink) {
+  .links > a.site-pill:not(.site-pill--active):not(.lang-toggle):not(.moyu-link):not(.oj-link):not(.theme-toggle):not(.site-pill--pink):not(.site-nav-auth) {
     display: none;
   }
 }

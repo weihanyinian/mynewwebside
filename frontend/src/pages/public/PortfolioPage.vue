@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { goToSiteHome } from '../../utils/siteHome'
@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 import FloatingTools from '../../components/FloatingTools.vue'
 import HitokotoCard from '../../components/HitokotoCard.vue'
 import { useThemeStore } from '../../stores/theme'
+import { useUserStore } from '../../stores/user'
 
 const router = useRouter()
 const route = useRoute()
@@ -15,6 +16,15 @@ const { t, locale } = useI18n()
 /** 【主题】与 SiteLayout 共用 Pinia，首页仅负责视频/局部 dark-theme 类 */
 const themeStore = useThemeStore()
 const { isDarkMode } = storeToRefs(themeStore)
+
+const userStore = useUserStore()
+const isLoggedIn = computed(() => userStore.isLoggedIn)
+const isAdminUser = computed(() => userStore.isAdmin)
+
+function logout() {
+  userStore.logout()
+  router.push('/login')
+}
 
 function toggleLocale() {
   locale.value = locale.value === 'zh' ? 'en' : 'zh'
@@ -25,10 +35,6 @@ const works = ref([
   { title: 'Transformer 机器翻译', desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。', link: '#', tag: 'Deep Learning' },
   { title: 'MyWebSide Blog', desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。', link: '/blog', tag: 'Full Stack' },
   { title: '在线判题 OJ', desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。', link: '/oj', tag: 'OJ / Sandbox' },
-])
-
-const skills = ref([
-  'Python', 'Machine Learning', 'Deep Learning', 'PyTorch', 'Transformers', 'LLMs / GLM4', 'LoRA Fine-tuning', 'Vue 3 & Spring Boot'
 ])
 
 // Smooth scroll for nav anchors
@@ -56,7 +62,7 @@ function onSiteLogoClick() {
     <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
 
     <!-- Navbar -->
-    <nav class="glass-nav">
+    <nav class="glass-nav site-nav-unified">
       <div class="nav-inner">
         <div class="nav-left">
           <!-- Floating Widgets inside navbar -->
@@ -76,7 +82,6 @@ function onSiteLogoClick() {
         <div class="links">
           <!-- 【全站统一】首页顶栏与 site-ui .site-pill 一致；窄屏保留项见 site-pill--keep-mobile -->
           <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('about')">{{ t('nav.about') }}</a>
-          <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('skills')">{{ t('nav.skills') }}</a>
           <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('works')">{{ t('nav.works') }}</a>
           <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('contact')">{{ t('nav.contact') }}</a>
           <a href="#" class="site-pill site-pill--nav" @click.prevent="router.push('/message')">{{ t('nav.message') }}</a>
@@ -92,6 +97,33 @@ function onSiteLogoClick() {
           <a href="#" class="site-pill site-pill--nav theme-toggle site-pill--keep-mobile" :title="t('home.themeToggle')" @click.prevent="themeStore.toggleTheme">
             {{ !isDarkMode ? '🌙' : '☀️' }}
           </a>
+          <a
+            v-if="isAdminUser"
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/admin') }"
+            @click.prevent="router.push('/admin')"
+          >{{ t('nav.admin') }}</a>
+          <a
+            v-if="!isLoggedIn"
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path === '/login' }"
+            @click.prevent="router.push('/login')"
+          >{{ t('nav.login') }}</a>
+          <a
+            v-if="!isLoggedIn"
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path === '/register' }"
+            @click.prevent="router.push('/register')"
+          >{{ t('nav.register') }}</a>
+          <a
+            v-if="isLoggedIn"
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            @click.prevent="logout"
+          >{{ t('nav.logout') }}</a>
           <a href="#" class="site-pill site-pill--nav site-pill--active site-pill--keep-mobile" @click.prevent="router.push('/blog')">{{ t('nav.blog') }}</a>
           <a href="#" class="site-pill site-pill--nav site-pill--pink site-pill--keep-mobile" @click.prevent="router.push('/moyu')">{{ t('nav.moyu') }}</a>
         </div>
@@ -124,16 +156,6 @@ function onSiteLogoClick() {
             <br />
             <p>{{ t('home.aboutText2') }}</p>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Skills Section -->
-    <section class="section" id="skills">
-      <h2>{{ t('home.skillsTitle') }}</h2>
-      <div class="skills-grid">
-        <div v-for="(skill, index) in skills" :key="index" class="glass-card skill-card">
-          {{ skill }}
         </div>
       </div>
     </section>
@@ -254,7 +276,7 @@ h2 {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
-/* Navigation */
+/* Navigation（顶边线：全局 .site-nav-unified；内高光与原有阴影合并） */
 .glass-nav {
   position: fixed;
   top: 0;
@@ -262,25 +284,42 @@ h2 {
   right: 0;
   z-index: 100;
   border-radius: 0 0 16px 16px;
-  border-top: none;
+}
+
+.portfolio-container .glass-nav.site-nav-unified {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 8px 32px 0 rgba(74, 144, 226, 0.15);
+}
+
+.portfolio-container.dark-theme .glass-nav.site-nav-unified {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 .nav-inner {
-  max-width: 1080px;
+  max-width: min(1400px, 100%);
   margin: 0 auto;
-  padding: 16px 24px;
+  padding: 12px 16px;
   display: flex;
+  flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
 }
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  flex-shrink: 0;
+  min-width: 0;
 }
 .logo {
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
   font-weight: 800;
   letter-spacing: -0.5px;
+  white-space: nowrap;
   background: linear-gradient(to right, #4a90e2, #50e3c2);
   background-clip: text;
   -webkit-background-clip: text;
@@ -295,13 +334,36 @@ h2 {
 
 .links {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-wrap: nowrap;
+  gap: 5px;
   align-items: center;
   justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.links::-webkit-scrollbar {
+  height: 3px;
+}
+.links::-webkit-scrollbar-thumb {
+  background: rgba(102, 217, 255, 0.35);
+  border-radius: 3px;
 }
 .links a.site-pill {
   text-decoration: none;
+  flex-shrink: 0;
+}
+/* 顶栏 pill 略收紧，便于桌面宽度下单行排布 */
+.portfolio-container .links .site-pill--nav {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+.portfolio-container .links .theme-toggle {
+  font-size: 1rem;
+  padding: 6px 10px;
 }
 .theme-toggle {
   font-size: 1.1rem;
@@ -398,24 +460,6 @@ h2 {
 .dark-theme .glass-card:hover {
   background: rgba(30, 32, 45, 0.7);
   box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
-}
-
-/* Skills Grid */
-.skills-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: center;
-}
-.skill-card {
-  padding: 12px 24px;
-  border-radius: 30px;
-  font-weight: 600;
-  color: #4a90e2;
-  cursor: default;
-}
-.dark-theme .skill-card {
-  color: #fbc2eb;
 }
 
 /* Works Grid */

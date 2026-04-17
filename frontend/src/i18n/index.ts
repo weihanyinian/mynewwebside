@@ -3,8 +3,7 @@ import { createI18n } from 'vue-i18n'
 const messages = {
   zh: {
     nav: {
-      about: '关于',
-      skills: '技能',
+      about: '个人简介',
       works: '作品',
       contact: '联系',
       message: '留言墙',
@@ -12,6 +11,9 @@ const messages = {
       blog: '前往博客',
       oj: '在线 OJ',
       admin: '管理后台',
+      login: '登录',
+      register: '注册',
+      logout: '退出',
       logo: '维寒一念的小站'
     },
     home: {
@@ -22,7 +24,6 @@ const messages = {
       aboutTitle: '个人简介',
       aboutText1: '我是一名专注于人工智能领域的开发者，致力于大语言模型（LLM）、深度学习以及自然语言处理的前沿探索。熟练掌握 Python 与 PyTorch 框架，对 Transformer 架构及大模型微调（如 LoRA）有着丰富的实战经验。',
       aboutText2: '我也在不断积累前沿的 AI 技术（如 GLM4 等）。我期待通过代码与算法解决复杂的现实问题，在人工智能的时代里，留下属于自己的足迹。',
-      skillsTitle: '我学会过的技能',
       worksTitle: '作品展示',
       worksDetail: '查看详情',
       contactTitle: '联系我',
@@ -45,7 +46,13 @@ const messages = {
       adminEditor: '撰写文章',
       adminCategories: '分类管理',
       adminTags: '标签管理',
-      adminMessages: '留言审核'
+      adminMessages: '留言审核',
+      adminUsers: '用户管理',
+      adminOjProblems: 'OJ 题目',
+      adminOjSubmissions: 'OJ 提交',
+      ojSubmissions: '我的提交',
+      login: '登录',
+      register: '注册'
     },
     tools: {
       reaction: '反应力测试',
@@ -99,8 +106,7 @@ const messages = {
   },
   en: {
     nav: {
-      about: 'About',
-      skills: 'Skills',
+      about: 'About Me',
       works: 'Works',
       contact: 'Contact',
       message: 'Wall',
@@ -108,6 +114,9 @@ const messages = {
       blog: 'Blog',
       oj: 'OJ',
       admin: 'Admin',
+      login: 'Login',
+      register: 'Sign up',
+      logout: 'Logout',
       logo: "Weihan's Site"
     },
     home: {
@@ -118,7 +127,6 @@ const messages = {
       aboutTitle: 'About Me',
       aboutText1: 'I am a developer focused on Artificial Intelligence, dedicated to exploring Large Language Models (LLMs), Deep Learning, and NLP. Proficient in Python and PyTorch, with extensive experience in Transformer architecture and model fine-tuning (e.g., LoRA).',
       aboutText2: 'I continuously accumulate cutting-edge AI technologies (like GLM4). I look forward to solving complex real-world problems through code and algorithms, leaving my own mark in the era of AI.',
-      skillsTitle: 'My Skills',
       worksTitle: 'Portfolio',
       worksDetail: 'View Details',
       contactTitle: 'Contact Me',
@@ -141,7 +149,13 @@ const messages = {
       adminEditor: 'Editor',
       adminCategories: 'Categories',
       adminTags: 'Tags',
-      adminMessages: 'Messages'
+      adminMessages: 'Messages',
+      adminUsers: 'Users',
+      adminOjProblems: 'OJ Problems',
+      adminOjSubmissions: 'OJ Submissions',
+      ojSubmissions: 'My Submissions',
+      login: 'Login',
+      register: 'Register'
     },
     tools: {
       reaction: 'Reaction Test',
