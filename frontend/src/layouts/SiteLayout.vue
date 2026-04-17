@@ -33,9 +33,13 @@ const isWideMain = computed(() => {
     p.startsWith('/article') ||
     p === '/categories' ||
     p === '/tags' ||
-    p.startsWith('/tools')
+    p.startsWith('/tools') ||
+    p === '/mindmap'
   )
 })
+
+/** 工具栏等页：整站壳子必须压过固定定位看板娘 (z-index:999)，否则卡片链接悬停有 href、点击却被挡住 */
+const liftAboveMascot = computed(() => route.path.startsWith('/tools') || route.path === '/mindmap')
 
 function goHome(hash: string) {
   router.push({ path: '/', hash: hash })
@@ -58,7 +62,7 @@ function toggleLocale() {
 </script>
 
 <template>
-  <div class="site-root">
+  <div class="site-root" :class="{ 'site-root--above-mascot': liftAboveMascot }">
     <nav class="glass-nav site-nav-unified">
       <div class="nav-inner">
         <div
@@ -103,6 +107,12 @@ function toggleLocale() {
             :class="{ 'site-pill--pink': route.path === '/moyu' }"
             @click.prevent="router.push('/moyu')"
           >{{ t('nav.moyu') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav mindmap-link"
+            :class="{ 'site-pill--active': route.path === '/mindmap' }"
+            @click.prevent="router.push('/mindmap')"
+          >{{ t('nav.mindmap') }}</a>
           <a href="#" class="site-pill site-pill--nav lang-toggle" :title="t('home.langToggle')" @click.prevent="toggleLocale">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
@@ -182,6 +192,11 @@ function toggleLocale() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+.site-root--above-mascot {
+  position: relative;
+  z-index: 1000;
 }
 
 .glass-nav {
@@ -323,7 +338,7 @@ function toggleLocale() {
   .links > a.site-top-anchor {
     display: none;
   }
-  .links > a.site-pill:not(.site-pill--active):not(.lang-toggle):not(.moyu-link):not(.oj-link):not(.theme-toggle):not(.site-pill--pink):not(.site-nav-auth) {
+  .links > a.site-pill:not(.site-pill--active):not(.lang-toggle):not(.moyu-link):not(.mindmap-link):not(.oj-link):not(.theme-toggle):not(.site-pill--pink):not(.site-nav-auth) {
     display: none;
   }
 }

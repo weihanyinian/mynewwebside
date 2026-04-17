@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { goToSiteHome } from '../../utils/siteHome'
@@ -52,6 +52,14 @@ function onSiteLogoClick() {
     goToSiteHome(router)
   }
 }
+
+/** Hero 轻微视差：随滚动上移，增强层次 */
+const heroParallaxY = ref(0)
+function onHeroParallax() {
+  heroParallaxY.value = Math.min(window.scrollY * 0.14, 88)
+}
+onMounted(() => window.addEventListener('scroll', onHeroParallax, { passive: true }))
+onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
 </script>
 
 <template>
@@ -128,9 +136,9 @@ function onSiteLogoClick() {
 
     <!-- Hero Section -->
     <section class="hero" id="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">{{ t('home.hello') }} <span>{{ t('home.name') }}</span></h1>
-        <div class="hero-actions">
+      <div class="hero-content" :style="{ transform: `translate3d(0, ${heroParallaxY}px, 0)` }">
+        <h1 class="hero-title hero-title--animate">{{ t('home.hello') }} <span class="hero-name-float">{{ t('home.name') }}</span></h1>
+        <div class="hero-actions hero-actions--cta">
           <button type="button" class="site-pill site-pill--lg site-pill--active" @click="scrollTo('works')">{{ t('home.explore') }}</button>
           <button type="button" class="site-pill site-pill--lg" @click="router.push('/blog')">{{ t('home.readBlog') }}</button>
         </div>
@@ -212,7 +220,8 @@ function onSiteLogoClick() {
   height: 100vh;
   object-fit: cover;
   z-index: -1;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease, transform 0.6s ease-out;
+  will-change: transform, opacity;
 }
 
 .light-video {
@@ -365,6 +374,14 @@ h2 {
   user-select: none;
 }
 
+/* 锚点滚动时避开固定顶栏 */
+#hero,
+#about,
+#works,
+#contact {
+  scroll-margin-top: 5.5rem;
+}
+
 /* Hero Section */
 .hero {
   min-height: 100vh;
@@ -375,6 +392,10 @@ h2 {
   padding: 0 20px;
   padding-top: 80px; /* Offset for nav */
 }
+.hero-content {
+  will-change: transform;
+  transition: transform 0.15s ease-out;
+}
 .hero-title {
   font-size: 4rem;
   letter-spacing: -1.5px;
@@ -382,20 +403,46 @@ h2 {
   color: #1a2a3a;
   text-shadow: 0 2px 4px rgba(255,255,255,0.8);
 }
+.hero-title--animate {
+  animation: hero-title-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+}
+@keyframes hero-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .dark-theme .hero-title {
   color: #f0f4f8;
   text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
-.hero-title span {
+.hero-name-float {
+  display: inline-block;
   background: linear-gradient(to right, #4a90e2, #50e3c2);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: none;
+  animation: hero-name-float 4.8s ease-in-out infinite;
+  animation-delay: 0.4s;
 }
-.dark-theme .hero-title span {
+.dark-theme .hero-name-float {
   background: linear-gradient(to right, #a18cd1, #fbc2eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+@keyframes hero-name-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
 }
 
 .hero-actions {
@@ -403,6 +450,23 @@ h2 {
   flex-wrap: wrap;
   gap: 16px;
   justify-content: center;
+}
+.hero-actions--cta .site-pill {
+  position: relative;
+  overflow: hidden;
+  min-height: 48px;
+  padding-left: 1.35rem;
+  padding-right: 1.35rem;
+}
+.hero-actions--cta .site-pill:hover:not(:disabled) {
+  box-shadow:
+    0 0 22px rgba(102, 217, 255, 0.45),
+    0 10px 28px rgba(74, 144, 226, 0.28);
+}
+.hero-actions--cta .site-pill--active:hover:not(:disabled) {
+  box-shadow:
+    0 0 26px rgba(80, 227, 194, 0.5),
+    0 10px 32px rgba(74, 144, 226, 0.35);
 }
 
 /* General Sections */

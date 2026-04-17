@@ -1,25 +1,19 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const router = useRouter()
 const { t } = useI18n()
 
 type Card = { id: string; icon: string; titleKey: string; descKey: string; to: string; accent?: boolean }
 
-const cards: Card[] = [
+const cards = computed((): Card[] => [
   { id: 'oj', icon: '⌨️', titleKey: 'toolsHub.cardOjTitle', descKey: 'toolsHub.cardOjDesc', to: '/tools/oj' },
-  { id: 'mindmap', icon: '🧠', titleKey: 'toolsHub.cardMindmapTitle', descKey: 'toolsHub.cardMindmapDesc', to: '/tools/mindmap', accent: true },
   { id: 'reaction', icon: '⚡', titleKey: 'tools.reaction', descKey: 'toolsHub.cardReactionDesc', to: '/tools/reaction' },
   { id: 'cps', icon: '🖱️', titleKey: 'tools.cps', descKey: 'toolsHub.cardCpsDesc', to: '/tools/cps' },
   { id: 'pomodoro', icon: '🍅', titleKey: 'tools.pomodoro', descKey: 'toolsHub.cardPomodoroDesc', to: '/tools/pomodoro' },
   { id: 'password', icon: '🔑', titleKey: 'tools.password', descKey: 'toolsHub.cardPasswordDesc', to: '/tools/password' },
   { id: 'base64', icon: '🔤', titleKey: 'tools.base64', descKey: 'toolsHub.cardBase64Desc', to: '/tools/base64' },
-]
-
-function go(to: string) {
-  router.push(to)
-}
+])
 </script>
 
 <template>
@@ -30,24 +24,25 @@ function go(to: string) {
     </header>
 
     <div class="tools-hub__grid">
-      <button
+      <!-- RouterLink 与 router.push(to) 等价，无子元素拦截冒泡 -->
+      <RouterLink
         v-for="c in cards"
         :key="c.id"
-        type="button"
+        :to="c.to"
         class="tool-card glass-tool-card"
         :class="{ 'tool-card--accent': c.accent }"
-        @click="go(c.to)"
       >
         <span class="tool-card__icon" aria-hidden="true">{{ c.icon }}</span>
         <span class="tool-card__name">{{ t(c.titleKey) }}</span>
         <span class="tool-card__desc">{{ t(c.descKey) }}</span>
-      </button>
+      </RouterLink>
     </div>
   </div>
 </template>
 
 <style scoped>
 .tools-hub {
+  position: relative;
   max-width: 1100px;
   margin: 0 auto;
   padding: 1rem 0 2.5rem;
@@ -95,6 +90,9 @@ function go(to: string) {
   padding: 1.35rem 1.25rem;
   border-radius: 20px;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  box-sizing: border-box;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.55));
   background: var(--glass-bg, rgba(255, 255, 255, 0.35));
   backdrop-filter: blur(14px);

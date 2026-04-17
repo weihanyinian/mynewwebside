@@ -188,3 +188,99 @@
 .site-el-round-16 .el-select .el-input__wrapper {
   border-radius: 16px !important;
 }
+
+/* ========== 【UX】全局交互增强：顶栏、按钮反馈、卡片层次（双主题） ========== */
+
+.glass-nav .site-pill--nav:not(:disabled) {
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.32s ease,
+    background 0.3s ease,
+    border-color 0.3s ease,
+    filter 0.28s ease;
+}
+
+.glass-nav .site-pill--nav:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 18px rgba(102, 217, 255, 0.35),
+    0 8px 22px rgba(74, 144, 226, 0.22);
+}
+
+.glass-nav .site-pill--nav.site-pill--active {
+  box-shadow:
+    0 0 20px rgba(102, 217, 255, 0.42),
+    0 8px 26px rgba(74, 144, 226, 0.28);
+}
+
+:root[data-theme='dark'] .glass-nav .site-pill--nav:hover:not(:disabled) {
+  box-shadow:
+    0 0 20px rgba(102, 217, 255, 0.22),
+    0 8px 24px rgba(0, 30, 60, 0.35);
+}
+
+/* 全站 pill：点击缩放 + 阴影扩散 */
+.site-pill:active:not(:disabled) {
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 2px 14px rgba(102, 217, 255, 0.38);
+  transition-duration: 0.12s;
+}
+
+.site-pill--active:active:not(:disabled) {
+  box-shadow: 0 2px 18px rgba(80, 227, 194, 0.45);
+}
+
+/* 博客 / 通用玻璃卡片：上浮与阴影（与 Portfolio .glass-card 协调） */
+.card {
+  transition:
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.32s ease,
+    background 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px rgba(102, 217, 255, 0.22);
+}
+
+:root[data-theme='dark'] .card:hover {
+  box-shadow: 0 14px 36px rgba(0, 30, 60, 0.4);
+}
+
+/* 工具栏玻璃卡片（若使用 .glass-tool-card） */
+.glass-tool-card {
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.32s ease,
+    border-color 0.28s ease,
+    filter 0.28s ease;
+}
+
+.glass-tool-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow:
+    0 0 24px rgba(102, 217, 255, 0.32),
+    0 12px 32px rgba(74, 144, 226, 0.2);
+  filter: brightness(1.02);
+}
+
+:root[data-theme='dark'] .glass-tool-card:hover {
+  box-shadow:
+    0 0 22px rgba(102, 217, 255, 0.18),
+    0 12px 28px rgba(0, 20, 45, 0.45);
+}
+
+.glass-tool-card:active {
+  transform: translateY(-2px) scale(0.98);
+  transition-duration: 0.12s;
+}
+
+/* 移动端：略增大可点区域（顶栏 pill 已由各页控制 padding） */
+@media (max-width: 768px) {
+  .site-pill--nav {
+    min-height: 44px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}

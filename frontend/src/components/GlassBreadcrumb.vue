@@ -82,6 +82,10 @@ const items = computed<Crumb[]>(() => {
     list.push({ label: t('breadcrumb.message') })
     return list
   }
+  if (path === '/mindmap') {
+    list.push({ label: t('breadcrumb.mindmap') })
+    return list
+  }
   if (path.startsWith('/tools')) {
     list.push({ label: t('breadcrumb.tools'), to: '/tools' })
     if (path === '/tools') return list
@@ -103,8 +107,6 @@ const items = computed<Crumb[]>(() => {
       pomodoro: t('tools.pomodoro'),
       password: t('tools.password'),
       base64: t('tools.base64'),
-      mindmap: t('toolsHub.cardMindmapTitle'),
-      markmap: t('toolsHub.cardMindmapTitle'),
     }
     list.push({ label: labelMap[seg] || seg })
     return list

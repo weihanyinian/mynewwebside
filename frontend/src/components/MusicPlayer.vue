@@ -12,7 +12,8 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import fallbackPlaylist from '../assets/playlist.json'
 
 // ---------- 布局 / 层级（低于 14 酱 Live2D 的 z-index: 999）----------
-const PLAYER_Z_INDEX = 90
+/** 高于工具页 site-root(1000)，避免主布局抬升后点不到播放器 */
+const PLAYER_Z_INDEX = 1100
 const OFFSET_LEFT = '90px'
 const OFFSET_BOTTOM = '20px'
 

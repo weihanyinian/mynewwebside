@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { getToken } from '../utils/token'
+import { getSafeInternalPath } from '../utils/safeRedirect'
 import { useUserStore } from '../stores/user'
 
 const PortfolioPage = () => import('../pages/public/PortfolioPage.vue')
@@ -22,8 +23,12 @@ const OjProblemList = () => import('../pages/oj/OjProblemList.vue')
 const OjProblemDetail = () => import('../pages/oj/OjProblemDetail.vue')
 const OjMySubmissions = () => import('../pages/oj/OjMySubmissions.vue')
 const ToolsHubPage = () => import('../pages/tools/ToolsHubPage.vue')
-const ToolsWidgetPage = () => import('../pages/tools/ToolsWidgetPage.vue')
-const ToolMindmapPage = () => import('../pages/tools/ToolMindmapPage.vue')
+const ToolReactionPage = () => import('../pages/tools/ToolReactionPage.vue')
+const ToolCpsPage = () => import('../pages/tools/ToolCpsPage.vue')
+const ToolPomodoroPage = () => import('../pages/tools/ToolPomodoroPage.vue')
+const ToolPasswordPage = () => import('../pages/tools/ToolPasswordPage.vue')
+const ToolBase64Page = () => import('../pages/tools/ToolBase64Page.vue')
+const MindMapPage = () => import('../pages/mindmap/MindMapPage.vue')
 const LoginPage = () => import('../pages/auth/LoginPage.vue')
 const RegisterPage = () => import('../pages/auth/RegisterPage.vue')
 const AdminArticlesPage = () => import('../pages/admin/AdminArticlesPage.vue')
@@ -55,41 +60,16 @@ export const router = createRouter({
     { path: '/moyu/gomoku', component: GameGomoku },
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage },
-    {
-      path: '/admin/login',
-      redirect: (to) => ({
-        path: '/login',
-        query: { ...to.query, redirect: (to.query.redirect as string) || '/admin/articles' },
-      }),
-    },
+    { path: '/admin/login', redirect: '/login' },
     { path: '/tools', component: ToolsHubPage },
-    {
-      path: '/tools/reaction',
-      component: ToolsWidgetPage,
-      meta: { toolId: 'reaction' },
-    },
-    {
-      path: '/tools/cps',
-      component: ToolsWidgetPage,
-      meta: { toolId: 'cps' },
-    },
-    {
-      path: '/tools/pomodoro',
-      component: ToolsWidgetPage,
-      meta: { toolId: 'pomodoro' },
-    },
-    {
-      path: '/tools/password',
-      component: ToolsWidgetPage,
-      meta: { toolId: 'password' },
-    },
-    {
-      path: '/tools/base64',
-      component: ToolsWidgetPage,
-      meta: { toolId: 'base64' },
-    },
-    { path: '/tools/mindmap', component: ToolMindmapPage, meta: { requiresAuth: true } },
-    { path: '/tools/markmap', redirect: '/tools/mindmap' },
+    { path: '/tools/reaction', component: ToolReactionPage },
+    { path: '/tools/cps', component: ToolCpsPage },
+    { path: '/tools/pomodoro', component: ToolPomodoroPage },
+    { path: '/tools/password', component: ToolPasswordPage },
+    { path: '/tools/base64', component: ToolBase64Page },
+    { path: '/mindmap', component: MindMapPage },
+    { path: '/tools/mindmap', redirect: '/mindmap' },
+    { path: '/tools/markmap', redirect: '/mindmap' },
     {
       path: '/tools/oj',
       component: OjView,
@@ -124,7 +104,12 @@ export const router = createRouter({
   ],
   scrollBehavior(to, from, saved) {
     if (saved) return saved
-    if (to.path !== from.path) return { top: 0 }
+    if (to.hash) {
+      return { el: to.hash, behavior: 'smooth', top: 80 }
+    }
+    if (to.path !== from.path) {
+      return { top: 0, behavior: 'smooth' }
+    }
     return {}
   },
 })
@@ -153,9 +138,8 @@ router.beforeEach(async (to) => {
   }
 
   if (to.path === '/login' && getToken()) {
-    const redir = to.query.redirect as string
-    if (redir) return redir
-    return userStore.isAdmin ? '/admin/articles' : '/'
+    const next = getSafeInternalPath(to.query.redirect)
+    return next || '/'
   }
 
   return true

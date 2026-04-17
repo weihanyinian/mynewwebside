@@ -49,7 +49,7 @@ let dragStartTarget: EventTarget | null = null
 /** 同一次轻点内可能重复触发，用时间窗去重 */
 let lastPokeEventAt = 0
 
-const BUBBLE_AUTO_HIDE_MS = 3200
+const BUBBLE_AUTO_HIDE_MS = 3000
 const CLICK_COOLDOWN_MS = 1000
 const POKE_DEDUPE_MS = 120
 const PRESS_FEEDBACK_MS = 220
@@ -331,6 +331,8 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   gap: 15px;
+  /* 仅头像/气泡接收点击，避免大块透明区域挡住下方页面（如工具栏卡片） */
+  pointer-events: none;
 }
 
 .mascot-container.is-minimized {
@@ -340,6 +342,7 @@ onBeforeUnmount(() => {
 
 /* 气泡居容器上方、宽度稳定，避免拖拽位移后「乱跑」的观感（相对看板娘锚点不变） */
 .speech-bubble {
+  pointer-events: auto;
   order: -1;
   padding: 12px 18px;
   border-radius: 16px;
@@ -363,6 +366,7 @@ onBeforeUnmount(() => {
 }
 
 .mascot-avatar {
+  pointer-events: auto;
   width: 250px;
   height: 250px;
   background: transparent;
@@ -391,8 +395,8 @@ onBeforeUnmount(() => {
   0% {
     transform: translateY(0) scale(1);
   }
-  45% {
-    transform: translateY(0) scale(0.95);
+  40% {
+    transform: translateY(0) scale(0.92);
   }
   100% {
     transform: translateY(0) scale(1);

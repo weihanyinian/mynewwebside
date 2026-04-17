@@ -492,6 +492,25 @@ onUnmounted(() => {
   gap: 0.5rem;
 }
 
+.blog-side-nav .site-pill {
+  min-height: 48px;
+  justify-content: flex-start;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s ease,
+    filter 0.25s ease;
+}
+
+.blog-side-nav .site-pill:not(.site-pill--active):not(.site-pill--pink):hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 18px rgba(102, 217, 255, 0.2);
+}
+
+.blog-side-nav .site-pill--active,
+.blog-side-nav .site-pill--pink {
+  box-shadow: 0 4px 20px rgba(102, 217, 255, 0.28);
+}
+
 /* 侧栏导航视觉由全局 styles/site-ui.css 的 .site-pill* 统一提供 */
 
 .blog-clue {
@@ -552,6 +571,13 @@ onUnmounted(() => {
   max-width: var(--blog-grid-max);
   padding: 1rem 1.125rem;
   margin-bottom: 1.25rem;
+  transition: box-shadow 0.35s ease, transform 0.35s ease;
+}
+
+.blog-toolbar:focus-within {
+  box-shadow:
+    0 0 0 1px rgba(102, 217, 255, 0.28),
+    0 10px 28px rgba(74, 144, 226, 0.12);
 }
 
 .blog-toolbar__grid {
@@ -644,12 +670,14 @@ onUnmounted(() => {
 }
 
 .blog-card:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 14px 36px rgba(102, 217, 255, 0.28);
+  transform: translateY(-6px) scale(1.015);
+  box-shadow:
+    0 0 22px rgba(102, 217, 255, 0.22),
+    0 16px 40px rgba(74, 144, 226, 0.2);
 }
 
 .blog-card--visible:hover {
-  transform: translateY(-4px) scale(1.01);
+  transform: translateY(-6px) scale(1.015);
 }
 
 .blog-card__cover {

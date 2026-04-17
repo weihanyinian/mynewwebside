@@ -40,7 +40,11 @@ public class MindMapService {
 
   public MindMapDetailDto getMine(long userId, long id) {
     MindMapEntity e = requireMine(userId, id);
-    return new MindMapDetailDto(e.getId(), e.getTitle(), e.getData(), e.getUpdatedAt());
+    String data = e.getData();
+    if (!StringUtils.hasText(data)) {
+      data = EMPTY_SCENE;
+    }
+    return new MindMapDetailDto(e.getId(), e.getTitle(), data, e.getUpdatedAt());
   }
 
   @Transactional

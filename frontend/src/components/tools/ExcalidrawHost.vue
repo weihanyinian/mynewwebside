@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { createRoot, type Root } from 'react-dom/client'
 import { createElement } from 'react'
 import { MindExcalidrawApp, type ExcalidrawApi } from '../../excalidraw/MindExcalidrawApp'
@@ -33,6 +33,11 @@ onMounted(() => {
   mount()
 })
 
+watch(
+  () => [props.themeMode, props.initialData] as const,
+  () => mount(),
+)
+
 onUnmounted(() => {
   reactRoot?.unmount()
   reactRoot = null
@@ -51,5 +56,14 @@ onUnmounted(() => {
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.45));
+  transition:
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+  will-change: transform;
+  touch-action: manipulation;
+}
+
+.excalidraw-host:hover {
+  box-shadow: 0 8px 28px rgba(102, 217, 255, 0.12);
 }
 </style>
