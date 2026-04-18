@@ -36,6 +36,7 @@ public class SecurityConfig {
         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
         .requestMatchers("/api/public/**").permitAll()
+        .requestMatchers("/api/snippets/**").authenticated()
         .requestMatchers("/api/oj/**").authenticated()
         .requestMatchers("/api/admin/**").hasRole("ADMIN")
         .anyRequest().denyAll()

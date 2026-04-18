@@ -72,5 +72,30 @@ public class AuthOjSchemaRunner implements ApplicationRunner {
         )
         """
     );
+    jdbc.execute(
+        """
+        CREATE TABLE IF NOT EXISTS friend_link (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          title VARCHAR(120) NOT NULL,
+          url VARCHAR(600) NOT NULL,
+          description VARCHAR(500),
+          avatar_url VARCHAR(600),
+          sort_order INT NOT NULL DEFAULT 0,
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    );
+    jdbc.execute(
+        """
+        CREATE TABLE IF NOT EXISTS code_snippet (
+          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+          user_id BIGINT NOT NULL,
+          title VARCHAR(200) NOT NULL,
+          language VARCHAR(64) NOT NULL,
+          content LONGTEXT NOT NULL,
+          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    );
   }
 }
