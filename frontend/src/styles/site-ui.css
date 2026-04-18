@@ -109,6 +109,8 @@
 .site-pill--nav {
   padding: 8px 14px;
   font-size: 0.8125rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .site-pill--lg {

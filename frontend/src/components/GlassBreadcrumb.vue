@@ -82,10 +82,6 @@ const items = computed<Crumb[]>(() => {
     list.push({ label: t('breadcrumb.message') })
     return list
   }
-  if (path === '/mindmap') {
-    list.push({ label: t('breadcrumb.mindmap') })
-    return list
-  }
   if (path.startsWith('/tools')) {
     list.push({ label: t('breadcrumb.tools'), to: '/tools' })
     if (path === '/tools') return list

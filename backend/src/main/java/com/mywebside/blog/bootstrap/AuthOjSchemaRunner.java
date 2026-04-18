@@ -72,17 +72,5 @@ public class AuthOjSchemaRunner implements ApplicationRunner {
         )
         """
     );
-    jdbc.execute(
-        """
-        CREATE TABLE IF NOT EXISTS mind_map (
-          id BIGINT AUTO_INCREMENT PRIMARY KEY,
-          user_id BIGINT NOT NULL,
-          title VARCHAR(255) NOT NULL,
-          data LONGTEXT NOT NULL,
-          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    );
   }
 }

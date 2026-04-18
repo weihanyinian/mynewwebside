@@ -28,7 +28,6 @@ const ToolCpsPage = () => import('../pages/tools/ToolCpsPage.vue')
 const ToolPomodoroPage = () => import('../pages/tools/ToolPomodoroPage.vue')
 const ToolPasswordPage = () => import('../pages/tools/ToolPasswordPage.vue')
 const ToolBase64Page = () => import('../pages/tools/ToolBase64Page.vue')
-const MindMapPage = () => import('../pages/mindmap/MindMapPage.vue')
 const LoginPage = () => import('../pages/auth/LoginPage.vue')
 const RegisterPage = () => import('../pages/auth/RegisterPage.vue')
 const AdminArticlesPage = () => import('../pages/admin/AdminArticlesPage.vue')
@@ -67,9 +66,6 @@ export const router = createRouter({
     { path: '/tools/pomodoro', component: ToolPomodoroPage },
     { path: '/tools/password', component: ToolPasswordPage },
     { path: '/tools/base64', component: ToolBase64Page },
-    { path: '/mindmap', component: MindMapPage },
-    { path: '/tools/mindmap', redirect: '/mindmap' },
-    { path: '/tools/markmap', redirect: '/mindmap' },
     {
       path: '/tools/oj',
       component: OjView,

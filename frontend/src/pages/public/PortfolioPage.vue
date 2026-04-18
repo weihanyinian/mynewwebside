@@ -280,13 +280,14 @@ h2 {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
-/* Navigation（顶边线：全局 .site-nav-unified；内高光与原有阴影合并） */
+/* Navigation（顶边线：全局 .site-nav-unified；内高光与原有阴影合并）
+   z-index 高于看板娘(999)与全局音乐播放器(mp-root 1100)，避免顶栏右侧链接被吞点击 */
 .glass-nav {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 1200;
   border-radius: 0 0 16px 16px;
 }
 

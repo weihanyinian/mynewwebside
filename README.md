@@ -17,28 +17,19 @@
 
 - 前台：文章列表 / 详情 / 分类 / 标签 / 搜索
 - 后台：登录 / 文章管理 / 发布编辑 / 分类管理 / 标签管理
-- **工具栏**（`/tools`）：卡片入口聚合在线 OJ、反应力 / CPS / 番茄钟 / 随机密码 / Base64，以及 **思维导图**（Excalidraw 画布，`/tools/mindmap`，需登录云端保存）
+- **工具栏**（`/tools`）：卡片入口聚合在线 OJ、反应力 / CPS / 番茄钟 / 随机密码 / Base64
 - 代码高亮：Markdown + Highlight.js
 - 响应式、简洁现代风格
 
-## 工具栏与思维导图（Excalidraw）
-
-### 访问路径
+## 工具栏路径
 
 | 功能 | 路径 |
 |------|------|
 | 工具栏主页 | `/tools` |
 | 在线 OJ | `/tools/oj`（需登录；旧地址 `/oj` 会自动重定向） |
-| 思维导图 | `/tools/mindmap`（需登录；旧地址 `/tools/markmap` 会重定向至此） |
 | 反应力 / CPS / 番茄钟 / 密码 / Base64 | `/tools/reaction`、`/tools/cps` 等 |
 
-小工具为**纯前端**；OJ 判题与思维导图**云端存储**依赖后端与 MySQL（见 `mind_map` 表及 `/api/mind-maps`）。
-
-### 思维导图说明
-
-- 基于 [Excalidraw](https://github.com/excalidraw/excalidraw) 嵌入画布：缩放平移、形状与连线、颜色与样式，并随站点日/夜主题切换。
-- 登录用户可 **列表 / 新建 / 重命名 / 保存 / 删除**；数据存 MySQL，换设备刷新不丢。
-- 支持导出 **PNG、SVG、JSON**（JSON 为 Excalidraw 场景，可再导入或备份）。
+小工具多为**纯前端**；**在线 OJ** 判题依赖后端与 MySQL。
 
 ### 重复文件排查
 

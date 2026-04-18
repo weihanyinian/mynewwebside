@@ -10,7 +10,6 @@ const messages = {
       moyu: '摸鱼',
       blog: '前往博客',
       tools: '工具栏',
-      mindmap: '思维导图',
       oj: '在线 OJ',
       admin: '管理后台',
       login: '登录',
@@ -54,8 +53,7 @@ const messages = {
       adminOjSubmissions: 'OJ 提交',
       ojSubmissions: '我的提交',
       login: '登录',
-      register: '注册',
-      mindmap: '思维导图'
+      register: '注册'
     },
     tools: {
       reaction: '反应力测试',
@@ -121,7 +119,7 @@ const messages = {
     },
     toolsHub: {
       title: '工具栏',
-      subtitle: '实用小工具与在线 OJ（后端对接 Judge0 判题）。思维导图已独立为顶栏入口，无需登录即可本机使用。',
+      subtitle: '实用小工具与在线 OJ（后端对接 Judge0 判题）。',
       back: '返回工具栏',
       cardOjTitle: '在线 OJ',
       cardOjDesc: '算法题库与远程评测，支持多语言提交。',
@@ -130,31 +128,6 @@ const messages = {
       cardPomodoroDesc: '专注与休息计时，简单番茄工作法。',
       cardPasswordDesc: '本地生成随机强密码，一键复制。',
       cardBase64Desc: '文本 Base64 加密与解密（UTF-8）。'
-    },
-    mindmapEditor: {
-      sidebarTitle: '我的导图',
-      new: '新建',
-      loading: '加载中…',
-      titlePlaceholder: '标题',
-      rename: '重命名',
-      saveCloud: '保存到云端',
-      exportPng: '导出 PNG',
-      exportSvg: '导出 SVG',
-      exportJson: '导出 JSON',
-      delete: '删除',
-      confirmDelete: '确定删除该思维导图？此操作不可恢复。',
-      created: '已创建新导图',
-      savedCloud: '已保存到云端',
-      saveLocal: '保存到本机',
-      savedLocal: '已保存到本机浏览器',
-      createdLocal: '已新建本地导图',
-      localModeHint: '当前未登录：导图仅保存在本浏览器，清除站点数据会丢失；登录后可使用云端列表与同步。',
-      renamed: '标题已更新',
-      untitled: '未命名导图',
-      exportFail: '导出失败：{msg}',
-      loadError: '无法加载导图（本地数据损坏、网络异常或未登录时误走云端接口）。',
-      retry: '重新加载',
-      excalidrawHint: '画布操作与 Excalidraw 一致：框选、连线、调色与图层；复杂「树折叠」请用分组或手动隐藏分支。'
     },
     messageWall: {
       title: '公共留言墙',
@@ -185,7 +158,6 @@ const messages = {
       moyu: 'Games',
       blog: 'Blog',
       tools: 'Toolbox',
-      mindmap: 'Mindmap',
       oj: 'OJ',
       admin: 'Admin',
       login: 'Login',
@@ -229,8 +201,7 @@ const messages = {
       adminOjSubmissions: 'OJ Submissions',
       ojSubmissions: 'My Submissions',
       login: 'Login',
-      register: 'Register',
-      mindmap: 'Mindmap'
+      register: 'Register'
     },
     tools: {
       reaction: 'Reaction Test',
@@ -296,7 +267,7 @@ const messages = {
     },
     toolsHub: {
       title: 'Toolbox',
-      subtitle: 'Gadgets and online OJ (Judge0 via backend). Mindmap lives in the top bar; works locally without login.',
+      subtitle: 'Gadgets and online OJ (Judge0 via backend).',
       back: 'Back to toolbox',
       cardOjTitle: 'Online OJ',
       cardOjDesc: 'Problem set and remote judge; multi-language.',
@@ -305,31 +276,6 @@ const messages = {
       cardPomodoroDesc: 'Focus / break Pomodoro timer.',
       cardPasswordDesc: 'Generate strong passwords locally.',
       cardBase64Desc: 'UTF-8 Base64 encode & decode.'
-    },
-    mindmapEditor: {
-      sidebarTitle: 'My maps',
-      new: 'New',
-      loading: 'Loading…',
-      titlePlaceholder: 'Title',
-      rename: 'Rename',
-      saveCloud: 'Save to cloud',
-      exportPng: 'Export PNG',
-      exportSvg: 'Export SVG',
-      exportJson: 'Export JSON',
-      delete: 'Delete',
-      confirmDelete: 'Delete this mindmap? This cannot be undone.',
-      created: 'New map created',
-      savedCloud: 'Saved to cloud',
-      saveLocal: 'Save locally',
-      savedLocal: 'Saved in this browser',
-      createdLocal: 'New local map created',
-      localModeHint: 'Not signed in: maps stay in this browser only. Sign in for cloud sync.',
-      renamed: 'Title updated',
-      untitled: 'Untitled',
-      exportFail: 'Export failed: {msg}',
-      loadError: 'Could not load map (local data corrupt, network error, or API unavailable).',
-      retry: 'Reload',
-      excalidrawHint: 'Same as Excalidraw: selection, arrows, colors, layers; for tree fold, use groups or hide branches manually.'
     },
     messageWall: {
       title: 'Message Wall',

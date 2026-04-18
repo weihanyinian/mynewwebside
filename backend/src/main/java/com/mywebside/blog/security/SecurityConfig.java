@@ -37,7 +37,6 @@ public class SecurityConfig {
         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
         .requestMatchers("/api/public/**").permitAll()
         .requestMatchers("/api/oj/**").authenticated()
-        .requestMatchers("/api/mind-maps/**").authenticated()
         .requestMatchers("/api/admin/**").hasRole("ADMIN")
         .anyRequest().denyAll()
     );
