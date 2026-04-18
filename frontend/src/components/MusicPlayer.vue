@@ -15,7 +15,7 @@ import fallbackPlaylist from '../assets/playlist.json'
 /** 高于工具页 site-root(1000)，避免主布局抬升后点不到播放器 */
 const PLAYER_Z_INDEX = 1100
 /** 与侧栏宽度 CSS 变量对齐，避免挡住播放器触发钮 */
-const OFFSET_LEFT = 'calc(var(--site-sidebar-width, 0px) + 24px)'
+const OFFSET_LEFT = '24px'
 const OFFSET_BOTTOM = '20px'
 
 // ---------- 玻璃态 UI 规范（与站点统一）----------

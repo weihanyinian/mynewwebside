@@ -79,18 +79,29 @@ function toggleLocale() {
 </script>
 
 <template>
-  <div class="site-root site-chrome-main-offset" :class="{ 'site-root--above-mascot': liftAboveMascot }">
+  <div class="site-root" :class="{ 'site-root--above-mascot': liftAboveMascot }">
     <nav class="glass-nav site-nav-unified">
       <div class="nav-inner">
-        <div
-          class="logo"
-          role="link"
-          tabindex="0"
-          :title="locale === 'zh' ? '返回主页' : 'Home'"
-          @click="onSiteLogoClick"
-          @keydown.enter.prevent="onSiteLogoClick"
-        >
-          {{ t('nav.logo') }}
+        <div class="nav-brand-row">
+          <div
+            class="logo"
+            role="link"
+            tabindex="0"
+            :title="locale === 'zh' ? '返回主页' : 'Home'"
+            @click="onSiteLogoClick"
+            @keydown.enter.prevent="onSiteLogoClick"
+          >
+            {{ t('nav.logo') }}
+          </div>
+          <div class="nav-social" role="navigation" :aria-label="t('sidebar.social')">
+            <a
+              class="nav-social-link"
+              href="https://github.com/weihanyinian"
+              target="_blank"
+              rel="noopener noreferrer"
+            >GitHub</a>
+            <a class="nav-social-link" href="mailto:1012308753@qq.com">Email</a>
+          </div>
         </div>
         <div class="links">
           <!-- 【全站统一】顶栏导航：site-pill 玻璃态 + 路由/锚点高亮 -->
@@ -120,6 +131,36 @@ function toggleLocale() {
           >{{ t('nav.message') }}</a>
           <a
             href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/friends') }"
+            @click.prevent="router.push('/friends')"
+          >{{ t('breadcrumb.friends') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/albums') }"
+            @click.prevent="router.push('/albums')"
+          >{{ t('breadcrumb.albums') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/archives') }"
+            @click.prevent="router.push('/archives')"
+          >{{ t('breadcrumb.archives') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path === '/search' }"
+            @click.prevent="router.push('/search')"
+          >{{ t('breadcrumb.search') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/snippets') }"
+            @click.prevent="router.push('/snippets')"
+          >{{ t('breadcrumb.snippets') }}</a>
+          <a
+            href="#"
             class="site-pill site-pill--nav moyu-link"
             :class="{ 'site-pill--pink': route.path === '/moyu' }"
             @click.prevent="router.push('/moyu')"
@@ -129,13 +170,13 @@ function toggleLocale() {
           </a>
           <a
             href="#"
-            class="site-pill site-pill--nav"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
             :class="{ 'site-pill--active': route.path.startsWith('/tools') }"
             @click.prevent="router.push('/tools')"
           >{{ t('nav.tools') }}</a>
           <a
             href="#"
-            class="site-pill site-pill--nav"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
             :class="{ 'site-pill--active': route.path.startsWith('/blog') || route.path.startsWith('/article') }"
             @click.prevent="router.push('/blog')"
           >{{ t('nav.blog') }}</a>
@@ -230,6 +271,47 @@ function toggleLocale() {
   box-sizing: border-box;
 }
 
+.nav-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.nav-social {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nav-social-link {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--text-color, #2c3e50);
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+}
+
+:root[data-theme='dark'] .nav-social-link {
+  color: #e2e8f0;
+  background: rgba(18, 20, 32, 0.55);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.nav-social-link:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
 .logo {
   font-size: clamp(1rem, 2.2vw, 1.35rem);
   font-weight: 800;
@@ -291,10 +373,13 @@ function toggleLocale() {
 
 /* 窄屏：Portfolio 区块锚点始终收起（与原顶栏一致）；其余项仅保留高亮 + 语言/主题/摸鱼/OJ */
 @media (max-width: 780px) {
+  .nav-social {
+    display: none;
+  }
   .links > a.site-top-anchor {
     display: none;
   }
-  .links > a.site-pill:not(.site-pill--active):not(.lang-toggle):not(.moyu-link):not(.oj-link):not(.theme-toggle):not(.site-pill--pink):not(.site-nav-auth) {
+  .links > a.site-pill:not(.site-pill--active):not(.lang-toggle):not(.moyu-link):not(.oj-link):not(.theme-toggle):not(.site-pill--pink):not(.site-nav-auth):not(.site-pill--keep-mobile) {
     display: none;
   }
 }

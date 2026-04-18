@@ -64,7 +64,7 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
 </script>
 
 <template>
-  <div class="portfolio-container site-chrome-main-offset" :class="{ 'dark-theme': isDarkMode }">
+  <div class="portfolio-container" :class="{ 'dark-theme': isDarkMode }">
     <!-- Video Backgrounds -->
     <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
     <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
@@ -83,6 +83,15 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
           >
             {{ t('nav.logo') }}
           </div>
+          <div class="nav-social" role="navigation" :aria-label="t('sidebar.social')">
+            <a
+              class="nav-social-link"
+              href="https://github.com/weihanyinian"
+              target="_blank"
+              rel="noopener noreferrer"
+            >GitHub</a>
+            <a class="nav-social-link" href="mailto:1012308753@qq.com">Email</a>
+          </div>
         </div>
         <div class="links">
           <!-- 【全站统一】首页顶栏与 site-ui .site-pill 一致；窄屏保留项见 site-pill--keep-mobile -->
@@ -90,6 +99,36 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
           <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('works')">{{ t('nav.works') }}</a>
           <a href="#" class="site-pill site-pill--nav" @click.prevent="scrollTo('contact')">{{ t('nav.contact') }}</a>
           <a href="#" class="site-pill site-pill--nav" @click.prevent="router.push('/message')">{{ t('nav.message') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/friends') }"
+            @click.prevent="router.push('/friends')"
+          >{{ t('breadcrumb.friends') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/albums') }"
+            @click.prevent="router.push('/albums')"
+          >{{ t('breadcrumb.albums') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/archives') }"
+            @click.prevent="router.push('/archives')"
+          >{{ t('breadcrumb.archives') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path === '/search' }"
+            @click.prevent="router.push('/search')"
+          >{{ t('breadcrumb.search') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path.startsWith('/snippets') }"
+            @click.prevent="router.push('/snippets')"
+          >{{ t('breadcrumb.snippets') }}</a>
           <a
             href="#"
             class="site-pill site-pill--nav site-pill--keep-mobile"
@@ -318,6 +357,40 @@ h2 {
   flex-shrink: 0;
   min-width: 0;
 }
+
+.nav-social {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nav-social-link {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #2c3e50;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+}
+
+.dark-theme .nav-social-link {
+  color: #e2e8f0;
+  background: rgba(16, 18, 27, 0.65);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.nav-social-link:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
 .logo {
   font-size: clamp(1rem, 2.2vw, 1.35rem);
   font-weight: 800;
@@ -643,6 +716,9 @@ h2 {
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2.5rem;
+  }
+  .nav-social {
+    display: none;
   }
   .links a.site-pill:not(.site-pill--keep-mobile) {
     display: none;
