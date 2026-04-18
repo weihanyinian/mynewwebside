@@ -8,7 +8,7 @@ const messages = {
       contact: '联系',
       message: '留言墙',
       moyu: '摸鱼',
-      blog: '前往博客',
+      blog: '博客',
       tools: '工具栏',
       oj: '在线 OJ',
       admin: '管理后台',
@@ -31,7 +31,17 @@ const messages = {
       contactText: '期待与你交流技术，探讨合作可能。旅途还在继续，一起创造更多的可能吧。',
       footer: '维寒一念 | MyWebSide',
       langToggle: '切换语言',
-      themeToggle: '切换主题'
+      themeToggle: '切换主题',
+      sectionBlogTitle: '博客与开源',
+      sectionBlogLead:
+        '技术文章在博客列表持续更新；本站前后端代码已开源，欢迎 Star / Issue。向下滑动可继续浏览留言墙、作品集与工具等版块。',
+      sectionBlogRepo: 'GitHub 仓库',
+      sectionBlogRead: '打开博客文章列表',
+      sectionToolsLead: '实用小工具与在线 OJ 汇总在工具栏；顶栏仅做页内滚动，可在此进入各工具页使用。',
+      sectionToolsOpen: '进入',
+      sectionSnippetsLead: '支持多语言语法高亮与片段保存（登录后可同步到服务器）。',
+      sectionSnippetsOpen: '打开代码编辑器',
+      homeAlbumFallback: '暂无图片',
     },
     breadcrumb: {
       home: '首页',
@@ -246,7 +256,17 @@ const messages = {
       contactText: 'Looking forward to discussing tech and collaborations. The journey continues, let\'s create more possibilities together.',
       footer: 'Weihan Yinian | MyWebSide',
       langToggle: 'Switch Language',
-      themeToggle: 'Toggle Theme'
+      themeToggle: 'Toggle Theme',
+      sectionBlogTitle: 'Blog & open source',
+      sectionBlogLead:
+        'Posts live in the blog; this site’s source is on GitHub. Scroll down for wall, gallery, tools, and more.',
+      sectionBlogRepo: 'GitHub repo',
+      sectionBlogRead: 'Open blog index',
+      sectionToolsLead: 'Toolbox and OJ live on their pages; the header only scrolls—open a card below to use a tool.',
+      sectionToolsOpen: 'Open',
+      sectionSnippetsLead: 'Monaco editor with sync when signed in.',
+      sectionSnippetsOpen: 'Open editor',
+      homeAlbumFallback: 'No images',
     },
     breadcrumb: {
       home: 'Home',
