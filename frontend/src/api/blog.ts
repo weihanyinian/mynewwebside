@@ -137,3 +137,14 @@ export async function adminUpdateTag(id: number, name: string) {
 export async function adminDeleteTag(id: number) {
   await http.delete<ApiResponse<void>>(`/api/admin/tags/${id}`)
 }
+
+/** 后端「每日一句」；失败返回 null（前端回退内置列表）。 */
+export async function fetchDailyQuoteFromServer(): Promise<string | null> {
+  try {
+    const resp = await http.get<ApiResponse<{ text: string }>>('/api/public/daily-quote')
+    const t = resp.data.data?.text?.trim()
+    return t || null
+  } catch {
+    return null
+  }
+}

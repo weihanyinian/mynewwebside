@@ -202,7 +202,11 @@ const messages = {
       replyFromAdmin: '站长回复'
     },
     hitokoto: {
-      change: '换一句'
+      change: '换一句',
+      prev: '上一句',
+      next: '下一句',
+      pause: '暂停',
+      resume: '继续',
     },
     adminFriends: {
       title: '友链管理',
@@ -417,7 +421,11 @@ const messages = {
       replyFromAdmin: 'Reply'
     },
     hitokoto: {
-      change: 'Next'
+      change: 'Next',
+      prev: 'Previous',
+      next: 'Next',
+      pause: 'Pause',
+      resume: 'Resume',
     },
     adminFriends: {
       title: 'Friend links',
