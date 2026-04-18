@@ -77,16 +77,10 @@ const messages = {
       hint: '侧栏层级低于看板娘与音乐控件，互不遮挡'
     },
     footer: {
-      badgeLicense: '协议',
-      badgeStack: '框架',
-      badgeDeploy: '部署',
-      deployHint: '自托管 / 云主机',
-      stats: '统计',
       icpLabel: 'ICP备案',
       psbLabel: '公安备案',
       siteDomain: 'www.weihanyinian.cn',
       copyName: '维寒一念的小站',
-      tagline: '内容采用 CC BY-NC-SA 4.0，转载请注明出处'
     },
     pages: {
       archivesTitle: '文章归档',
@@ -298,16 +292,10 @@ const messages = {
       hint: 'Sidebar stays below mascot & music player z-index'
     },
     footer: {
-      badgeLicense: 'License',
-      badgeStack: 'Stack',
-      badgeDeploy: 'Host',
-      deployHint: 'Self-hosted / VPS',
-      stats: 'Stats',
       icpLabel: 'ICP',
       psbLabel: 'PSB',
       siteDomain: 'www.weihanyinian.cn',
       copyName: "Weihan Yinian's Site",
-      tagline: 'CC BY-NC-SA 4.0 — attribute for reuse'
     },
     pages: {
       archivesTitle: 'Archives',
