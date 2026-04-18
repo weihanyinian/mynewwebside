@@ -91,8 +91,3 @@ npm run dev
 
 前端默认：`http://localhost:5173`
 
-## 部署建议（腾讯云轻量）
-
-- 后端：`mvn -DskipTests package` 生成 `jar`，用 `java -jar` 启动（建议配合 systemd）
-- 前端：`npm run build` 产物在 `frontend/dist`，用 Nginx 静态托管
-- 跨域：生产建议统一走 Nginx 反代（同域），或将 `app.cors.allowed-origins` 配置为生产域名
