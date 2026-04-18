@@ -162,7 +162,6 @@ async function loadAlbumManifest() {
 }
 
 const homeToolCards = computed(() => [
-  { path: '/tools', title: t('nav.tools'), desc: t('toolsHub.subtitle') },
   { path: '/tools/reaction', title: t('tools.reaction'), desc: t('toolsHub.cardReactionDesc') },
   { path: '/tools/cps', title: t('tools.cps'), desc: t('toolsHub.cardCpsDesc') },
   { path: '/tools/pomodoro', title: t('tools.pomodoro'), desc: t('toolsHub.cardPomodoroDesc') },
