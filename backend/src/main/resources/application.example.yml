@@ -21,6 +21,11 @@ spring:
 app:
   cors:
     allowed-origins: "http://localhost:5173"
+  # 每日一句（按上海时区自然日轮转；可增删改列表）
+  daily-quotes:
+    - "维寒一念，步履不停。"
+    - "代码与文字，都是留给自己和访客的路标。"
+    - "今日宜：读一页书，写一行诗。"
   # 首次启动且数据库中尚无 admin 用户时，用该明文密码创建用户名为 admin 的账号（务必用环境变量注入，勿提交仓库）
   bootstrap-admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
   # 为 true 时每次启动都会用上一项覆盖已有 admin 的密码；仅用于本地重置，生产请保持 false

@@ -5,9 +5,11 @@ import com.mywebside.blog.common.PageResponse;
 import com.mywebside.blog.dto.ArticleDetailDto;
 import com.mywebside.blog.dto.ArticleListItemDto;
 import com.mywebside.blog.dto.CategoryDto;
+import com.mywebside.blog.dto.DailyQuoteDto;
 import com.mywebside.blog.dto.TagDto;
 import com.mywebside.blog.service.ArticleService;
 import com.mywebside.blog.service.CategoryService;
+import com.mywebside.blog.service.DailyQuoteService;
 import com.mywebside.blog.service.TagService;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,11 +28,18 @@ public class PublicController {
   private final ArticleService articleService;
   private final CategoryService categoryService;
   private final TagService tagService;
+  private final DailyQuoteService dailyQuoteService;
 
-  public PublicController(ArticleService articleService, CategoryService categoryService, TagService tagService) {
+  public PublicController(
+      ArticleService articleService,
+      CategoryService categoryService,
+      TagService tagService,
+      DailyQuoteService dailyQuoteService
+  ) {
     this.articleService = articleService;
     this.categoryService = categoryService;
     this.tagService = tagService;
+    this.dailyQuoteService = dailyQuoteService;
   }
 
   @GetMapping("/articles")
@@ -57,5 +66,11 @@ public class PublicController {
   @GetMapping("/tags")
   public ApiResponse<List<TagDto>> tags() {
     return ApiResponse.ok(tagService.list());
+  }
+
+  /** 每日一句（与前端本地缓存配合，同日多次请求内容一致）。 */
+  @GetMapping("/daily-quote")
+  public ApiResponse<DailyQuoteDto> dailyQuote() {
+    return ApiResponse.ok(dailyQuoteService.today());
   }
 }

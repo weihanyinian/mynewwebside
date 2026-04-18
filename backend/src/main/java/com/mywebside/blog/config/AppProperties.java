@@ -1,5 +1,7 @@
 package com.mywebside.blog.config;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app")
@@ -13,6 +15,15 @@ public class AppProperties {
    * 生产环境建议保持 false，仅在需要重置管理员密码时短期开启。
    */
   private boolean bootstrapAdminSyncOnStartup = false;
+
+  /**
+   * 「每日一句」文案列表（按自然日轮转）。可通过 application.yml 的 {@code app.daily-quotes} 覆盖。
+   */
+  private List<String> dailyQuotes = new ArrayList<>(List.of(
+      "维寒一念，步履不停。",
+      "代码与文字，都是留给自己和访客的路标。",
+      "今日宜：读一页书，写一行诗。"
+  ));
 
   public Cors getCors() {
     return cors;
@@ -36,6 +47,14 @@ public class AppProperties {
 
   public void setBootstrapAdminSyncOnStartup(boolean bootstrapAdminSyncOnStartup) {
     this.bootstrapAdminSyncOnStartup = bootstrapAdminSyncOnStartup;
+  }
+
+  public List<String> getDailyQuotes() {
+    return dailyQuotes;
+  }
+
+  public void setDailyQuotes(List<String> dailyQuotes) {
+    this.dailyQuotes = dailyQuotes != null ? dailyQuotes : new ArrayList<>();
   }
 
   public static class Cors {
