@@ -35,10 +35,8 @@ const isWideMain = computed(() => {
     p === '/categories' ||
     p === '/tags' ||
     p.startsWith('/tools') ||
-    p === '/friends' ||
     p === '/albums' ||
     p === '/snippets' ||
-    p === '/search' ||
     p === '/archives' ||
     p === '/stats'
   )
@@ -49,10 +47,8 @@ const liftAboveMascot = computed(() => {
   const p = route.path
   return (
     p.startsWith('/tools') ||
-    p === '/friends' ||
     p === '/albums' ||
     p === '/snippets' ||
-    p === '/search' ||
     p === '/archives' ||
     p === '/stats'
   )
@@ -132,12 +128,6 @@ function toggleLocale() {
           <a
             href="#"
             class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path.startsWith('/friends') }"
-            @click.prevent="router.push('/friends')"
-          >{{ t('breadcrumb.friends') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
             :class="{ 'site-pill--active': route.path.startsWith('/albums') }"
             @click.prevent="router.push('/albums')"
           >{{ t('breadcrumb.albums') }}</a>
@@ -147,12 +137,6 @@ function toggleLocale() {
             :class="{ 'site-pill--active': route.path.startsWith('/archives') }"
             @click.prevent="router.push('/archives')"
           >{{ t('breadcrumb.archives') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path === '/search' }"
-            @click.prevent="router.push('/search')"
-          >{{ t('breadcrumb.search') }}</a>
           <a
             href="#"
             class="site-pill site-pill--nav site-pill--keep-mobile"

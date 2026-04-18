@@ -56,10 +56,6 @@ const items = computed<Crumb[]>(() => {
       list.push({ label: t('breadcrumb.adminOjSubmissions') })
       return list
     }
-    if (path === '/admin/friends') {
-      list.push({ label: t('breadcrumb.adminFriends') })
-      return list
-    }
     return list
   }
 
@@ -82,35 +78,27 @@ const items = computed<Crumb[]>(() => {
     list.push({ label: t('breadcrumb.tags') })
     return list
   }
-    if (path === '/message') {
-      list.push({ label: t('breadcrumb.message') })
-      return list
-    }
-    if (path === '/friends') {
-      list.push({ label: t('breadcrumb.friends') })
-      return list
-    }
-    if (path === '/albums') {
-      list.push({ label: t('breadcrumb.albums') })
-      return list
-    }
-    if (path === '/archives') {
-      list.push({ label: t('breadcrumb.archives') })
-      return list
-    }
-    if (path === '/search') {
-      list.push({ label: t('breadcrumb.search') })
-      return list
-    }
-    if (path === '/snippets') {
-      list.push({ label: t('breadcrumb.snippets') })
-      return list
-    }
-    if (path === '/stats') {
-      list.push({ label: t('breadcrumb.stats') })
-      return list
-    }
-    if (path.startsWith('/tools')) {
+  if (path === '/message') {
+    list.push({ label: t('breadcrumb.message') })
+    return list
+  }
+  if (path === '/albums') {
+    list.push({ label: t('breadcrumb.albums') })
+    return list
+  }
+  if (path === '/archives') {
+    list.push({ label: t('breadcrumb.archives') })
+    return list
+  }
+  if (path === '/snippets') {
+    list.push({ label: t('breadcrumb.snippets') })
+    return list
+  }
+  if (path === '/stats') {
+    list.push({ label: t('breadcrumb.stats') })
+    return list
+  }
+  if (path.startsWith('/tools')) {
     list.push({ label: t('breadcrumb.tools'), to: '/tools' })
     if (path === '/tools') return list
     if (path.startsWith('/tools/oj')) {

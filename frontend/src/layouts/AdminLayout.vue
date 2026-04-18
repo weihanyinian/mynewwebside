@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import { Document, Edit, Folder, CollectionTag, ChatDotRound, User, Cpu, List, Link } from '@element-plus/icons-vue'
+import { Document, Edit, Folder, CollectionTag, ChatDotRound, User, Cpu, List } from '@element-plus/icons-vue'
 import GlassBreadcrumb from '../components/GlassBreadcrumb.vue'
 
 const router = useRouter()
@@ -60,10 +60,6 @@ function logout() {
         <el-menu-item index="/admin/oj/submissions">
           <el-icon><List /></el-icon>
           <span>OJ 提交记录</span>
-        </el-menu-item>
-        <el-menu-item index="/admin/friends">
-          <el-icon><Link /></el-icon>
-          <span>友链管理</span>
         </el-menu-item>
       </el-menu>
     </el-aside>

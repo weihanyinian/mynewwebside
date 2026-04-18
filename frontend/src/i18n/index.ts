@@ -82,8 +82,10 @@ const messages = {
       badgeDeploy: '部署',
       deployHint: '自托管 / 云主机',
       stats: '统计',
-      siteDomain: 'weihanyinian.cn',
-      copyName: '维寒一念 · 个人小站',
+      icpLabel: 'ICP备案',
+      psbLabel: '公安备案',
+      siteDomain: 'www.weihanyinian.cn',
+      copyName: '维寒一念的小站',
       tagline: '内容采用 CC BY-NC-SA 4.0，转载请注明出处'
     },
     pages: {
@@ -301,8 +303,10 @@ const messages = {
       badgeDeploy: 'Host',
       deployHint: 'Self-hosted / VPS',
       stats: 'Stats',
-      siteDomain: 'weihanyinian.cn',
-      copyName: 'Weihan Yinian',
+      icpLabel: 'ICP',
+      psbLabel: 'PSB',
+      siteDomain: 'www.weihanyinian.cn',
+      copyName: "Weihan Yinian's Site",
       tagline: 'CC BY-NC-SA 4.0 — attribute for reuse'
     },
     pages: {

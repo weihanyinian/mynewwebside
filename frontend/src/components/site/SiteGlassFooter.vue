@@ -49,10 +49,16 @@ const umamiShare = computed(() => import.meta.env.VITE_UMAMI_SHARE_URL || '')
     </div>
 
     <div class="site-rich-footer__filings">
-      <a :href="icpUrl" target="_blank" rel="noopener noreferrer" class="filing-link">{{ icpNo }}</a>
+      <span class="filing-item">
+        <span class="filing-label">{{ t('footer.icpLabel') }}</span>
+        <a :href="icpUrl" target="_blank" rel="noopener noreferrer" class="filing-link">{{ icpNo }}</a>
+      </span>
       <template v-if="psb">
         <span class="filing-sep">|</span>
-        <a :href="psbUrl" target="_blank" rel="noopener noreferrer" class="filing-link">{{ psb }}</a>
+        <span class="filing-item">
+          <span class="filing-label">{{ t('footer.psbLabel') }}</span>
+          <a :href="psbUrl" target="_blank" rel="noopener noreferrer" class="filing-link">{{ psb }}</a>
+        </span>
       </template>
       <span class="filing-sep">|</span>
       <span class="filing-muted">{{ t('footer.siteDomain') }}</span>
@@ -60,7 +66,7 @@ const umamiShare = computed(() => import.meta.env.VITE_UMAMI_SHARE_URL || '')
 
     <div class="site-rich-footer__copy">
       <span class="footer-glow-dot" aria-hidden="true" />
-      <p>© 2026 {{ t('footer.copyName') }}</p>
+      <p>© 2024 - 2026 {{ t('footer.copyName') }}</p>
       <p class="footer-tagline">{{ t('footer.tagline') }}</p>
     </div>
   </footer>
@@ -180,6 +186,19 @@ const umamiShare = computed(() => import.meta.env.VITE_UMAMI_SHARE_URL || '')
 
 .filing-muted {
   opacity: 0.65;
+}
+
+.filing-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.filing-label {
+  opacity: 0.55;
+  font-size: 0.72rem;
 }
 
 .site-rich-footer__copy {
