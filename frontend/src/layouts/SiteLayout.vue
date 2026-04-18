@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { useUserStore } from '../stores/user'
 import { goToSiteHome } from '../utils/siteHome'
 import GlassBreadcrumb from '../components/GlassBreadcrumb.vue'
+import SiteGlassFooter from '../components/site/SiteGlassFooter.vue'
 import { useThemeStore } from '../stores/theme'
 
 const router = useRouter()
@@ -33,12 +34,29 @@ const isWideMain = computed(() => {
     p.startsWith('/article') ||
     p === '/categories' ||
     p === '/tags' ||
-    p.startsWith('/tools')
+    p.startsWith('/tools') ||
+    p === '/friends' ||
+    p === '/albums' ||
+    p === '/snippets' ||
+    p === '/search' ||
+    p === '/archives' ||
+    p === '/stats'
   )
 })
 
 /** 工具栏等页：整站壳子必须压过固定定位看板娘 (z-index:999)，否则卡片链接悬停有 href、点击却被挡住 */
-const liftAboveMascot = computed(() => route.path.startsWith('/tools'))
+const liftAboveMascot = computed(() => {
+  const p = route.path
+  return (
+    p.startsWith('/tools') ||
+    p === '/friends' ||
+    p === '/albums' ||
+    p === '/snippets' ||
+    p === '/search' ||
+    p === '/archives' ||
+    p === '/stats'
+  )
+})
 
 function goHome(hash: string) {
   router.push({ path: '/', hash: hash })
@@ -61,7 +79,7 @@ function toggleLocale() {
 </script>
 
 <template>
-  <div class="site-root" :class="{ 'site-root--above-mascot': liftAboveMascot }">
+  <div class="site-root site-chrome-main-offset" :class="{ 'site-root--above-mascot': liftAboveMascot }">
     <nav class="glass-nav site-nav-unified">
       <div class="nav-inner">
         <div
@@ -160,23 +178,7 @@ function toggleLocale() {
       <slot />
     </main>
 
-    <footer class="site-footer">
-      <div class="site-footer__inner">
-        <p>© 2026 {{ t('home.footer') }}</p>
-        <div class="footer-links">
-          <a href="https://github.com/weihanyinian" target="_blank" title="GitHub">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-            </svg>
-          </a>
-          <a href="mailto:1012308753@qq.com" title="Email">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-            </svg>
-          </a>
-        </div>
-      </div>
-    </footer>
+    <SiteGlassFooter />
   </div>
 </template>
 
@@ -285,45 +287,6 @@ function toggleLocale() {
   width: 100%;
   margin: 0 auto;
   padding: 40px 16px;
-}
-
-.site-footer {
-  border-top: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  backdrop-filter: blur(8px);
-  color: var(--text-color);
-}
-
-.site-footer__inner {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.site-footer__inner p {
-  margin: 0;
-  font-weight: 500;
-}
-
-.footer-links {
-  display: flex;
-  gap: 16px;
-}
-
-.footer-links a {
-  color: var(--text-color);
-  transition: all 0.3s;
-  opacity: 0.7;
-}
-
-.footer-links a:hover {
-  color: var(--primary-color);
-  opacity: 1;
-  transform: translateY(-2px);
 }
 
 /* 窄屏：Portfolio 区块锚点始终收起（与原顶栏一致）；其余项仅保留高亮 + 语言/主题/摸鱼/OJ */

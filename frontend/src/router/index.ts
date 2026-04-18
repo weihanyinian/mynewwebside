@@ -38,6 +38,13 @@ const AdminWallPage = () => import('../pages/admin/AdminWallPage.vue')
 const AdminUsersPage = () => import('../pages/admin/AdminUsersPage.vue')
 const AdminOjProblemsPage = () => import('../pages/admin/AdminOjProblemsPage.vue')
 const AdminOjSubmissionsPage = () => import('../pages/admin/AdminOjSubmissionsPage.vue')
+const AdminFriendsPage = () => import('../pages/admin/AdminFriendsPage.vue')
+const ArchivesPage = () => import('../pages/public/ArchivesPage.vue')
+const SearchPage = () => import('../pages/public/SearchPage.vue')
+const FriendsPage = () => import('../pages/public/FriendsPage.vue')
+const AlbumsPage = () => import('../pages/public/AlbumsPage.vue')
+const SnippetsPage = () => import('../pages/public/SnippetsPage.vue')
+const StatsPage = () => import('../pages/public/StatsPage.vue')
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -59,6 +66,12 @@ export const router = createRouter({
     { path: '/moyu/gomoku', component: GameGomoku },
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage },
+    { path: '/archives', component: ArchivesPage },
+    { path: '/search', component: SearchPage },
+    { path: '/friends', component: FriendsPage },
+    { path: '/albums', component: AlbumsPage },
+    { path: '/snippets', component: SnippetsPage },
+    { path: '/stats', component: StatsPage },
     { path: '/admin/login', redirect: '/login' },
     { path: '/tools', component: ToolsHubPage },
     { path: '/tools/reaction', component: ToolReactionPage },
@@ -97,6 +110,7 @@ export const router = createRouter({
     { path: '/admin/users', component: AdminUsersPage, meta: { requiresAdmin: true } },
     { path: '/admin/oj/problems', component: AdminOjProblemsPage, meta: { requiresAdmin: true } },
     { path: '/admin/oj/submissions', component: AdminOjSubmissionsPage, meta: { requiresAdmin: true } },
+    { path: '/admin/friends', component: AdminFriendsPage, meta: { requiresAdmin: true } },
   ],
   scrollBehavior(to, from, saved) {
     if (saved) return saved

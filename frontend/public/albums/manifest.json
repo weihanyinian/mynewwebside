@@ -1,0 +1,23 @@
+{
+  "title": "维寒一念 · 作品集",
+  "items": [
+    {
+      "src": "https://picsum.photos/seed/weihan1/1600/1000",
+      "w": 1600,
+      "h": 1000,
+      "title": "示例作品 1"
+    },
+    {
+      "src": "https://picsum.photos/seed/weihan2/1400/900",
+      "w": 1400,
+      "h": 900,
+      "title": "示例作品 2"
+    },
+    {
+      "src": "https://picsum.photos/seed/weihan3/1200/1200",
+      "w": 1200,
+      "h": 1200,
+      "title": "示例作品 3"
+    }
+  ]
+}

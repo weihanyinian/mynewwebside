@@ -53,7 +53,63 @@ const messages = {
       adminOjSubmissions: 'OJ 提交',
       ojSubmissions: '我的提交',
       login: '登录',
-      register: '注册'
+      register: '注册',
+      friends: '友链',
+      albums: '作品集',
+      archives: '归档',
+      search: '搜索',
+      snippets: '代码片段',
+      stats: '访问统计',
+      adminFriends: '友链管理'
+    },
+    sidebar: {
+      home: '主页',
+      about: '关于',
+      friends: '友链',
+      albums: '作品集',
+      archives: '归档',
+      search: '搜索',
+      snippets: '代码',
+      social: '社交链接',
+      nav: '站点导航',
+      menu: '菜单',
+      openMenu: '打开导航',
+      hint: '侧栏层级低于看板娘与音乐控件，互不遮挡'
+    },
+    footer: {
+      badgeLicense: '协议',
+      badgeStack: '框架',
+      badgeDeploy: '部署',
+      deployHint: '自托管 / 云主机',
+      stats: '统计',
+      siteDomain: 'weihanyinian.cn',
+      copyName: '维寒一念 · 个人小站',
+      tagline: '内容采用 CC BY-NC-SA 4.0，转载请注明出处'
+    },
+    pages: {
+      archivesTitle: '文章归档',
+      archivesEmpty: '暂无已发布文章',
+      searchTitle: '搜索文章',
+      searchPlaceholder: '标题 / 摘要 / 正文关键词',
+      searchBtn: '搜索',
+      searchTotal: '共 {n} 条',
+      friendsTitle: '友情链接',
+      friendsEmpty: '暂无友链，敬请期待',
+      albumsTitle: '作品集',
+      albumsEmpty: '暂无图片',
+      snippetsTitle: '代码片段',
+      snippetsLogin: '登录后可保存到服务器',
+      snippetsNew: '新建',
+      snippetsSave: '保存',
+      snippetsDelete: '删除',
+      snippetsLang: '语言',
+      snippetsTitlePh: '标题',
+      statsTitle: '访问统计',
+      statsHint: '数据由自托管 Umami 提供；未配置时仅显示说明。',
+      statsAdmin: '打开 Umami 后台',
+      statsPublic: '公开看板',
+      loading: '加载中…',
+      loadError: '加载失败'
     },
     tools: {
       reaction: '反应力测试',
@@ -147,6 +203,17 @@ const messages = {
     },
     hitokoto: {
       change: '换一句'
+    },
+    adminFriends: {
+      title: '友链管理',
+      add: '添加',
+      save: '保存',
+      delete: '删除',
+      name: '名称',
+      url: '链接',
+      desc: '简介',
+      avatar: '头像 URL',
+      sort: '排序'
     }
   },
   en: {
@@ -201,7 +268,63 @@ const messages = {
       adminOjSubmissions: 'OJ Submissions',
       ojSubmissions: 'My Submissions',
       login: 'Login',
-      register: 'Register'
+      register: 'Register',
+      friends: 'Friends',
+      archives: 'Archives',
+      search: 'Search',
+      albums: 'Album',
+      snippets: 'Snippets',
+      stats: 'Stats',
+      adminFriends: 'Friend links'
+    },
+    sidebar: {
+      home: 'Home',
+      about: 'About',
+      friends: 'Friends',
+      albums: 'Album',
+      archives: 'Archives',
+      search: 'Search',
+      snippets: 'Code',
+      social: 'Social',
+      nav: 'Navigation',
+      menu: 'Menu',
+      openMenu: 'Open menu',
+      hint: 'Sidebar stays below mascot & music player z-index'
+    },
+    footer: {
+      badgeLicense: 'License',
+      badgeStack: 'Stack',
+      badgeDeploy: 'Host',
+      deployHint: 'Self-hosted / VPS',
+      stats: 'Stats',
+      siteDomain: 'weihanyinian.cn',
+      copyName: 'Weihan Yinian',
+      tagline: 'CC BY-NC-SA 4.0 — attribute for reuse'
+    },
+    pages: {
+      archivesTitle: 'Archives',
+      archivesEmpty: 'No published posts yet',
+      searchTitle: 'Search posts',
+      searchPlaceholder: 'Keyword in title / summary / body',
+      searchBtn: 'Search',
+      searchTotal: '{n} results',
+      friendsTitle: 'Friends',
+      friendsEmpty: 'No links yet',
+      albumsTitle: 'Gallery',
+      albumsEmpty: 'No images',
+      snippetsTitle: 'Code snippets',
+      snippetsLogin: 'Sign in to sync to server',
+      snippetsNew: 'New',
+      snippetsSave: 'Save',
+      snippetsDelete: 'Delete',
+      snippetsLang: 'Language',
+      snippetsTitlePh: 'Title',
+      statsTitle: 'Analytics',
+      statsHint: 'Powered by self-hosted Umami. Configure env to embed.',
+      statsAdmin: 'Umami dashboard',
+      statsPublic: 'Public share',
+      loading: 'Loading…',
+      loadError: 'Failed to load'
     },
     tools: {
       reaction: 'Reaction Test',
@@ -295,6 +418,17 @@ const messages = {
     },
     hitokoto: {
       change: 'Next'
+    },
+    adminFriends: {
+      title: 'Friend links',
+      add: 'Add',
+      save: 'Save',
+      delete: 'Delete',
+      name: 'Name',
+      url: 'URL',
+      desc: 'Description',
+      avatar: 'Avatar URL',
+      sort: 'Order'
     }
   }
 }

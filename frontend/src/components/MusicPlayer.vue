@@ -14,7 +14,8 @@ import fallbackPlaylist from '../assets/playlist.json'
 // ---------- 布局 / 层级（低于 14 酱 Live2D 的 z-index: 999）----------
 /** 高于工具页 site-root(1000)，避免主布局抬升后点不到播放器 */
 const PLAYER_Z_INDEX = 1100
-const OFFSET_LEFT = '90px'
+/** 与侧栏宽度 CSS 变量对齐，避免挡住播放器触发钮 */
+const OFFSET_LEFT = 'calc(var(--site-sidebar-width, 0px) + 24px)'
 const OFFSET_BOTTOM = '20px'
 
 // ---------- 玻璃态 UI 规范（与站点统一）----------
@@ -52,7 +53,19 @@ const volume = ref(0.65)
 const currentTime = ref(0)
 const duration = ref(0)
 
+/** 顺序 / 单曲循环 / 随机 */
+type PlayMode = 'sequence' | 'loop_one' | 'shuffle'
+const playMode = ref<PlayMode>('sequence')
+const FAV_KEY = 'weihan_mp_favorites_v1'
+const favorites = ref<string[]>([])
+
 const currentTrack = computed(() => playlist.value[currentIndex.value] ?? null)
+const isFavorite = computed(
+  () => !!(currentTrack.value && favorites.value.includes(currentTrack.value.url)),
+)
+const modeLabel = computed(() =>
+  playMode.value === 'loop_one' ? '🔂' : playMode.value === 'shuffle' ? '🔀' : '🔁',
+)
 
 /** 供 range 渐变填充 */
 const progressFillStr = computed(() =>
@@ -119,19 +132,77 @@ async function togglePlay() {
   }
 }
 
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem(FAV_KEY)
+    const o = raw ? (JSON.parse(raw) as unknown) : []
+    favorites.value = Array.isArray(o) ? (o as string[]) : []
+  } catch {
+    favorites.value = []
+  }
+}
+
+function persistFavorites() {
+  localStorage.setItem(FAV_KEY, JSON.stringify(favorites.value))
+}
+
+function toggleFavorite() {
+  const url = currentTrack.value?.url
+  if (!url) return
+  const i = favorites.value.indexOf(url)
+  if (i >= 0) favorites.value.splice(i, 1)
+  else favorites.value.push(url)
+  persistFavorites()
+}
+
+function cyclePlayMode() {
+  const order: PlayMode[] = ['sequence', 'loop_one', 'shuffle']
+  playMode.value = order[(order.indexOf(playMode.value) + 1) % order.length]
+}
+
+function playRandomDifferent() {
+  const n = playlist.value.length
+  if (n <= 1) return
+  let j = currentIndex.value
+  let guard = 0
+  while (j === currentIndex.value && guard++ < 8) {
+    j = Math.floor(Math.random() * n)
+  }
+  currentIndex.value = j
+}
+
 function playPrev() {
   if (!playlist.value.length) return
+  if (playMode.value === 'shuffle') {
+    playRandomDifferent()
+    void playFromCurrentIndex()
+    return
+  }
   currentIndex.value = clampIndex(currentIndex.value - 1)
   void playFromCurrentIndex()
 }
 
 function playNext() {
   if (!playlist.value.length) return
+  if (playMode.value === 'shuffle') {
+    playRandomDifferent()
+    void playFromCurrentIndex()
+    return
+  }
   currentIndex.value = clampIndex(currentIndex.value + 1)
   void playFromCurrentIndex()
 }
 
 function onEnded() {
+  if (playMode.value === 'loop_one') {
+    void playFromCurrentIndex()
+    return
+  }
+  if (playMode.value === 'shuffle') {
+    playRandomDifferent()
+    void playFromCurrentIndex()
+    return
+  }
   playNext()
 }
 
@@ -205,6 +276,7 @@ watch(
 )
 
 onMounted(async () => {
+  loadFavorites()
   await loadPlaylist()
   applyVolume()
   rafId = requestAnimationFrame(tick)
@@ -246,6 +318,13 @@ onUnmounted(() => {
             ✕
           </button>
         </header>
+
+        <div class="mp-extra">
+          <button type="button" class="mp-mini" title="播放模式" @click="cyclePlayMode">{{ modeLabel }}</button>
+          <button type="button" class="mp-mini" title="收藏当前" @click="toggleFavorite">
+            {{ isFavorite ? '❤' : '♡' }}
+          </button>
+        </div>
 
         <div class="mp-controls">
           <button type="button" class="mp-round" aria-label="上一首" @click="playPrev">⏮</button>
@@ -402,6 +481,26 @@ onUnmounted(() => {
 .mp-panel__close:hover {
   background: rgba(252, 162, 229, 0.35);
   color: #fff;
+}
+
+.mp-extra {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.mp-mini {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.mp-mini:hover {
+  transform: scale(1.05);
 }
 
 .mp-controls {

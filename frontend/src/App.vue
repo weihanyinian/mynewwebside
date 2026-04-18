@@ -5,6 +5,7 @@ import SiteLayout from './layouts/SiteLayout.vue'
 import AdminLayout from './layouts/AdminLayout.vue'
 import Mascot from './components/Mascot.vue'
 import MusicPlayer from './components/MusicPlayer.vue'
+import SiteGlassSidebar from './components/site/SiteGlassSidebar.vue'
 
 const route = useRoute()
 const isAdmin = computed(() => route.path.startsWith('/admin'))
@@ -12,6 +13,7 @@ const isPortfolio = computed(() => route.path === '/')
 </script>
 
 <template>
+  <SiteGlassSidebar v-if="!isAdmin" />
   <router-view v-slot="{ Component }">
     <transition name="page-fade-slide" mode="out-in">
       <AdminLayout v-if="isAdmin && Component" :key="'a-' + route.fullPath">

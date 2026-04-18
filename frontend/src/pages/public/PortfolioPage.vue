@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { goToSiteHome } from '../../utils/siteHome'
 import { useI18n } from 'vue-i18n'
 import HitokotoCard from '../../components/HitokotoCard.vue'
+import SiteGlassFooter from '../../components/site/SiteGlassFooter.vue'
 import { useThemeStore } from '../../stores/theme'
 import { useUserStore } from '../../stores/user'
 
@@ -63,7 +64,7 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
 </script>
 
 <template>
-  <div class="portfolio-container" :class="{ 'dark-theme': isDarkMode }">
+  <div class="portfolio-container site-chrome-main-offset" :class="{ 'dark-theme': isDarkMode }">
     <!-- Video Backgrounds -->
     <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
     <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
@@ -190,10 +191,7 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
       </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <p>© {{ new Date().getFullYear() }} {{ t('home.footer') }}</p>
-    </footer>
+    <SiteGlassFooter />
   </div>
 </template>
 
@@ -639,21 +637,6 @@ h2 {
   background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
   color: white;
   border-color: transparent;
-}
-
-/* Footer */
-.footer {
-  text-align: center;
-  padding: 40px 20px;
-  font-weight: 500;
-  color: #2c3e50;
-  font-size: 0.9rem;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-}
-.dark-theme .footer {
-  color: #cbd5e1;
-  background: rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive */

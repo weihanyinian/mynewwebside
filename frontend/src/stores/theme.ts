@@ -21,7 +21,7 @@ export function syncDocumentTheme(isDark: boolean) {
   if (isDark) {
     root.style.setProperty(
       '--bg-gradient',
-      'linear-gradient(135deg, rgba(20, 38, 51, 0.96) 0%, rgba(18, 28, 40, 0.96) 100%)',
+      'linear-gradient(145deg, rgba(22, 28, 42, 0.97) 0%, rgba(32, 26, 48, 0.94) 42%, rgba(18, 36, 52, 0.96) 100%)',
     )
     root.style.setProperty('--text-color', '#eaf8ff')
     root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.12)')

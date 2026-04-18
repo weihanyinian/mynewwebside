@@ -1,0 +1,35 @@
+/**
+ * 全站侧边栏 / 主内容区偏移（与 SiteGlassSidebar 配合）
+ * z-index：侧边栏 995 < 看板娘 999 < 音乐播放器 1100
+ */
+:root {
+  --site-sidebar-width: 0px;
+  --site-sidebar-gap: 12px;
+}
+
+html.site-has-sidebar {
+  --site-sidebar-width: min(268px, 82vw);
+}
+
+@media (max-width: 900px) {
+  html.site-has-sidebar {
+    --site-sidebar-width: 0px;
+  }
+}
+
+.site-chrome-main-offset {
+  transition: padding-left 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 901px) {
+  html.site-has-sidebar .site-chrome-main-offset {
+    padding-left: calc(var(--site-sidebar-width) + var(--site-sidebar-gap));
+  }
+
+  /* 首页顶栏为 fixed，需与侧栏宽度对齐 */
+  html.site-has-sidebar .portfolio-container .glass-nav {
+    left: var(--site-sidebar-width);
+    right: 0;
+    width: auto;
+  }
+}
