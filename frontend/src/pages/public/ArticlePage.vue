@@ -144,7 +144,7 @@ watch(
         <div class="flex flex-col items-center lg:items-start text-center lg:text-left mt-4 lg:mt-10">
           <div class="relative group cursor-pointer mb-6" @click="go('/blog')">
             <div class="absolute inset-0 bg-gradient-to-tr from-[#8be6ff] to-[#a78bfa] rounded-full blur-md opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
-            <img src="../../assets/images/about-miku.jpg" alt="维寒一念" class="w-28 h-28 rounded-full object-cover border-2 border-white/10 relative z-10 shadow-xl transition-transform duration-500 group-hover:scale-105" />
+            <img src="/avatar.png" alt="维寒一念" class="w-28 h-28 rounded-full object-cover border-2 border-white/10 relative z-10 shadow-xl transition-transform duration-500 group-hover:scale-105" />
           </div>
 
           <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8be6ff] to-[#a78bfa] mb-2 tracking-wide">维寒一念</h1>

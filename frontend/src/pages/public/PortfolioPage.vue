@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -10,7 +10,6 @@ import { useThemeStore } from '../../stores/theme'
 import { useUserStore } from '../../stores/user'
 import MessageWallSection from './sections/MessageWallSection.vue'
 import AlbumsSection from './sections/AlbumsSection.vue'
-import ArchivesSection from './sections/ArchivesSection.vue'
 import ToolsSection from './sections/ToolsSection.vue'
 
 const router = useRouter()
@@ -37,6 +36,10 @@ function toggleLocale() {
   locale.value = locale.value === 'zh' ? 'en' : 'zh'
 }
 
+function closeNavMobile() {
+  mobileNavOpen.value = false
+}
+
 const works = ref([
   { title: '大语言模型微调与部署', desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。', link: '#works', tag: 'LLM / GLM4' },
   { title: 'Transformer 机器翻译', desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。', link: '#works', tag: 'Deep Learning' },
@@ -44,11 +47,20 @@ const works = ref([
   { title: '在线判题 OJ', desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。', link: '/tools/oj', tag: 'OJ / Sandbox' },
 ])
 
+const mobileNavOpen = ref(false)
+watch(
+  () => route.fullPath,
+  () => {
+    mobileNavOpen.value = false
+  },
+)
+
 function scrollTo(id: string) {
   const el = document.getElementById(id)
   if (el) {
     el.scrollIntoView({ behavior: 'smooth' })
   }
+  mobileNavOpen.value = false
 }
 
 function onWorkClick(link: string) {
@@ -95,14 +107,14 @@ onUnmounted(() => {
       <div class="nav-inner">
         <div class="nav-left">
           <div
-            class="logo"
+            class="logo brand-logo"
             role="link"
             tabindex="0"
             :title="locale === 'zh' ? '返回顶部 / 主页' : 'Home / top'"
             @click="onSiteLogoClick"
             @keydown.enter.prevent="onSiteLogoClick"
           >
-            {{ t('nav.logo') }}
+            <span class="brand-logo__text">{{ t('nav.logo') }}</span>
           </div>
           <div class="nav-social" role="navigation" :aria-label="t('sidebar.social')">
             <a
@@ -110,24 +122,90 @@ onUnmounted(() => {
               href="https://github.com/weihanyinian"
               target="_blank"
               rel="noopener noreferrer"
-            >GitHub</a>
-            <a class="nav-social-link" href="mailto:1012308753@qq.com">Email</a>
+            >
+              <svg class="nav-social-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.207 11.385.6.113.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.087.745.084.729.084.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.98-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.565 21.796 24 17.302 24 12c0-6.63-5.373-12-12-12Z"
+                />
+              </svg>
+              GitHub
+            </a>
+            <a class="nav-social-link" href="mailto:1012308753@qq.com">
+              <svg class="nav-social-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Zm0 4-8 4.99L4 8V6l8 5 8-5v2Z"
+                />
+              </svg>
+              Email
+            </a>
           </div>
         </div>
-        <div class="links">
-          <a href="#about" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('about')">{{ t('nav.about') }}</a>
-          <a href="#works" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('works')">{{ t('nav.works') }}</a>
-          <a href="#blog" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('blog')">{{ t('nav.blog') }}</a>
-          <a href="#contact" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('contact')">{{ t('nav.contact') }}</a>
-          <a href="#message" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('message')">{{ t('nav.message') }}</a>
-          <a href="#albums" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('albums')">{{ t('breadcrumb.albums') }}</a>
-          <a href="#archives" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('archives')">{{ t('breadcrumb.archives') }}</a>
-          <a href="#snippets" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('snippets')">{{ t('breadcrumb.snippets') }}</a>
-          <a href="#tools" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('tools')">{{ t('nav.tools') }}</a>
-          <a href="#" class="site-pill site-pill--nav lang-toggle site-pill--keep-mobile" :title="t('home.langToggle')" @click.prevent="toggleLocale">
+        <button
+          type="button"
+          class="nav-burger"
+          :aria-expanded="mobileNavOpen"
+          aria-controls="portfolio-nav-links"
+          :aria-label="locale === 'zh' ? '打开导航菜单' : 'Open menu'"
+          @click="mobileNavOpen = !mobileNavOpen"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <div
+          id="portfolio-nav-links"
+          class="links site-nav-links"
+          :class="{ 'is-open': mobileNavOpen }"
+        >
+          <a
+            href="#about"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            @click.prevent="scrollTo('about')"
+          >{{ t('nav.about') }}</a>
+          <a
+            href="#works"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            @click.prevent="scrollTo('works')"
+          >{{ t('nav.works') }}</a>
+          <a
+            href="#blog"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            @click.prevent="scrollTo('blog')"
+          >{{ t('nav.blog') }}</a>
+          <a
+            href="#contact"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            @click.prevent="scrollTo('contact')"
+          >{{ t('nav.contact') }}</a>
+          <a
+            href="#message"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            @click.prevent="scrollTo('message')"
+          >{{ t('nav.message') }}</a>
+          <a
+            href="#albums"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            @click.prevent="scrollTo('albums')"
+          >{{ t('breadcrumb.albums') }}</a>
+          <a
+            href="#tools"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            @click.prevent="scrollTo('tools')"
+          >{{ t('nav.tools') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav lang-toggle site-pill--keep-mobile"
+            :title="t('home.langToggle')"
+            @click.prevent="toggleLocale(); closeNavMobile()"
+          >
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
-          <a href="#" class="site-pill site-pill--nav theme-toggle site-pill--keep-mobile" :title="t('home.themeToggle')" @click.prevent="themeStore.toggleTheme">
+          <a
+            href="#"
+            class="nav-social-link nav-theme-icon"
+            :title="t('home.themeToggle')"
+            @click.prevent="themeStore.toggleTheme(); closeNavMobile()"
+          >
             {{ !isDarkMode ? '🌙' : '☀️' }}
           </a>
           <a
@@ -137,7 +215,32 @@ onUnmounted(() => {
             :class="{ 'site-pill--active': route.path.startsWith('/admin') }"
             @click.prevent="router.push('/admin')"
           >{{ t('nav.admin') }}</a>
-          <a href="#" class="site-pill site-pill--nav site-pill--pink site-pill--keep-mobile" @click.prevent="router.push('/moyu')">{{ t('nav.moyu') }}</a>
+          <a
+            v-if="!isLoggedIn"
+            href="#"
+            class="site-pill site-pill--nav site-nav-auth site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path === '/login' }"
+            @click.prevent="router.push('/login')"
+          >{{ t('nav.login') }}</a>
+          <a
+            v-if="!isLoggedIn"
+            href="#"
+            class="site-pill site-pill--nav site-nav-auth site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path === '/register' }"
+            @click.prevent="router.push('/register')"
+          >{{ t('nav.register') }}</a>
+          <a
+            v-if="isLoggedIn"
+            href="#"
+            class="site-pill site-pill--nav site-nav-auth site-pill--keep-mobile"
+            @click.prevent="logout"
+          >{{ t('nav.logout') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile moyu-link"
+            :class="{ 'site-pill--pink': route.path === '/moyu' }"
+            @click.prevent="router.push('/moyu')"
+          >{{ t('nav.moyu') }}</a>
         </div>
       </div>
     </nav>
@@ -161,7 +264,7 @@ onUnmounted(() => {
       <div class="glass-card about-card">
         <h2>{{ t('home.aboutTitle') }}</h2>
         <div class="about-content">
-          <img src="../../assets/images/about-miku.jpg" alt="about miku" class="about-img" />
+          <img src="/avatar.png" alt="维寒一念" class="about-img" />
           <div class="about-text">
             <p>{{ t('home.aboutText1') }}</p>
             <br />
@@ -214,15 +317,6 @@ onUnmounted(() => {
           <a href="https://github.com/weihanyinian" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="mailto:1012308753@qq.com">Email</a>
         </div>
-        <div class="contact-account glass-inset">
-          <template v-if="isLoggedIn">
-            <button type="button" class="site-pill" @click="logout">{{ t('nav.logout') }}</button>
-          </template>
-          <template v-else>
-            <button type="button" class="site-pill" @click="router.push('/login')">{{ t('nav.login') }}</button>
-            <button type="button" class="site-pill site-pill--active" @click="router.push('/register')">{{ t('nav.register') }}</button>
-          </template>
-        </div>
       </div>
     </section>
 
@@ -231,18 +325,6 @@ onUnmounted(() => {
 
     <!-- 相册（拆分为独立组件） -->
     <AlbumsSection />
-
-    <!-- 归档摘要（拆分为独立组件，自带 IntersectionObserver 懒加载） -->
-    <ArchivesSection />
-
-    <!-- 代码片段 -->
-    <section class="section" id="snippets">
-      <div class="glass-card home-hub-card">
-        <h2>{{ t('pages.snippetsTitle') }}</h2>
-        <p class="home-hub-lead">{{ t('home.sectionSnippetsLead') }}</p>
-        <button type="button" class="site-pill site-pill--active" @click="router.push('/snippets')">{{ t('home.sectionSnippetsOpen') }}</button>
-      </div>
-    </section>
 
     <!-- 工具栏入口（拆分为独立组件） -->
     <ToolsSection />
@@ -378,7 +460,11 @@ h2 {
   -webkit-backdrop-filter: blur(8px);
   transition: opacity 0.2s, transform 0.2s;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
+
 .dark-theme .nav-social-link {
   color: #e2e8f0;
   background: rgba(16, 18, 27, 0.65);
@@ -388,18 +474,25 @@ h2 {
   opacity: 0.9;
   transform: translateY(-1px);
 }
-.logo {
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  min-width: 0;
+}
+.brand-logo__text {
   font-size: clamp(1rem, 2.2vw, 1.35rem);
   font-weight: 800;
   letter-spacing: -0.5px;
   white-space: nowrap;
+  flex-shrink: 0;
   background: linear-gradient(to right, #4a90e2, #50e3c2);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  cursor: pointer;
 }
-.dark-theme .logo {
+.dark-theme .brand-logo__text {
   background: linear-gradient(to right, #a18cd1, #fbc2eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -420,12 +513,9 @@ h2 {
 .links::-webkit-scrollbar { height: 3px; }
 .links::-webkit-scrollbar-thumb { background: rgba(102, 217, 255, 0.35); border-radius: 3px; }
 .links a.site-pill { text-decoration: none; flex-shrink: 0; }
-.portfolio-container .links .site-pill--nav { padding: 6px 10px; font-size: 0.78rem; }
-.portfolio-container .links .theme-toggle { font-size: 1rem; padding: 6px 10px; }
-.theme-toggle { font-size: 1.1rem; user-select: none; }
 
 /* Anchor scroll offset */
-#hero, #about, #works, #blog, #contact, #message, #albums, #archives, #snippets, #tools {
+#hero, #about, #works, #blog, #contact, #message, #albums, #tools {
   scroll-margin-top: 5.5rem;
 }
 
@@ -456,23 +546,6 @@ h2 {
   gap: 12px;
   justify-content: center;
 }
-.contact-account {
-  margin-top: 24px;
-  padding: 16px;
-  border-radius: 16px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-}
-.glass-inset {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-.dark-theme .glass-inset {
-  background: rgba(0, 0, 0, 0.2);
-}
-
 /* Hero Section */
 .hero {
   min-height: 100vh;
@@ -687,12 +760,15 @@ h2 {
 /* Responsive */
 @media (max-width: 768px) {
   .hero-title { font-size: 2.5rem; }
-  .nav-social { display: none; }
-  .links a.site-pill:not(.site-pill--keep-mobile) { display: none; }
   .works-grid { grid-template-columns: 1fr; }
   .hero-actions { flex-direction: column; }
   .about-content { flex-direction: column; text-align: center; }
   .about-img { width: 100%; aspect-ratio: 4/3; }
   .contact-img { height: auto; aspect-ratio: 16/9; }
+}
+
+/* 首页顶栏汉堡：浅色背景下保证对比度 */
+.portfolio-container:not(.dark-theme) .nav-burger {
+  color: #1a2a3a;
 }
 </style>

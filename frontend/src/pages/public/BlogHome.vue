@@ -197,7 +197,7 @@ onUnmounted(() => {
         <div class="blog-sidebar__inner">
           <div class="blog-profile">
             <img
-              src="../../assets/images/about-miku.jpg"
+              src="/avatar.png"
               alt=""
               class="blog-avatar"
               width="72"
