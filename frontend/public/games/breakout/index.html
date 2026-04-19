@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"
+    />
+    <title>打砖块</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <style>
+      .row-btns {
+        display: flex;
+        justify-content: center;
+        gap: 44px;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="moyu-game-root">
+      <p class="moyu-hint">参考 MattWiebe/Brick-Breaker · 手指在画布上滑动挡板 · 或点左右键</p>
+      <canvas class="moyu-canvas" id="cv" width="400" height="300"></canvas>
+      <div class="row-btns">
+        <button type="button" class="moyu-btn" id="l">←</button>
+        <button type="button" class="moyu-btn" id="r">→</button>
+      </div>
+    </div>
+    <script src="../_shared/bridge.js"></script>
+    <script src="breakout.js"></script>
+  </body>
+</html>

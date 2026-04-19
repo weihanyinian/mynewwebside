@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"
+    />
+    <title>五子棋</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+  </head>
+  <body>
+    <div class="moyu-game-root">
+      <p class="moyu-hint">参考 LeachZhou/online-gobang · 你执黑 · 大屏触摸落子 · 误触半径保护</p>
+      <p class="moyu-hint" id="msg"></p>
+      <canvas class="moyu-canvas" id="cv" width="400" height="400"></canvas>
+      <div style="text-align: center; margin-top: 10px">
+        <button type="button" class="moyu-btn moyu-btn--primary" id="again">再来一局</button>
+        <button type="button" class="moyu-btn" id="resetHi">重置纪录</button>
+      </div>
+    </div>
+    <script src="../_shared/bridge.js"></script>
+    <script src="gomoku.js"></script>
+  </body>
+</html>

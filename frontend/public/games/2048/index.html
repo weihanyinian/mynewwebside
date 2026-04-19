@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"
+    />
+    <title>2048</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <style>
+      #board {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: clamp(6px, 2vw, 10px);
+        max-width: min(92vw, 400px);
+        margin: 0 auto;
+        padding: 12px;
+        border-radius: 16px;
+        background: var(--moyu-panel);
+      }
+      .cell {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: clamp(1rem, 5vw, 1.35rem);
+        border: 1px solid var(--moyu-glass-b);
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="moyu-game-root">
+      <p class="moyu-hint">滑动或方向键移动格子。合并出 2048！支持撤销一步。</p>
+      <div class="toolbar">
+        <button type="button" class="moyu-btn moyu-btn--primary" id="btn-undo">撤销</button>
+        <button type="button" class="moyu-btn" id="btn-new">重新开始</button>
+      </div>
+      <div id="board"></div>
+    </div>
+    <script src="../_shared/bridge.js"></script>
+    <script src="2048.js"></script>
+  </body>
+</html>

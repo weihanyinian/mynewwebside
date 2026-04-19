@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"
+    />
+    <title>扫雷</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <style>
+      .top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+      }
+      .stat {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--moyu-fg);
+      }
+      #grid {
+        display: inline-block;
+        padding: 8px;
+        border-radius: 16px;
+        background: var(--moyu-panel);
+      }
+      .row {
+        display: flex;
+      }
+      .cell {
+        width: var(--cell, 32px);
+        height: var(--cell, 32px);
+        margin: 2px;
+        border-radius: 8px;
+        border: 1px solid var(--moyu-glass-b);
+        background: var(--moyu-glass);
+        color: var(--moyu-fg);
+        font-weight: 800;
+        font-size: clamp(11px, 3.5vw, 14px);
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .cell.open {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .cell.flag::after {
+        content: '⚑';
+        font-size: 0.95em;
+      }
+      .cell.mine.open {
+        background: rgba(239, 68, 68, 0.45);
+      }
+      .n1 { color: #38bdf8; }
+      .n2 { color: #4ade80; }
+      .n3 { color: #f87171; }
+      .n4 { color: #a78bfa; }
+      .n5 { color: #fbbf24; }
+      .n6 { color: #22d3ee; }
+      .n7, .n8 { color: #94a3b8; }
+    </style>
+  </head>
+  <body>
+    <div class="moyu-game-root">
+      <p class="moyu-hint">参考 869677946/minesweeper · 单击翻开 · 长按插旗 · 电脑可用右键插旗</p>
+      <div class="top">
+        <button type="button" class="moyu-btn" data-diff="easy">入门 9×9</button>
+        <button type="button" class="moyu-btn moyu-btn--primary" data-diff="mid">进阶 12×12</button>
+        <button type="button" class="moyu-btn" data-diff="hard">挑战 16×16</button>
+        <button type="button" class="moyu-btn" id="restart">新局</button>
+      </div>
+      <p class="moyu-hint" id="line2"></p>
+      <div id="grid"></div>
+    </div>
+    <script src="../_shared/bridge.js"></script>
+    <script src="minesweeper.js"></script>
+  </body>
+</html>

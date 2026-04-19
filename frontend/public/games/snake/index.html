@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"
+    />
+    <title>贪吃蛇</title>
+    <link rel="stylesheet" href="../_shared/base.css" />
+    <style>
+      .row-tool {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+      }
+      label {
+        font-size: 0.85rem;
+        color: var(--moyu-fg);
+        font-weight: 600;
+      }
+      select {
+        min-height: 44px;
+        border-radius: 12px;
+        padding: 0 10px;
+        border: 1px solid var(--moyu-glass-b);
+        background: var(--moyu-glass);
+        color: var(--moyu-fg);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="moyu-game-root">
+      <p class="moyu-hint">键盘方向键 / 滑动转身 / 下方方向键。P 或按钮暂停。</p>
+      <div class="row-tool">
+        <label>速度</label>
+        <select id="speed" aria-label="难度速度">
+          <option value="160">慢</option>
+          <option value="120" selected>中</option>
+          <option value="80">快</option>
+        </select>
+        <button type="button" class="moyu-btn moyu-btn--primary" id="pause">暂停</button>
+        <button type="button" class="moyu-btn" id="restart">重开</button>
+      </div>
+      <canvas class="moyu-canvas" id="cv" width="320" height="320"></canvas>
+      <div class="moyu-dpad moyu-dpad--mobile-only">
+        <button type="button" class="moyu-btn" data-d="0,-1">↑</button>
+        <div class="moyu-dpad-mid">
+          <button type="button" class="moyu-btn" data-d="-1,0">←</button>
+          <button type="button" class="moyu-btn" data-d="1,0">→</button>
+        </div>
+        <button type="button" class="moyu-btn" data-d="0,1">↓</button>
+      </div>
+    </div>
+    <script src="../_shared/bridge.js"></script>
+    <script src="snake.js"></script>
+  </body>
+</html>

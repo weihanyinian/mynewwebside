@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * 摸鱼内置游戏统一外壳：返回按钮、标题、最高分槽位、青蓝玻璃态、随全局主题对比度
+ * 摸鱼游戏统一外壳：安全区、毛玻璃、返回、标题、顶栏统计、加载态
  */
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
@@ -8,8 +8,10 @@ import { useThemeStore } from '../../stores/theme'
 
 defineProps<{
   title: string
-  /** 右侧展示的最高分文案，无则不占位 */
+  /** 右侧展示的最高分/统计文案 */
   highText?: string
+  /** iframe 或子内容加载中 */
+  loading?: boolean
 }>()
 
 const router = useRouter()
@@ -25,11 +27,18 @@ function back() {
   <div class="moyu-game-page" :class="{ 'moyu-game-page--dark': isDarkMode }">
     <div class="moyu-game-shell glass-surface">
       <header class="moyu-game-shell__bar">
-        <button type="button" class="site-pill" @click="back">← 返回摸鱼中心</button>
-        <h1 class="moyu-game-shell__title">{{ title }}</h1>
+        <div class="moyu-game-shell__row1">
+          <button type="button" class="moyu-game-shell__back site-pill" @click="back">← 返回摸鱼中心</button>
+          <h1 class="moyu-game-shell__title">{{ title }}</h1>
+        </div>
         <div v-if="highText" class="moyu-game-shell__hi">{{ highText }}</div>
-        <div v-else class="moyu-game-shell__spacer" />
       </header>
+
+      <div v-if="loading" class="moyu-game-shell__loading" aria-busy="true">
+        <span class="moyu-game-shell__loading-dot" />
+        <span>加载中…</span>
+      </div>
+
       <div class="moyu-game-shell__body">
         <slot />
       </div>
@@ -39,17 +48,21 @@ function back() {
 
 <style scoped>
 .moyu-game-page {
-  padding: 16px;
-  padding-bottom: 6rem;
-  min-height: calc(100vh - 120px);
   box-sizing: border-box;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  min-height: 100dvh;
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  padding-bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
 }
 
 .moyu-game-shell {
-  max-width: 960px;
+  max-width: min(960px, 100%);
   margin: 0 auto;
   border-radius: 16px;
-  padding: 16px;
+  padding: 14px;
   background: rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(12px);
@@ -63,36 +76,78 @@ function back() {
 }
 
 .moyu-game-shell__bar {
+  margin-bottom: 12px;
+}
+
+.moyu-game-shell__row1 {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  width: 100%;
+}
+
+.moyu-game-shell__back {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 10px 14px;
+  touch-action: manipulation;
 }
 
 .moyu-game-shell__title {
   flex: 1;
   margin: 0;
-  font-size: 1.25rem;
+  font-size: clamp(1.05rem, 3vw, 1.25rem);
   font-weight: 800;
   color: var(--text-color);
   min-width: 0;
+  text-align: right;
+  line-height: 1.2;
 }
 
 .moyu-game-shell__hi {
-  font-size: 0.9rem;
+  margin-top: 10px;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--text-color);
   opacity: 0.9;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
-.moyu-game-shell__spacer {
-  width: 1px;
-  height: 1px;
+.moyu-game-shell__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0 12px;
+  font-weight: 700;
+  color: var(--text-color);
+  opacity: 0.88;
+}
+
+.moyu-game-shell__loading-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4a90e2, #50e3c2);
+  animation: moyuSpin 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes moyuSpin {
+  from {
+    transform: scale(0.65);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1.1);
+    opacity: 1;
+  }
 }
 
 .moyu-game-shell__body {
   border-radius: 16px;
-  overflow: auto;
+  overflow: hidden;
+  position: relative;
 }
+
 </style>

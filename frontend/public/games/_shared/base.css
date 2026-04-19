@@ -1,0 +1,130 @@
+/* 摸鱼 iframe 内：安全区、触控、毛玻璃风格（随 data-moyu-theme） */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom))
+    max(8px, env(safe-area-inset-left));
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overflow-x: hidden;
+}
+
+:root[data-moyu-theme='light'],
+html:not(.moyu-dark) {
+  --moyu-fg: #0f172a;
+  --moyu-muted: rgba(15, 23, 42, 0.75);
+  --moyu-glass: rgba(255, 255, 255, 0.38);
+  --moyu-glass-b: rgba(255, 255, 255, 0.55);
+  --moyu-panel: rgba(255, 255, 255, 0.22);
+  --moyu-accent: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
+}
+
+.moyu-dark,
+:root[data-moyu-theme='dark'] {
+  --moyu-fg: #f0f9ff;
+  --moyu-muted: rgba(240, 249, 255, 0.72);
+  --moyu-glass: rgba(0, 0, 0, 0.28);
+  --moyu-glass-b: rgba(255, 255, 255, 0.28);
+  --moyu-panel: rgba(255, 255, 255, 0.09);
+  --moyu-accent: linear-gradient(135deg, #38bdf8 0%, #22d3ee 100%);
+}
+
+.moyu-panel {
+  background: var(--moyu-panel);
+  border: 1px solid var(--moyu-glass-b);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 10px 12px;
+  color: var(--moyu-fg);
+}
+
+.moyu-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--moyu-glass-b);
+  background: var(--moyu-glass);
+  color: var(--moyu-fg);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.moyu-btn--primary {
+  background: var(--moyu-accent);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.moyu-hint {
+  font-size: 0.85rem;
+  color: var(--moyu-muted);
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.moyu-game-root {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+canvas.moyu-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 16px;
+  touch-action: none;
+  background: var(--moyu-panel);
+}
+
+.moyu-dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.moyu-dpad-mid {
+  display: flex;
+  gap: 36px;
+}
+
+@media (min-width: 769px) {
+  .moyu-dpad--mobile-only {
+    display: none !important;
+  }
+}
+
+.moyu-loading-pulse {
+  animation: moyu-pulse 1s ease-in-out infinite;
+}
+@keyframes moyu-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
