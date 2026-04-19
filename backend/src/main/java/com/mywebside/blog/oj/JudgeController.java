@@ -52,8 +52,8 @@ public class JudgeController {
     String taskId = UUID.randomUUID().toString().replace("-", "");
     taskStore.putPending(taskId);
 
-    // 异步执行判题
-    Thread.ofVirtual().start(() -> {
+    // 异步执行判题（Java 17 兼容，不用虚拟线程 API）
+    new Thread(() -> {
       try {
         JudgeResult r = judgeService.judge(req);
         taskStore.putResult(taskId, r);
@@ -67,7 +67,7 @@ public class JudgeController {
         );
         taskStore.putResult(taskId, err);
       }
-    });
+    }, "oj-judge-" + taskId).start();
 
     return ResponseEntity.status(HttpStatus.ACCEPTED)
         .body(ApiResponse.ok(Map.of("taskId", taskId)));

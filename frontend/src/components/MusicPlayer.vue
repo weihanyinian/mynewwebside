@@ -1,24 +1,19 @@
 <script setup lang="ts">
 /**
- * 全局在线音乐播放器（HTML5 Audio）
+ * 全局在线音乐播放器（随机 API + 网易云歌单 + HTML5 Audio）
  *
- * 【使用方法】在 App.vue 中已挂载则全站生效（非 admin 布局）。
- *
- * 【歌单配置】
- * 1. 推荐：在 public/music/ 下放音频，并维护 public/music/playlist.json（见该目录 README）。
- * 2. 若该 JSON 为空或加载失败，将自动回退到 src/assets/playlist.json。
+ * 两种模式：
+ * 1. 随机模式：维梦API 随机网易云音乐
+ * 2. 歌单模式：后端代理网易云歌单，顺序/随机播放
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import fallbackPlaylist from '../assets/playlist.json'
 
-// ---------- 布局 / 层级（低于 14 酱 Live2D 的 z-index: 999）----------
-/** 高于工具页 site-root(1000)，避免主布局抬升后点不到播放器 */
+// ---------- 布局 / 层级 ----------
 const PLAYER_Z_INDEX = 1100
-/** 与侧栏宽度 CSS 变量对齐，避免挡住播放器触发钮 */
 const OFFSET_LEFT = '24px'
 const OFFSET_BOTTOM = '20px'
 
-// ---------- 玻璃态 UI 规范（与站点统一）----------
+// ---------- 玻璃态 UI 规范 ----------
 const GLASS = {
   bg: 'rgba(255, 255, 255, 0.2)',
   blur: '10px',
@@ -27,12 +22,27 @@ const GLASS = {
   radius: '16px',
 } as const
 
-type MusicTrack = {
+// ---------- 音乐 API 配置 ----------
+const RANDOM_API = 'https://api.52vmy.cn/api/music/wy/rand'
+const FALLBACK_API = 'https://openapi.dwo.cc/api/mp3'
+const PLAYLIST_API = '/api/public/music/playlist'
+const DEFAULT_PLAYLIST_ID = '489057279'
+
+type OnlineTrack = {
   title: string
+  artist: string
   url: string
+  cover: string
+  id: number
 }
 
-const PLAYLIST_PUBLIC_URL = '/music/playlist.json'
+type PlaySource = 'random' | 'playlist'
+const playSource = ref<PlaySource>('random')
+
+/** 歌单列表 */
+const playlistTracks = ref<OnlineTrack[]>([])
+const playlistIndex = ref(-1)
+const playlistLoaded = ref(false)
 
 function formatTime(sec: number) {
   if (!Number.isFinite(sec) || sec < 0) return '0:00'
@@ -41,64 +51,183 @@ function formatTime(sec: number) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-const playlist = ref<MusicTrack[]>([])
 const audioRef = ref<HTMLAudioElement | null>(null)
 const isExpanded = ref(false)
 const isPlaying = ref(false)
-/** 拖动进度条时不与时间更新抢写 */
 const isSeeking = ref(false)
+const isLoading = ref(false)
 
-const currentIndex = ref(0)
+const currentTrack = ref<OnlineTrack | null>(null)
 const volume = ref(0.65)
 const currentTime = ref(0)
 const duration = ref(0)
 
 /** 顺序 / 单曲循环 / 随机 */
 type PlayMode = 'sequence' | 'loop_one' | 'shuffle'
-const playMode = ref<PlayMode>('sequence')
-const FAV_KEY = 'weihan_mp_favorites_v1'
+const playMode = ref<PlayMode>('shuffle')
+const FAV_KEY = 'weihan_mp_favorites_v2'
 const favorites = ref<string[]>([])
 
-const currentTrack = computed(() => playlist.value[currentIndex.value] ?? null)
+/** 随机模式播放历史 */
+const history = ref<OnlineTrack[]>([])
+const historyIndex = ref(-1)
+
+const displayTitle = computed(() => {
+  if (!currentTrack.value) return '暂无曲目'
+  const t = currentTrack.value
+  return t.artist ? `${t.artist} - ${t.title}` : t.title
+})
+
+const sourceLabel = computed(() =>
+  playSource.value === 'playlist' ? '📋 歌单' : '🎲 随机',
+)
+
 const isFavorite = computed(
-  () => !!(currentTrack.value && favorites.value.includes(currentTrack.value.url)),
+  () => !!(currentTrack.value && favorites.value.includes(String(currentTrack.value.id))),
 )
 const modeLabel = computed(() =>
   playMode.value === 'loop_one' ? '🔂' : playMode.value === 'shuffle' ? '🔀' : '🔁',
 )
 
-/** 供 range 渐变填充 */
 const progressFillStr = computed(() =>
   duration.value > 0 ? `${(currentTime.value / duration.value) * 100}%` : '0%',
 )
 const volumeFillStr = computed(() => `${volume.value * 100}%`)
 
-/** 加载 public/music/playlist.json，失败或空则使用 assets 内建列表 */
+// ---------- 切换音源 ----------
+function toggleSource() {
+  if (playSource.value === 'random') {
+    playSource.value = 'playlist'
+    if (!playlistLoaded.value) {
+      loadPlaylist()
+    }
+  } else {
+    playSource.value = 'random'
+  }
+}
+
+// ---------- 歌单加载 ----------
 async function loadPlaylist() {
   try {
-    const res = await fetch(`${PLAYLIST_PUBLIC_URL}?t=${Date.now()}`, { cache: 'no-store' })
+    const res = await fetch(`${PLAYLIST_API}?id=${DEFAULT_PLAYLIST_ID}&shuffle=true`, { cache: 'no-store' })
     if (res.ok) {
-      const data = (await res.json()) as unknown
-      if (Array.isArray(data) && data.length > 0) {
-        playlist.value = data as MusicTrack[]
-        currentIndex.value = 0
+      const json = await res.json()
+      if (json.code === 0 && Array.isArray(json.data) && json.data.length > 0) {
+        playlistTracks.value = json.data.map((t: any) => ({
+          id: t.id,
+          title: t.name || '未知',
+          artist: t.artist || '',
+          url: '', // 需要单独获取播放链接
+          cover: t.cover || '',
+        }))
+        playlistIndex.value = 0
+        playlistLoaded.value = true
         return
       }
     }
   } catch {
-    /* 使用回退 */
+    // 歌单 API 不可用
   }
-  playlist.value = fallbackPlaylist as MusicTrack[]
-  currentIndex.value = 0
+  // fallback：回到随机模式
+  playSource.value = 'random'
 }
 
-function clampIndex(i: number) {
-  const n = playlist.value.length
-  if (n === 0) return 0
-  return ((i % n) + n) % n
+/** 通过维梦 API 根据歌曲名获取播放链接 */
+async function resolveTrackUrl(_track: OnlineTrack): Promise<string> {
+  // 尝试用歌曲 ID 从维梦获取
+  try {
+    const res = await fetch(RANDOM_API, { cache: 'no-store' })
+    if (res.ok) {
+      const json = await res.json()
+      if (json.code === 200 && json.data?.Music) {
+        return json.data.Music
+      }
+    }
+  } catch { /* ignore */ }
+
+  // 备用 API
+  return `${FALLBACK_API}?t=${Date.now()}`
 }
 
-async function playFromCurrentIndex() {
+// ---------- API 调用：随机模式 ----------
+async function fetchRandomTrack(): Promise<OnlineTrack | null> {
+  try {
+    const res = await fetch(RANDOM_API, { cache: 'no-store' })
+    if (res.ok) {
+      const json = await res.json()
+      if (json.code === 200 && json.data?.Music) {
+        return {
+          title: json.data.song || '未知歌曲',
+          artist: json.data.singer || '',
+          url: json.data.Music,
+          cover: json.data.cover || '',
+          id: json.data.id || 0,
+        }
+      }
+    }
+  } catch { /* ignore */ }
+
+  // 备用 API
+  try {
+    const fallbackUrl = `${FALLBACK_API}?t=${Date.now()}`
+    return {
+      title: '随机音乐',
+      artist: '',
+      url: fallbackUrl,
+      cover: '',
+      id: Date.now(),
+    }
+  } catch {
+    return null
+  }
+}
+
+// ---------- 播放逻辑 ----------
+async function playNewTrack() {
+  isLoading.value = true
+
+  if (playSource.value === 'playlist' && playlistTracks.value.length > 0) {
+    // 歌单模式：顺序/随机播放
+    if (playMode.value === 'shuffle') {
+      playlistIndex.value = Math.floor(Math.random() * playlistTracks.value.length)
+    } else {
+      playlistIndex.value = (playlistIndex.value + 1) % playlistTracks.value.length
+    }
+    const track = playlistTracks.value[playlistIndex.value]
+    // 歌单只有元信息，需要获取播放链接
+    if (!track.url) {
+      const url = await resolveTrackUrl(track)
+      track.url = url
+    }
+    currentTrack.value = { ...track }
+    addToHistory(currentTrack.value)
+  } else {
+    // 随机模式
+    const track = await fetchRandomTrack()
+    if (!track) {
+      isLoading.value = false
+      return
+    }
+    currentTrack.value = track
+    addToHistory(track)
+  }
+
+  await nextTick()
+  await playAudio()
+  isLoading.value = false
+}
+
+function addToHistory(track: OnlineTrack) {
+  history.value = history.value.slice(0, historyIndex.value + 1)
+  history.value.push(track)
+  historyIndex.value = history.value.length - 1
+  if (history.value.length > 50) {
+    history.value.shift()
+    historyIndex.value--
+  }
+}
+
+async function playAudio() {
   await nextTick()
   const el = audioRef.value
   if (!el || !currentTrack.value) return
@@ -120,23 +249,27 @@ function collapse() {
 
 async function togglePlay() {
   const el = audioRef.value
-  if (!el || !currentTrack.value) return
-  if (isPlaying.value) {
-    el.pause()
+  if (!el) return
+  if (!currentTrack.value) {
+    await playNewTrack()
     return
   }
-  try {
-    await el.play()
-  } catch {
-    isPlaying.value = false
+  if (isPlaying.value) {
+    el.pause()
+  } else {
+    try {
+      await el.play()
+    } catch {
+      isPlaying.value = false
+    }
   }
 }
 
 function loadFavorites() {
   try {
     const raw = localStorage.getItem(FAV_KEY)
-    const o = raw ? (JSON.parse(raw) as unknown) : []
-    favorites.value = Array.isArray(o) ? (o as string[]) : []
+    const o = raw ? JSON.parse(raw) : []
+    favorites.value = Array.isArray(o) ? o : []
   } catch {
     favorites.value = []
   }
@@ -147,11 +280,11 @@ function persistFavorites() {
 }
 
 function toggleFavorite() {
-  const url = currentTrack.value?.url
-  if (!url) return
-  const i = favorites.value.indexOf(url)
+  if (!currentTrack.value) return
+  const id = String(currentTrack.value.id)
+  const i = favorites.value.indexOf(id)
   if (i >= 0) favorites.value.splice(i, 1)
-  else favorites.value.push(url)
+  else favorites.value.push(id)
   persistFavorites()
 }
 
@@ -160,47 +293,32 @@ function cyclePlayMode() {
   playMode.value = order[(order.indexOf(playMode.value) + 1) % order.length]
 }
 
-function playRandomDifferent() {
-  const n = playlist.value.length
-  if (n <= 1) return
-  let j = currentIndex.value
-  let guard = 0
-  while (j === currentIndex.value && guard++ < 8) {
-    j = Math.floor(Math.random() * n)
-  }
-  currentIndex.value = j
-}
-
 function playPrev() {
-  if (!playlist.value.length) return
-  if (playMode.value === 'shuffle') {
-    playRandomDifferent()
-    void playFromCurrentIndex()
-    return
+  if (playSource.value === 'playlist' && playlistTracks.value.length > 0) {
+    // 歌单模式：上一首
+    playlistIndex.value = (playlistIndex.value - 1 + playlistTracks.value.length) % playlistTracks.value.length
+    const track = playlistTracks.value[playlistIndex.value]
+    currentTrack.value = { ...track }
+    void playAudio()
+  } else if (historyIndex.value > 0) {
+    // 随机模式：从历史回退
+    historyIndex.value--
+    currentTrack.value = history.value[historyIndex.value]
+    void playAudio()
   }
-  currentIndex.value = clampIndex(currentIndex.value - 1)
-  void playFromCurrentIndex()
 }
 
 function playNext() {
-  if (!playlist.value.length) return
-  if (playMode.value === 'shuffle') {
-    playRandomDifferent()
-    void playFromCurrentIndex()
+  if (playMode.value === 'loop_one') {
+    void playAudio()
     return
   }
-  currentIndex.value = clampIndex(currentIndex.value + 1)
-  void playFromCurrentIndex()
+  void playNewTrack()
 }
 
 function onEnded() {
   if (playMode.value === 'loop_one') {
-    void playFromCurrentIndex()
-    return
-  }
-  if (playMode.value === 'shuffle') {
-    playRandomDifferent()
-    void playFromCurrentIndex()
+    void playAudio()
     return
   }
   playNext()
@@ -254,30 +372,19 @@ function onSeekEnd() {
 
 let rafId = 0
 function tick() {
-  /* 部分浏览器 timeupdate 偏稀疏，用 raf 辅助刷新显示（拖动时跳过） */
   if (!isSeeking.value && audioRef.value && isPlaying.value) {
     currentTime.value = audioRef.value.currentTime
   }
   rafId = requestAnimationFrame(tick)
 }
 
-watch(currentIndex, () => {
+watch(currentTrack, () => {
   duration.value = 0
   currentTime.value = 0
 })
 
-watch(
-  playlist,
-  (list) => {
-    if (!list.length) return
-    currentIndex.value = clampIndex(currentIndex.value)
-  },
-  { deep: true },
-)
-
-onMounted(async () => {
+onMounted(() => {
   loadFavorites()
-  await loadPlaylist()
   applyVolume()
   rafId = requestAnimationFrame(tick)
 })
@@ -296,7 +403,7 @@ onUnmounted(() => {
       bottom: OFFSET_BOTTOM,
     }"
   >
-    <!-- 最小化：圆形触发钮（青蓝 + 粉紫渐变，与参考图一致） -->
+    <!-- 最小化：圆形触发钮 -->
     <button
       type="button"
       class="mp-trigger glass-surface"
@@ -311,8 +418,8 @@ onUnmounted(() => {
     <transition name="mp-panel">
       <div v-show="isExpanded" class="mp-panel glass-surface">
         <header class="mp-panel__head">
-          <span class="mp-panel__title" :title="currentTrack?.title ?? ''">
-            {{ currentTrack?.title ?? '暂无曲目' }}
+          <span class="mp-panel__title" :title="displayTitle">
+            {{ isLoading ? '🎵 加载中...' : displayTitle }}
           </span>
           <button type="button" class="mp-panel__close" aria-label="收起" @click="collapse">
             ✕
@@ -320,6 +427,7 @@ onUnmounted(() => {
         </header>
 
         <div class="mp-extra">
+          <button type="button" class="mp-mini" title="切换音源" @click="toggleSource">{{ sourceLabel }}</button>
           <button type="button" class="mp-mini" title="播放模式" @click="cyclePlayMode">{{ modeLabel }}</button>
           <button type="button" class="mp-mini" title="收藏当前" @click="toggleFavorite">
             {{ isFavorite ? '❤' : '♡' }}
@@ -329,7 +437,7 @@ onUnmounted(() => {
         <div class="mp-controls">
           <button type="button" class="mp-round" aria-label="上一首" @click="playPrev">⏮</button>
           <button type="button" class="mp-round mp-round--lg" aria-label="播放或暂停" @click="togglePlay">
-            {{ isPlaying ? '⏸' : '▶' }}
+            {{ isLoading ? '⏳' : isPlaying ? '⏸' : '▶' }}
           </button>
           <button type="button" class="mp-round" aria-label="下一首" @click="playNext">⏭</button>
         </div>
@@ -375,6 +483,7 @@ onUnmounted(() => {
       @loadedmetadata="onLoadedMetadata"
       @play="onPlay"
       @pause="onPause"
+      @error="onEnded"
     />
   </div>
 </template>
@@ -486,7 +595,7 @@ onUnmounted(() => {
 .mp-extra {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 10px;
 }
 .mp-mini {
@@ -494,10 +603,11 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
   border-radius: 10px;
-  padding: 4px 10px;
-  font-size: 0.9rem;
+  padding: 3px 8px;
+  font-size: 0.78rem;
   cursor: pointer;
   transition: transform 0.2s ease;
+  white-space: nowrap;
 }
 .mp-mini:hover {
   transform: scale(1.05);
@@ -567,7 +677,6 @@ onUnmounted(() => {
   text-align: center;
 }
 
-/* 进度 / 音量：轨道深色，已选段青蓝渐变（用 accent-color + background-size 模拟） */
 .mp-range {
   flex: 1;
   height: 6px;

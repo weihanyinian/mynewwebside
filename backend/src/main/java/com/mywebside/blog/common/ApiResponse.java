@@ -12,7 +12,7 @@ public record ApiResponse<T>(int code, String message, T data, Long timestamp) {
     return new ApiResponse<>(0, "OK", null, System.currentTimeMillis());
   }
 
-  public static ApiResponse<Void> error(int code, String message) {
+  public static <T> ApiResponse<T> error(int code, String message) {
     return new ApiResponse<>(code, message, null, System.currentTimeMillis());
   }
 }

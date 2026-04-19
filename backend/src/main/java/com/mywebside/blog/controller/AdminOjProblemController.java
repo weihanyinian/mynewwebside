@@ -5,7 +5,6 @@ import com.mywebside.blog.common.BusinessException;
 import com.mywebside.blog.oj.OjProblemStore;
 import com.mywebside.blog.oj.domain.Problem;
 import com.mywebside.blog.oj.dto.ProblemListItemDto;
-import com.mywebside.blog.persistence.entity.OjProblemEntity;
 import com.mywebside.blog.persistence.mapper.OjProblemEntityMapper;
 import java.util.List;
 import java.util.Locale;
@@ -55,7 +54,7 @@ public class AdminOjProblemController {
 
   @PostMapping
   public ApiResponse<Void> create(@RequestBody Problem problem) {
-    if (problemMapper.selectById(problem.id()) != null) {
+    if (problemMapper.findById(problem.id()).isPresent()) {
       throw new BusinessException(400, "题目 ID 已存在");
     }
     ojProblemStore.upsertFromProblem(problem);
@@ -67,7 +66,7 @@ public class AdminOjProblemController {
     if (!id.equals(problem.id())) {
       throw new BusinessException(400, "路径与题目 id 不一致");
     }
-    if (problemMapper.selectById(id) == null) {
+    if (problemMapper.findById(id).isEmpty()) {
       throw new BusinessException(404, "题目不存在");
     }
     ojProblemStore.upsertFromProblem(problem);
@@ -76,8 +75,7 @@ public class AdminOjProblemController {
 
   @DeleteMapping("/{id}")
   public ApiResponse<Void> delete(@PathVariable String id) {
-    OjProblemEntity e = problemMapper.selectById(id);
-    if (e == null) {
+    if (problemMapper.findById(id).isEmpty()) {
       throw new BusinessException(404, "题目不存在");
     }
     ojProblemStore.deleteById(id);
