@@ -286,3 +286,124 @@
     padding-bottom: 10px;
   }
 }
+
+/* 顶栏内层：允许折行以便移动端第二行展开菜单 */
+.glass-nav .nav-inner {
+  flex-wrap: wrap;
+}
+
+/* ---------- 顶栏：移动端汉堡 + 折叠菜单 ---------- */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-burger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.9;
+}
+.nav-burger:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+:root[data-theme='light'] .nav-burger {
+  color: #1e293b;
+}
+:root[data-theme='dark'] .nav-burger {
+  color: #e2e8f0;
+}
+
+@media (max-width: 900px) {
+  .nav-burger {
+    display: inline-flex;
+  }
+
+  .glass-nav .site-nav-links:not(.is-open) {
+    display: none !important;
+  }
+
+  .glass-nav .site-nav-links.is-open {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    flex: 1 1 100%;
+    max-height: min(72vh, 560px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 10px 4px 14px;
+    margin: 4px 0 0;
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  :root[data-theme='dark'] .glass-nav .site-nav-links.is-open {
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-nav .site-nav-links.is-open .site-pill--nav {
+    justify-content: center;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 44px !important;
+    max-height: none !important;
+    white-space: normal;
+    text-overflow: unset;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .glass-nav .site-nav-links.is-open .nav-social-link.nav-theme-icon {
+    justify-content: center;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+}
+
+@media (min-width: 901px) {
+  .nav-burger {
+    display: none !important;
+  }
+
+  .glass-nav .site-nav-links {
+    display: flex !important;
+  }
+}
+
+/* 顶栏社交图标尺寸；日间/夜间按钮沿用 .nav-social-link 小胶囊 */
+.glass-nav .nav-social-ico {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.glass-nav .site-nav-links .nav-social-link.nav-theme-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 5px 12px;
+  min-width: auto;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  user-select: none;
+}

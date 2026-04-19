@@ -11,6 +11,7 @@ const messages = {
       blog: '博客',
       tools: '工具栏',
       oj: '在线 OJ',
+      music: '音乐',
       admin: '管理后台',
       login: '登录',
       register: '注册',
@@ -70,6 +71,7 @@ const messages = {
       search: '搜索',
       snippets: '代码片段',
       stats: '访问统计',
+      music: '音乐中心',
       adminFriends: '友链管理'
     },
     sidebar: {
@@ -115,7 +117,23 @@ const messages = {
       statsAdmin: '打开 Umami 后台',
       statsPublic: '公开看板',
       loading: '加载中…',
-      loadError: '加载失败'
+      loadError: '加载失败',
+      musicTitle: '音乐中心',
+      musicLead: '绑定网易云账号后可同步歌单、喜欢与最近播放；未登录站点时无法使用此页。',
+      musicNeedSiteLogin: '请先登录本站账号后再访问音乐中心。',
+      musicNeteaseAccount: '网易云账号',
+      musicBoundAs: '已绑定',
+      musicUnbind: '解绑',
+      musicPhone: '手机号',
+      musicPassword: '密码',
+      musicBind: '绑定并登录',
+      musicLoginFail: '登录失败，请检查手机号与密码',
+      musicTabPlaylists: '我的歌单',
+      musicTabLikes: '我喜欢的音乐',
+      musicTabRecent: '最近播放',
+      musicTracks: '首',
+      musicPlayAll: '播放全部',
+      musicEmpty: '暂无数据'
     },
     tools: {
       reaction: '反应力测试',
@@ -236,6 +254,7 @@ const messages = {
       blog: 'Blog',
       tools: 'Toolbox',
       oj: 'OJ',
+      music: 'Music',
       admin: 'Admin',
       login: 'Login',
       register: 'Sign up',
@@ -295,6 +314,7 @@ const messages = {
       albums: 'Album',
       snippets: 'Snippets',
       stats: 'Stats',
+      music: 'Music',
       adminFriends: 'Friend links'
     },
     sidebar: {
@@ -340,7 +360,23 @@ const messages = {
       statsAdmin: 'Umami dashboard',
       statsPublic: 'Public share',
       loading: 'Loading…',
-      loadError: 'Failed to load'
+      loadError: 'Failed to load',
+      musicTitle: 'Music center',
+      musicLead: '绑定网易云后可同步歌单、喜欢与最近播放；需先登录本站。',
+      musicNeedSiteLogin: 'Please sign in to this site first.',
+      musicNeteaseAccount: 'Netease account',
+      musicBoundAs: 'Bound as',
+      musicUnbind: 'Unbind',
+      musicPhone: 'Phone',
+      musicPassword: 'Password',
+      musicBind: 'Bind & login',
+      musicLoginFail: 'Login failed',
+      musicTabPlaylists: 'Playlists',
+      musicTabLikes: 'Liked songs',
+      musicTabRecent: 'Recent',
+      musicTracks: 'tracks',
+      musicPlayAll: 'Play all',
+      musicEmpty: 'No data'
     },
     tools: {
       reaction: 'Reaction Test',

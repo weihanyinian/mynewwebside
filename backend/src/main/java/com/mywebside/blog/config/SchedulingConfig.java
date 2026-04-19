@@ -14,4 +14,11 @@ public class SchedulingConfig {
   public IpRateLimiter registerRateLimiter() {
     return new IpRateLimiter(5, 60);
   }
+
+  /** 网易云手机号登录：同一 IP 每小时最多 8 次。 */
+  @Bean
+  @org.springframework.beans.factory.annotation.Qualifier("neteaseLoginLimiter")
+  public IpRateLimiter neteaseLoginLimiter() {
+    return new IpRateLimiter(8, 3600);
+  }
 }

@@ -1,0 +1,128 @@
+package com.mywebside.blog.music.netease.proxy.client;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
+import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.util.UriComponentsBuilder;
+
+/**
+ * 调用可配置的网易云第三方 API（与歌单代理同源），支持带 Cookie 的请求。
+ */
+@Component
+public class NeteaseBinaryifyClient {
+
+  private static final Logger log = LoggerFactory.getLogger(NeteaseBinaryifyClient.class);
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+
+  private final RestClient restClient;
+
+  public NeteaseBinaryifyClient(NeteaseProxyProperties properties) {
+    String base = properties.getBaseUrl();
+    if (base == null || base.isBlank()) {
+      throw new IllegalStateException("netease.proxy.base-url 未配置");
+    }
+    this.restClient = RestClient.builder().baseUrl(base.endsWith("/") ? base.substring(0, base.length() - 1) : base).build();
+  }
+
+  public JsonNode loginCellphone(String phone, String password) throws RestClientException {
+    URI uri = UriComponentsBuilder.fromUriString("/login/cellphone")
+        .queryParam("phone", phone)
+        .queryParam("password", password)
+        .build(true)
+        .toUri();
+    return getJson(uri, null);
+  }
+
+  public JsonNode songUrl(long songId, String cookieHeaderOrNull) throws RestClientException {
+    URI uri = UriComponentsBuilder.fromUriString("/song/url")
+        .queryParam("id", songId)
+        .queryParam("br", 320000)
+        .build(true)
+        .toUri();
+    return getJson(uri, cookieHeaderOrNull);
+  }
+
+  public JsonNode lyric(long songId) throws RestClientException {
+    URI uri = UriComponentsBuilder.fromUriString("/lyric")
+        .queryParam("id", songId)
+        .build(true)
+        .toUri();
+    return getJson(uri, null);
+  }
+
+  public JsonNode userPlaylist(long uid, int offset, int limit, String cookieHeader) throws RestClientException {
+    URI uri = UriComponentsBuilder.fromUriString("/user/playlist")
+        .queryParam("uid", uid)
+        .queryParam("offset", offset)
+        .queryParam("limit", limit)
+        .build(true)
+        .toUri();
+    return getJson(uri, cookieHeader);
+  }
+
+  public JsonNode likelist(long uid, String cookieHeader) throws RestClientException {
+    URI uri = UriComponentsBuilder.fromUriString("/likelist")
+        .queryParam("uid", uid)
+        .build(true)
+        .toUri();
+    return getJson(uri, cookieHeader);
+  }
+
+  public JsonNode userRecord(long uid, int type, int limit, String cookieHeader) throws RestClientException {
+    URI uri = UriComponentsBuilder.fromUriString("/user/record")
+        .queryParam("uid", uid)
+        .queryParam("type", type)
+        .queryParam("limit", limit)
+        .build(true)
+        .toUri();
+    return getJson(uri, cookieHeader);
+  }
+
+  public JsonNode songDetail(String idsCommaSeparated) throws RestClientException {
+    URI uri = UriComponentsBuilder.fromUriString("/song/detail")
+        .queryParam("ids", idsCommaSeparated)
+        .build(true)
+        .toUri();
+    return getJson(uri, null);
+  }
+
+  public JsonNode playlistTrackAll(long playlistId, int limit, String cookieHeaderOrNull) throws RestClientException {
+    URI uri = UriComponentsBuilder.fromUriString("/playlist/track/all")
+        .queryParam("id", playlistId)
+        .queryParam("limit", limit)
+        .build(true)
+        .toUri();
+    return getJson(uri, cookieHeaderOrNull);
+  }
+
+  private JsonNode getJson(URI relativeUri, String cookieHeaderOrNull) {
+    try {
+      String body = restClient.get()
+          .uri(relativeUri)
+          .headers(h -> {
+            if (cookieHeaderOrNull != null && !cookieHeaderOrNull.isBlank()) {
+              h.add(HttpHeaders.COOKIE, cookieHeaderOrNull);
+            }
+          })
+          .retrieve()
+          .body(String.class);
+      if (body == null || body.isBlank()) {
+        return MAPPER.createObjectNode();
+      }
+      return MAPPER.readTree(body);
+    } catch (RestClientException e) {
+      log.warn("网易云代理请求失败: {}", e.getMessage());
+      throw e;
+    } catch (Exception e) {
+      log.warn("网易云代理响应解析失败", e);
+      throw new RestClientException("parse failed", e);
+    }
+  }
+}

@@ -71,6 +71,36 @@ oj:
     rapid-api-key: ""
     rapid-api-host: ""
 
+# 网易云第三方 Binaryify 类 API（歌单 / 登录 / 播放链接）；可自建部署
+netease:
+  proxy:
+    base-url: ${NETEASE_PROXY_BASE_URL:https://netease-cloud-music-api-five-roan-58.vercel.app}
+  music:
+    open:
+      enabled: false
+      base-url: ${NETEASE_MUSIC_OPEN_BASE_URL:}
+      app-id: ${NETEASE_MUSIC_APP_ID:}
+      app-secret: ${NETEASE_MUSIC_APP_SECRET:}
+      private-key-base64: ${NETEASE_MUSIC_PRIVATE_KEY:}
+      public-key-base64: ${NETEASE_MUSIC_PUBLIC_KEY:}
+      connect-timeout-ms: 5000
+      read-timeout-ms: 20000
+      paths:
+        search: /api/v1/music/search
+        song-url: /api/v1/song/url
+        lyric: /api/v1/song/lyric
+        recommend-playlists: /api/v1/playlist/recommend
+      headers:
+        app-id: X-App-Id
+        timestamp: X-Timestamp
+        nonce: X-Nonce
+        signature: X-Signature
+      sign:
+        # 待签名字符串模板（RSA2 = SHA256withRSA）
+        template: "{appId}\n{timestamp}\n{nonce}\n{bodySha256Hex}"
+        encrypt-body: false
+        aes-key-length: 16
+
 # Actuator 健康检查（生产不暴露详细信息）
 management:
   endpoints:

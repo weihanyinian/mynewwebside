@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -36,9 +36,8 @@ const isWideMain = computed(() => {
     p === '/tags' ||
     p.startsWith('/tools') ||
     p === '/albums' ||
-    p === '/snippets' ||
-    p === '/archives' ||
-    p === '/stats'
+    p === '/stats' ||
+    p === '/music'
   )
 })
 
@@ -48,9 +47,8 @@ const liftAboveMascot = computed(() => {
   return (
     p.startsWith('/tools') ||
     p === '/albums' ||
-    p === '/snippets' ||
-    p === '/archives' ||
-    p === '/stats'
+    p === '/stats' ||
+    p === '/music'
   )
 })
 
@@ -72,6 +70,14 @@ function toggleLocale() {
   locale.value = locale.value === 'zh' ? 'en' : 'zh'
 }
 
+const mobileNavOpen = ref(false)
+watch(
+  () => route.fullPath,
+  () => {
+    mobileNavOpen.value = false
+  },
+)
+
 </script>
 
 <template>
@@ -80,14 +86,14 @@ function toggleLocale() {
       <div class="nav-inner">
         <div class="nav-brand-row">
           <div
-            class="logo"
+            class="logo brand-logo"
             role="link"
             tabindex="0"
             :title="locale === 'zh' ? '返回主页' : 'Home'"
             @click="onSiteLogoClick"
             @keydown.enter.prevent="onSiteLogoClick"
           >
-            {{ t('nav.logo') }}
+            <span class="brand-logo__text">{{ t('nav.logo') }}</span>
           </div>
           <div class="nav-social" role="navigation" :aria-label="t('sidebar.social')">
             <a
@@ -95,12 +101,42 @@ function toggleLocale() {
               href="https://github.com/weihanyinian"
               target="_blank"
               rel="noopener noreferrer"
-            >GitHub</a>
-            <a class="nav-social-link" href="mailto:1012308753@qq.com">Email</a>
+            >
+              <svg class="nav-social-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.207 11.385.6.113.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.087.745.084.729.084.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.98-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.565 21.796 24 17.302 24 12c0-6.63-5.373-12-12-12Z"
+                />
+              </svg>
+              GitHub
+            </a>
+            <a class="nav-social-link" href="mailto:1012308753@qq.com">
+              <svg class="nav-social-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  fill="currentColor"
+                  d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Zm0 4-8 4.99L4 8V6l8 5 8-5v2Z"
+                />
+              </svg>
+              Email
+            </a>
           </div>
         </div>
-        <div class="links">
-          <!-- 【全站统一】顶栏导航：site-pill 玻璃态 + 路由/锚点高亮 -->
+        <button
+          type="button"
+          class="nav-burger"
+          :aria-expanded="mobileNavOpen"
+          aria-controls="site-layout-nav-links"
+          :aria-label="locale === 'zh' ? '打开导航菜单' : 'Open menu'"
+          @click="mobileNavOpen = !mobileNavOpen"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <div
+          id="site-layout-nav-links"
+          class="links site-nav-links"
+          :class="{ 'is-open': mobileNavOpen }"
+        >
+          <!-- 【全站统一】顶栏：玻璃态 pill + 摸鱼粉强调 -->
           <a
             href="#"
             class="site-pill site-pill--nav site-top-anchor"
@@ -133,22 +169,16 @@ function toggleLocale() {
           >{{ t('breadcrumb.albums') }}</a>
           <a
             href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path.startsWith('/archives') }"
-            @click.prevent="router.push('/archives')"
-          >{{ t('breadcrumb.archives') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path.startsWith('/snippets') }"
-            @click.prevent="router.push('/snippets')"
-          >{{ t('breadcrumb.snippets') }}</a>
-          <a
-            href="#"
             class="site-pill site-pill--nav moyu-link"
             :class="{ 'site-pill--pink': route.path === '/moyu' }"
             @click.prevent="router.push('/moyu')"
           >{{ t('nav.moyu') }}</a>
+          <a
+            href="#"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': route.path === '/music' }"
+            @click.prevent="router.push('/music')"
+          >{{ t('nav.music') }}</a>
           <a href="#" class="site-pill site-pill--nav lang-toggle" :title="t('home.langToggle')" @click.prevent="toggleLocale">
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
@@ -191,9 +221,12 @@ function toggleLocale() {
             class="site-pill site-pill--nav site-nav-auth"
             @click.prevent="logout"
           >{{ t('nav.logout') }}</a>
-          <a href="#" class="site-pill site-pill--nav theme-toggle" :title="t('home.themeToggle')" @click.prevent="themeStore.toggleTheme">
-            {{ !isDarkMode ? '🌙' : '☀️' }}
-          </a>
+          <a
+            href="#"
+            class="nav-social-link nav-theme-icon"
+            :title="t('home.themeToggle')"
+            @click.prevent="themeStore.toggleTheme"
+          >{{ !isDarkMode ? '🌙' : '☀️' }}</a>
         </div>
       </div>
     </nav>
@@ -283,6 +316,9 @@ function toggleLocale() {
   -webkit-backdrop-filter: blur(8px);
   transition: opacity 0.2s, transform 0.2s;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 :root[data-theme='dark'] .nav-social-link {
@@ -296,7 +332,15 @@ function toggleLocale() {
   transform: translateY(-1px);
 }
 
-.logo {
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.brand-logo__text {
   font-size: clamp(1rem, 2.2vw, 1.35rem);
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -306,7 +350,6 @@ function toggleLocale() {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  cursor: pointer;
 }
 
 .links {
@@ -337,16 +380,6 @@ function toggleLocale() {
   flex-shrink: 0;
 }
 
-.site-root .links .site-pill--nav {
-  padding: 6px 10px;
-  font-size: 0.78rem;
-}
-
-.site-root .links .theme-toggle {
-  font-size: 1rem;
-  padding: 6px 10px;
-}
-
 .site-main {
   flex: 1;
   max-width: 1080px;
@@ -355,28 +388,10 @@ function toggleLocale() {
   padding: 40px 16px;
 }
 
-/* 窄屏：Portfolio 区块锚点始终收起（与原顶栏一致）；其余项仅保留高亮 + 语言/主题/摸鱼/OJ */
-@media (max-width: 780px) {
-  .nav-social {
-    display: none;
-  }
-  .links > a.site-top-anchor {
-    display: none;
-  }
-  .links > a.site-pill:not(.site-pill--active):not(.lang-toggle):not(.moyu-link):not(.oj-link):not(.theme-toggle):not(.site-pill--pink):not(.site-nav-auth):not(.site-pill--keep-mobile) {
-    display: none;
-  }
-}
-
 .site-main--wide {
   max-width: min(1320px, 100%);
   padding-left: 20px;
   padding-right: 20px;
-}
-
-.theme-toggle {
-  font-size: 1.1rem;
-  opacity: 0.9;
 }
 </style>
 

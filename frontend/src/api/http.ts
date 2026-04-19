@@ -9,8 +9,17 @@ export type ApiResponse<T> = {
   timestamp?: number
 }
 
+/** 生产构建若 VITE_API_BASE_URL 为空字符串，用同源相对路径（需 Nginx 反代 /api）；开发默认连本机后端 */
+function resolveApiBaseUrl(): string {
+  const v = import.meta.env.VITE_API_BASE_URL as string | undefined
+  if (v === '' || v === undefined) {
+    return import.meta.env.DEV ? 'http://localhost:8080' : ''
+  }
+  return v
+}
+
 export const http = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080',
+  baseURL: resolveApiBaseUrl(),
   timeout: 15000,
 })
 

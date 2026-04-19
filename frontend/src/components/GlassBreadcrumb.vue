@@ -86,16 +86,12 @@ const items = computed<Crumb[]>(() => {
     list.push({ label: t('breadcrumb.albums') })
     return list
   }
-  if (path === '/archives') {
-    list.push({ label: t('breadcrumb.archives') })
-    return list
-  }
-  if (path === '/snippets') {
-    list.push({ label: t('breadcrumb.snippets') })
-    return list
-  }
   if (path === '/stats') {
     list.push({ label: t('breadcrumb.stats') })
+    return list
+  }
+  if (path === '/music') {
+    list.push({ label: t('breadcrumb.music') })
     return list
   }
   if (path.startsWith('/tools')) {

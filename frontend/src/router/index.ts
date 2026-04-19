@@ -38,10 +38,9 @@ const AdminWallPage = () => import('../pages/admin/AdminWallPage.vue')
 const AdminUsersPage = () => import('../pages/admin/AdminUsersPage.vue')
 const AdminOjProblemsPage = () => import('../pages/admin/AdminOjProblemsPage.vue')
 const AdminOjSubmissionsPage = () => import('../pages/admin/AdminOjSubmissionsPage.vue')
-const ArchivesPage = () => import('../pages/public/ArchivesPage.vue')
 const AlbumsPage = () => import('../pages/public/AlbumsPage.vue')
-const SnippetsPage = () => import('../pages/public/SnippetsPage.vue')
 const StatsPage = () => import('../pages/public/StatsPage.vue')
+const MusicCenterPage = () => import('../pages/music/MusicCenterPage.vue')
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -63,12 +62,13 @@ export const router = createRouter({
     { path: '/moyu/gomoku', component: GameGomoku },
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage, meta: { guestOnly: true } },
-    { path: '/archives', component: ArchivesPage },
+    { path: '/archives', redirect: '/blog' },
     { path: '/friends', redirect: '/' },
     { path: '/search', redirect: '/blog' },
     { path: '/albums', component: AlbumsPage },
-    { path: '/snippets', component: SnippetsPage },
+    { path: '/snippets', redirect: '/tools' },
     { path: '/stats', component: StatsPage },
+    { path: '/music', component: MusicCenterPage, meta: { requiresAuth: true } },
     { path: '/admin/login', redirect: '/login' },
     { path: '/tools', component: ToolsHubPage },
     { path: '/tools/reaction', component: ToolReactionPage },
