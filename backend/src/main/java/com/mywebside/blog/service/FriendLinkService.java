@@ -7,6 +7,8 @@ import com.mywebside.blog.dto.FriendLinkUpsertRequest;
 import com.mywebside.blog.repo.FriendLinkRepository;
 import java.time.Instant;
 import java.util.List;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ public class FriendLinkService {
     this.friendLinkRepository = friendLinkRepository;
   }
 
+  @Cacheable("friends")
   @Transactional(readOnly = true)
   public List<FriendLinkPublicDto> listPublic() {
     return friendLinkRepository.findAllByOrderBySortOrderAscIdAsc().stream()
@@ -37,6 +40,7 @@ public class FriendLinkService {
     return friendLinkRepository.findAllByOrderBySortOrderAscIdAsc();
   }
 
+  @CacheEvict(value = "friends", allEntries = true)
   @Transactional
   public FriendLink create(FriendLinkUpsertRequest req) {
     FriendLink f = new FriendLink();
@@ -45,6 +49,7 @@ public class FriendLinkService {
     return friendLinkRepository.save(f);
   }
 
+  @CacheEvict(value = "friends", allEntries = true)
   @Transactional
   public FriendLink update(long id, FriendLinkUpsertRequest req) {
     FriendLink f = friendLinkRepository.findById(id)
@@ -53,6 +58,7 @@ public class FriendLinkService {
     return friendLinkRepository.save(f);
   }
 
+  @CacheEvict(value = "friends", allEntries = true)
   @Transactional
   public void delete(long id) {
     if (!friendLinkRepository.existsById(id)) {

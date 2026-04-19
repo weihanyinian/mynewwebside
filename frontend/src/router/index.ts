@@ -62,7 +62,7 @@ export const router = createRouter({
     { path: '/moyu/breakout', component: GameBreakout },
     { path: '/moyu/gomoku', component: GameGomoku },
     { path: '/login', component: LoginPage },
-    { path: '/register', component: RegisterPage },
+    { path: '/register', component: RegisterPage, meta: { guestOnly: true } },
     { path: '/archives', component: ArchivesPage },
     { path: '/friends', redirect: '/' },
     { path: '/search', redirect: '/blog' },
@@ -142,6 +142,12 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAdmin && !userStore.isAdmin) {
     return { path: '/' }
+  }
+
+  // 已登录用户访问 guestOnly 页面（如注册页）直接跳走
+  if (to.meta.guestOnly && getToken()) {
+    const next = getSafeInternalPath(to.query.redirect)
+    return next || '/'
   }
 
   if (to.path === '/login' && getToken()) {

@@ -15,8 +15,10 @@ export type WallSubmitResult = {
   reviewHint: string
 }
 
-export async function fetchWallMessages() {
-  const res = await http.get<ApiResponse<WallMessagePublic[]>>('/api/public/wall/messages')
+export async function fetchWallMessages(params?: { page?: number; size?: number }) {
+  const res = await http.get<ApiResponse<PageResponse<WallMessagePublic>>>('/api/public/wall/messages', {
+    params: { page: params?.page ?? 0, size: params?.size ?? 50 },
+  })
   return res.data.data
 }
 

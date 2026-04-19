@@ -1,28 +1,56 @@
 package com.mywebside.blog.persistence.entity;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
-@TableName("oj_problem")
+@Entity
+@Table(name = "oj_problem")
 public class OjProblemEntity {
 
-  @TableId
+  @Id
+  @Column(length = 32)
   private String id;
+
+  @Column(length = 128)
   private String title;
+
+  @Column(length = 16)
   private String difficulty;
+
+  @Column(length = 16)
   private String judgeMode;
+
+  @Column(columnDefinition = "TEXT")
   private String description;
+
+  @Column(columnDefinition = "TEXT")
   private String inputDesc;
+
+  @Column(columnDefinition = "TEXT")
   private String outputDesc;
+
   private Integer timeLimitSec;
+
   private Integer memoryLimitMb;
+
   /** JSON 数组，如 ["C","CPP"] */
+  @Column(columnDefinition = "TEXT")
   private String supportedLangsJson;
+
+  @Column(columnDefinition = "TEXT")
   private String samplesJson;
+
+  @Column(columnDefinition = "TEXT")
   private String testCasesJson;
+
+  @Column(columnDefinition = "TEXT")
   private String referenceSolutionJson;
+
   private LocalDateTime createdAt;
+
   private LocalDateTime updatedAt;
 
   public String getId() {

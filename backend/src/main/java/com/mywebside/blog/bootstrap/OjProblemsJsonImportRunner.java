@@ -33,8 +33,7 @@ public class OjProblemsJsonImportRunner implements ApplicationRunner {
 
   @Override
   public void run(ApplicationArguments args) throws Exception {
-    Long n = problemMapper.selectCount(null);
-    if (n != null && n > 0) {
+    if (problemMapper.count() > 0) {
       return;
     }
     ClassPathResource res = new ClassPathResource("oj/problems.json");

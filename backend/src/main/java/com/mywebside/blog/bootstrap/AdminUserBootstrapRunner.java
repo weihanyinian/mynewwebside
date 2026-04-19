@@ -1,6 +1,5 @@
 package com.mywebside.blog.bootstrap;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mywebside.blog.config.AppProperties;
 import com.mywebside.blog.persistence.entity.UserEntity;
 import com.mywebside.blog.persistence.mapper.UserEntityMapper;
@@ -37,19 +36,19 @@ public class AdminUserBootstrapRunner implements ApplicationRunner {
       return;
     }
     String encoded = passwordEncoder.encode(raw.trim());
-    UserEntity existing = userMapper.selectOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, "admin"));
+    UserEntity existing = userMapper.findByUsername("admin").orElse(null);
     if (existing == null) {
       UserEntity u = new UserEntity();
       u.setUsername("admin");
       u.setPassword(encoded);
       u.setNickname("管理员");
       u.setCreatedAt(LocalDateTime.now());
-      userMapper.insert(u);
+      userMapper.save(u);
       return;
     }
     if (appProperties.isBootstrapAdminSyncOnStartup()) {
       existing.setPassword(encoded);
-      userMapper.updateById(existing);
+      userMapper.save(existing);
     }
   }
 }

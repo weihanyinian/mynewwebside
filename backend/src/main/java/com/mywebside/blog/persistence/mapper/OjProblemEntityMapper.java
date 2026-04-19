@@ -1,9 +1,10 @@
 package com.mywebside.blog.persistence.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.mywebside.blog.persistence.entity.OjProblemEntity;
-import org.apache.ibatis.annotations.Mapper;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Mapper
-public interface OjProblemEntityMapper extends BaseMapper<OjProblemEntity> {
+public interface OjProblemEntityMapper extends JpaRepository<OjProblemEntity, String> {
+
+  List<OjProblemEntity> findAllByOrderByIdAsc();
 }

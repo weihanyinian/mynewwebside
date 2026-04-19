@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { RouterLink } from 'vue-router'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { goToSiteHome } from '../../utils/siteHome'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { goToSiteHome } from '../../utils/siteHome'
 import HitokotoCard from '../../components/HitokotoCard.vue'
 import SiteGlassFooter from '../../components/site/SiteGlassFooter.vue'
 import { useThemeStore } from '../../stores/theme'
 import { useUserStore } from '../../stores/user'
-import { getPublicArticles, type ArticleListItem } from '../../api/blog'
-import { fetchWallMessages, submitWallMessage, type WallMessagePublic } from '../../api/wall'
+import MessageWallSection from './sections/MessageWallSection.vue'
+import AlbumsSection from './sections/AlbumsSection.vue'
+import ArchivesSection from './sections/ArchivesSection.vue'
+import ToolsSection from './sections/ToolsSection.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -44,7 +44,6 @@ const works = ref([
   { title: '在线判题 OJ', desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。', link: '/tools/oj', tag: 'OJ / Sandbox' },
 ])
 
-// Smooth scroll for nav anchors
 function scrollTo(id: string) {
   const el = document.getElementById(id)
   if (el) {
@@ -62,7 +61,6 @@ function onWorkClick(link: string) {
   }
 }
 
-/** 首页顶栏标题：已在主页则滚回顶部，否则进入 `/` */
 function onSiteLogoClick() {
   if (route.path === '/') {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -71,113 +69,19 @@ function onSiteLogoClick() {
   }
 }
 
-/** Hero 轻微视差：随滚动上移，增强层次 */
+/** Hero 轻微视差 */
 const heroParallaxY = ref(0)
 function onHeroParallax() {
   heroParallaxY.value = Math.min(window.scrollY * 0.14, 88)
 }
 
-/** ---------- 主页内嵌：留言 / 归档 / 作品集 ---------- */
-const wallLoading = ref(true)
-const wallMessages = ref<WallMessagePublic[]>([])
-const wallAuthor = ref('')
-const wallContent = ref('')
-const wallSubmitting = ref(false)
-
-async function loadWall() {
-  wallLoading.value = true
-  try {
-    wallMessages.value = await fetchWallMessages()
-  } catch {
-    wallMessages.value = []
-  } finally {
-    wallLoading.value = false
-  }
-}
-
-async function submitWall() {
-  if (!wallContent.value.trim()) {
-    ElMessage.warning(t('messageWall.emptyContent'))
-    return
-  }
-  wallSubmitting.value = true
-  try {
-    await submitWallMessage(wallAuthor.value, wallContent.value)
-    wallContent.value = ''
-    wallAuthor.value = ''
-    ElMessage.success(t('messageWall.pendingReview'))
-    await loadWall()
-  } catch (e: unknown) {
-    ElMessage.error(e instanceof Error ? e.message : 'Error')
-  } finally {
-    wallSubmitting.value = false
-  }
-}
-
-function formatWallTime(iso: string) {
-  try {
-    return new Date(iso).toLocaleString()
-  } catch {
-    return iso
-  }
-}
-
-const archLoading = ref(true)
-const archItems = ref<ArticleListItem[]>([])
-
-const archByYear = computed(() => {
-  const m = new Map<number, ArticleListItem[]>()
-  for (const a of archItems.value) {
-    const y = a.publishedAt ? new Date(a.publishedAt).getFullYear() : 0
-    if (!m.has(y)) m.set(y, [])
-    m.get(y)!.push(a)
-  }
-  return [...m.entries()].sort((a, b) => b[0] - a[0])
-})
-
-async function loadArchives() {
-  archLoading.value = true
-  try {
-    const page = await getPublicArticles({ page: 0, size: 400 })
-    archItems.value = page.items
-  } catch {
-    archItems.value = []
-  } finally {
-    archLoading.value = false
-  }
-}
-
-type AlbumItem = { src: string; w: number; h: number; title?: string }
-type AlbumManifest = { title?: string; items: AlbumItem[] }
-const albumManifest = ref<AlbumManifest | null>(null)
-
-async function loadAlbumManifest() {
-  try {
-    const res = await fetch('/albums/manifest.json')
-    if (res.ok) albumManifest.value = await res.json()
-    else albumManifest.value = null
-  } catch {
-    albumManifest.value = null
-  }
-}
-
-const homeToolCards = computed(() => [
-  { path: '/tools/reaction', title: t('tools.reaction'), desc: t('toolsHub.cardReactionDesc') },
-  { path: '/tools/cps', title: t('tools.cps'), desc: t('toolsHub.cardCpsDesc') },
-  { path: '/tools/pomodoro', title: t('tools.pomodoro'), desc: t('toolsHub.cardPomodoroDesc') },
-  { path: '/tools/password', title: t('tools.password'), desc: t('toolsHub.cardPasswordDesc') },
-  { path: '/tools/base64', title: t('tools.base64'), desc: t('toolsHub.cardBase64Desc') },
-  { path: '/tools/oj', title: t('toolsHub.cardOjTitle'), desc: t('toolsHub.cardOjDesc') },
-])
-
 onMounted(() => {
   window.addEventListener('scroll', onHeroParallax, { passive: true })
-  void loadWall()
-  void loadArchives()
-  void loadAlbumManifest()
 })
 
-onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
+onUnmounted(() => {
+  window.removeEventListener('scroll', onHeroParallax)
+})
 </script>
 
 <template>
@@ -211,7 +115,6 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
           </div>
         </div>
         <div class="links">
-          <!-- 首页顶栏：仅页内锚点滚动，不跳到子路由（登录等与摸鱼、后台除外） -->
           <a href="#about" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('about')">{{ t('nav.about') }}</a>
           <a href="#works" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('works')">{{ t('nav.works') }}</a>
           <a href="#blog" class="site-pill site-pill--nav site-pill--keep-mobile" @click.prevent="scrollTo('blog')">{{ t('nav.blog') }}</a>
@@ -287,7 +190,7 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
       </div>
     </section>
 
-    <!-- Blog & open source（原「前往博客」改为下滑到此） -->
+    <!-- Blog & open source -->
     <section class="section" id="blog">
       <div class="glass-card home-hub-card">
         <h2>{{ t('home.sectionBlogTitle') }}</h2>
@@ -323,57 +226,14 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
       </div>
     </section>
 
-    <!-- 留言墙（嵌入主页） -->
-    <section class="section" id="message">
-      <h2>{{ t('messageWall.title') }}</h2>
-      <p class="section-sub">{{ t('messageWall.subtitle') }}</p>
-      <div class="glass-card home-message-form site-el-round-16">
-        <el-input v-model="wallAuthor" :placeholder="t('messageWall.nickname')" class="home-field" />
-        <el-input v-model="wallContent" type="textarea" :rows="3" :placeholder="t('messageWall.placeholder')" class="home-field" />
-        <button type="button" class="site-pill site-pill--pink" :disabled="wallSubmitting" @click="submitWall">
-          {{ t('messageWall.submit') }}
-        </button>
-      </div>
-      <p v-if="wallLoading" class="muted center">{{ t('pages.loading') }}</p>
-      <div v-else class="home-wall-grid">
-        <div v-for="m in wallMessages" :key="m.id" class="glass-card home-wall-card">
-          <div class="home-wall-meta">{{ m.nickname || t('messageWall.anonymous') }} · {{ formatWallTime(m.createdAt) }}</div>
-          <p class="home-wall-body">{{ m.content }}</p>
-          <p v-if="m.adminReply" class="home-wall-reply">{{ t('messageWall.replyFromAdmin') }}：{{ m.adminReply }}</p>
-        </div>
-        <p v-if="!wallMessages.length" class="muted center">{{ t('messageWall.emptyTitle') }}</p>
-      </div>
-    </section>
+    <!-- 留言墙（拆分为独立组件） -->
+    <MessageWallSection />
 
-    <!-- 作品集缩略 -->
-    <section class="section" id="albums">
-      <h2>{{ albumManifest?.title || t('pages.albumsTitle') }}</h2>
-      <div v-if="albumManifest?.items?.length" class="home-album-grid">
-        <figure v-for="(it, i) in albumManifest.items" :key="i" class="home-album-item glass-card">
-          <img :src="it.src" :alt="it.title || ''" loading="lazy" />
-          <figcaption v-if="it.title">{{ it.title }}</figcaption>
-        </figure>
-      </div>
-      <p v-else class="muted center">{{ t('home.homeAlbumFallback') }}</p>
-    </section>
+    <!-- 相册（拆分为独立组件） -->
+    <AlbumsSection />
 
-    <!-- 归档摘要 -->
-    <section class="section" id="archives">
-      <h2>{{ t('pages.archivesTitle') }}</h2>
-      <p v-if="archLoading" class="muted center">{{ t('pages.loading') }}</p>
-      <p v-else-if="!archItems.length" class="muted center">{{ t('pages.archivesEmpty') }}</p>
-      <div v-else class="home-arch-blocks">
-        <div v-for="[year, posts] in archByYear" :key="year" class="glass-card home-arch-year">
-          <h3 class="home-arch-year-title">{{ year || '—' }} <span class="count">({{ posts.length }})</span></h3>
-          <ul class="home-arch-list">
-            <li v-for="p in posts.slice(0, 8)" :key="p.id">
-              <RouterLink :to="`/article/${p.id}`" class="arch-link">{{ p.title }}</RouterLink>
-              <span class="arch-date">{{ p.publishedAt?.replace('T', ' ').slice(0, 10) }}</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </section>
+    <!-- 归档摘要（拆分为独立组件，自带 IntersectionObserver 懒加载） -->
+    <ArchivesSection />
 
     <!-- 代码片段 -->
     <section class="section" id="snippets">
@@ -384,18 +244,8 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
       </div>
     </section>
 
-    <!-- 工具栏入口 -->
-    <section class="section" id="tools">
-      <h2>{{ t('toolsHub.title') }}</h2>
-      <p class="section-sub">{{ t('home.sectionToolsLead') }}</p>
-      <div class="home-tools-grid">
-        <div v-for="card in homeToolCards" :key="card.path" class="glass-card home-tool-card">
-          <h3>{{ card.title }}</h3>
-          <p>{{ card.desc }}</p>
-          <button type="button" class="site-pill site-pill--active" @click="router.push(card.path)">{{ t('home.sectionToolsOpen') }}</button>
-        </div>
-      </div>
-    </section>
+    <!-- 工具栏入口（拆分为独立组件） -->
+    <ToolsSection />
 
     <SiteGlassFooter />
   </div>
@@ -407,7 +257,6 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
 */
 .portfolio-container {
   min-height: 100vh;
-  /* Light and airy with a touch of magic */
   background: linear-gradient(135deg, rgba(230, 238, 245, 0.2) 0%, rgba(200, 218, 235, 0.3) 100%);
   color: #2c3e50;
   font-family: system-ui, -apple-system, sans-serif;
@@ -428,23 +277,12 @@ onUnmounted(() => window.removeEventListener('scroll', onHeroParallax))
   will-change: transform, opacity;
 }
 
-.light-video {
-  opacity: 1;
-}
-.dark-theme .light-video {
-  opacity: 0;
-}
+.light-video { opacity: 1; }
+.dark-theme .light-video { opacity: 0; }
+.dark-video { opacity: 0; }
+.dark-theme .dark-video { opacity: 1; }
 
-.dark-video {
-  opacity: 0;
-}
-.dark-theme .dark-video {
-  opacity: 1;
-}
-
-/* 
-  Dark Theme (Frieren Night Theme)
-*/
+/* Dark Theme */
 .portfolio-container.dark-theme {
   background: linear-gradient(135deg, rgba(26, 26, 46, 0.4) 0%, rgba(42, 27, 61, 0.5) 100%);
   color: #e2e8f0;
@@ -469,7 +307,7 @@ h2 {
   -webkit-text-fill-color: transparent;
 }
 
-/* Glassmorphism Mixin */
+/* Glassmorphism */
 .glass-nav, .glass-card {
   background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(12px);
@@ -484,8 +322,7 @@ h2 {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
-/* Navigation（顶边线：全局 .site-nav-unified；内高光与原有阴影合并）
-   z-index 高于看板娘(999)与全局音乐播放器(mp-root 1100)，避免顶栏右侧链接被吞点击 */
+/* Navigation */
 .glass-nav {
   position: fixed;
   top: 0;
@@ -494,13 +331,11 @@ h2 {
   z-index: 1200;
   border-radius: 0 0 16px 16px;
 }
-
 .portfolio-container .glass-nav.site-nav-unified {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
     0 8px 32px 0 rgba(74, 144, 226, 0.15);
 }
-
 .portfolio-container.dark-theme .glass-nav.site-nav-unified {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
@@ -524,14 +359,12 @@ h2 {
   flex-shrink: 0;
   min-width: 0;
 }
-
 .nav-social {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
 }
-
 .nav-social-link {
   font-size: 0.72rem;
   font-weight: 600;
@@ -546,18 +379,15 @@ h2 {
   transition: opacity 0.2s, transform 0.2s;
   white-space: nowrap;
 }
-
 .dark-theme .nav-social-link {
   color: #e2e8f0;
   background: rgba(16, 18, 27, 0.65);
   border-color: rgba(255, 255, 255, 0.12);
 }
-
 .nav-social-link:hover {
   opacity: 0.9;
   transform: translateY(-1px);
 }
-
 .logo {
   font-size: clamp(1rem, 2.2vw, 1.35rem);
   font-weight: 800;
@@ -574,7 +404,6 @@ h2 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-
 .links {
   display: flex;
   flex-wrap: nowrap;
@@ -588,42 +417,15 @@ h2 {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
-.links::-webkit-scrollbar {
-  height: 3px;
-}
-.links::-webkit-scrollbar-thumb {
-  background: rgba(102, 217, 255, 0.35);
-  border-radius: 3px;
-}
-.links a.site-pill {
-  text-decoration: none;
-  flex-shrink: 0;
-}
-/* 顶栏 pill 略收紧，便于桌面宽度下单行排布 */
-.portfolio-container .links .site-pill--nav {
-  padding: 6px 10px;
-  font-size: 0.78rem;
-}
-.portfolio-container .links .theme-toggle {
-  font-size: 1rem;
-  padding: 6px 10px;
-}
-.theme-toggle {
-  font-size: 1.1rem;
-  user-select: none;
-}
+.links::-webkit-scrollbar { height: 3px; }
+.links::-webkit-scrollbar-thumb { background: rgba(102, 217, 255, 0.35); border-radius: 3px; }
+.links a.site-pill { text-decoration: none; flex-shrink: 0; }
+.portfolio-container .links .site-pill--nav { padding: 6px 10px; font-size: 0.78rem; }
+.portfolio-container .links .theme-toggle { font-size: 1rem; padding: 6px 10px; }
+.theme-toggle { font-size: 1.1rem; user-select: none; }
 
-/* 锚点滚动时避开固定顶栏 */
-#hero,
-#about,
-#works,
-#blog,
-#contact,
-#message,
-#albums,
-#archives,
-#snippets,
-#tools {
+/* Anchor scroll offset */
+#hero, #about, #works, #blog, #contact, #message, #albums, #archives, #snippets, #tools {
   scroll-margin-top: 5.5rem;
 }
 
@@ -634,10 +436,7 @@ h2 {
   opacity: 0.85;
   line-height: 1.6;
 }
-
-.center {
-  text-align: center;
-}
+.center { text-align: center; }
 
 .home-hub-card {
   padding: 36px 28px;
@@ -646,20 +445,17 @@ h2 {
   max-width: 720px;
   margin: 0 auto;
 }
-
 .home-hub-lead {
   margin: 0 0 1.25rem;
   line-height: 1.65;
   opacity: 0.9;
 }
-
 .home-hub-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   justify-content: center;
 }
-
 .contact-account {
   margin-top: 24px;
   padding: 16px;
@@ -669,173 +465,12 @@ h2 {
   gap: 10px;
   justify-content: center;
 }
-
 .glass-inset {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
-
 .dark-theme .glass-inset {
   background: rgba(0, 0, 0, 0.2);
-}
-
-.home-message-form {
-  max-width: 560px;
-  margin: 0 auto 28px;
-  padding: 24px;
-}
-
-.home-message-form .home-field {
-  margin-bottom: 12px;
-}
-
-.home-wall-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.home-wall-card {
-  padding: 16px;
-  border-radius: 16px;
-}
-
-.home-wall-meta {
-  font-size: 0.78rem;
-  opacity: 0.65;
-  margin-bottom: 8px;
-}
-
-.home-wall-body {
-  margin: 0;
-  line-height: 1.55;
-}
-
-.home-wall-reply {
-  margin: 10px 0 0;
-  font-size: 0.85rem;
-  opacity: 0.8;
-  border-left: 3px solid rgba(102, 217, 255, 0.5);
-  padding-left: 10px;
-}
-
-.home-album-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.home-album-item {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  border-radius: 16px;
-}
-
-.home-album-item img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  display: block;
-}
-
-.home-album-item figcaption {
-  padding: 10px 12px;
-  font-size: 0.85rem;
-}
-
-.home-arch-blocks {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.home-arch-year {
-  padding: 20px 22px;
-  border-radius: 18px;
-}
-
-.home-arch-year-title {
-  margin: 0 0 12px;
-  font-size: 1.2rem;
-  color: #4a90e2;
-}
-
-.dark-theme .home-arch-year-title {
-  color: #7dd3fc;
-}
-
-.home-arch-year-title .count {
-  font-size: 0.9rem;
-  opacity: 0.7;
-}
-
-.home-arch-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.home-arch-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: baseline;
-  font-size: 0.92rem;
-}
-
-.arch-link {
-  color: inherit;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.arch-link:hover {
-  text-decoration: underline;
-}
-
-.arch-date {
-  font-size: 0.78rem;
-  opacity: 0.55;
-  flex-shrink: 0;
-}
-
-.home-tools-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.home-tool-card {
-  padding: 20px;
-  border-radius: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.home-tool-card h3 {
-  margin: 0;
-  font-size: 1.05rem;
-}
-
-.home-tool-card p {
-  margin: 0;
-  flex: 1;
-  font-size: 0.88rem;
-  opacity: 0.85;
-  line-height: 1.5;
 }
 
 /* Hero Section */
@@ -846,7 +481,7 @@ h2 {
   justify-content: center;
   text-align: center;
   padding: 0 20px;
-  padding-top: 80px; /* Offset for nav */
+  padding-top: 80px;
 }
 .hero-content {
   will-change: transform;
@@ -864,14 +499,8 @@ h2 {
   opacity: 0;
 }
 @keyframes hero-title-in {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .dark-theme .hero-title {
   color: #f0f4f8;
@@ -892,15 +521,9 @@ h2 {
   -webkit-text-fill-color: transparent;
 }
 @keyframes hero-name-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-7px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
 }
-
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -915,14 +538,10 @@ h2 {
   padding-right: 1.35rem;
 }
 .hero-actions--cta .site-pill:hover:not(:disabled) {
-  box-shadow:
-    0 0 22px rgba(102, 217, 255, 0.45),
-    0 10px 28px rgba(74, 144, 226, 0.28);
+  box-shadow: 0 0 22px rgba(102, 217, 255, 0.45), 0 10px 28px rgba(74, 144, 226, 0.28);
 }
 .hero-actions--cta .site-pill--active:hover:not(:disabled) {
-  box-shadow:
-    0 0 26px rgba(80, 227, 194, 0.5),
-    0 10px 32px rgba(74, 144, 226, 0.35);
+  box-shadow: 0 0 26px rgba(80, 227, 194, 0.5), 0 10px 32px rgba(74, 144, 226, 0.35);
 }
 
 /* General Sections */
@@ -955,9 +574,7 @@ h2 {
 .dark-theme .about-img {
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
-.about-text {
-  flex: 1;
-}
+.about-text { flex: 1; }
 .about-card p {
   font-weight: 500;
   color: #2c3e50;
@@ -966,7 +583,7 @@ h2 {
   color: #e2e8f0;
 }
 
-/* Cards Hover Interaction */
+/* Cards Hover */
 .glass-card:hover {
   transform: translateY(-5px);
   background: rgba(255, 255, 255, 0.6);
@@ -1005,22 +622,10 @@ h2 {
   background: rgba(251, 194, 235, 0.15);
   color: #fbc2eb;
 }
-.work-card h3 {
-  font-size: 1.4rem;
-  color: #1a2a3a;
-}
-.dark-theme .work-card h3 {
-  color: #f0f4f8;
-}
-.work-card p {
-  color: #2c3e50;
-  font-weight: 500;
-  margin-bottom: 24px;
-  flex-grow: 1;
-}
-.dark-theme .work-card p {
-  color: #cbd5e1;
-}
+.work-card h3 { font-size: 1.4rem; color: #1a2a3a; }
+.dark-theme .work-card h3 { color: #f0f4f8; }
+.work-card p { color: #2c3e50; font-weight: 500; margin-bottom: 24px; flex-grow: 1; }
+.dark-theme .work-card p { color: #cbd5e1; }
 .work-link {
   font-weight: 700;
   color: #4a90e2;
@@ -1028,12 +633,8 @@ h2 {
   cursor: pointer;
   transition: opacity 0.3s;
 }
-.dark-theme .work-link {
-  color: #fbc2eb;
-}
-.work-link:hover {
-  opacity: 0.8;
-}
+.dark-theme .work-link { color: #fbc2eb; }
+.work-link:hover { opacity: 0.8; }
 
 /* Contact */
 .contact-card {
@@ -1041,15 +642,8 @@ h2 {
   border-radius: 24px;
   text-align: center;
 }
-.contact-card p {
-  margin-bottom: 30px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #2c3e50;
-}
-.dark-theme .contact-card p {
-  color: #e2e8f0;
-}
+.contact-card p { margin-bottom: 30px; font-size: 1.1rem; font-weight: 500; color: #2c3e50; }
+.dark-theme .contact-card p { color: #e2e8f0; }
 .contact-img {
   width: 100%;
   max-width: 600px;
@@ -1060,14 +654,8 @@ h2 {
   display: block;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
-.dark-theme .contact-img {
-  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-}
-.contact-links {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
+.dark-theme .contact-img { box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+.contact-links { display: flex; justify-content: center; gap: 20px; }
 .contact-links a {
   display: inline-block;
   padding: 12px 30px;
@@ -1098,32 +686,13 @@ h2 {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2.5rem;
-  }
-  .nav-social {
-    display: none;
-  }
-  .links a.site-pill:not(.site-pill--keep-mobile) {
-    display: none;
-  }
-  .works-grid {
-    grid-template-columns: 1fr;
-  }
-  .hero-actions {
-    flex-direction: column;
-  }
-  .about-content {
-    flex-direction: column;
-    text-align: center;
-  }
-  .about-img {
-    width: 100%;
-    aspect-ratio: 4/3;
-  }
-  .contact-img {
-    height: auto;
-    aspect-ratio: 16/9;
-  }
+  .hero-title { font-size: 2.5rem; }
+  .nav-social { display: none; }
+  .links a.site-pill:not(.site-pill--keep-mobile) { display: none; }
+  .works-grid { grid-template-columns: 1fr; }
+  .hero-actions { flex-direction: column; }
+  .about-content { flex-direction: column; text-align: center; }
+  .about-img { width: 100%; aspect-ratio: 4/3; }
+  .contact-img { height: auto; aspect-ratio: 16/9; }
 }
 </style>

@@ -1,9 +1,12 @@
 package com.mywebside.blog.persistence.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.mywebside.blog.persistence.entity.UserEntity;
-import org.apache.ibatis.annotations.Mapper;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-@Mapper
-public interface UserEntityMapper extends BaseMapper<UserEntity> {
+public interface UserEntityMapper extends JpaRepository<UserEntity, Long> {
+
+  Optional<UserEntity> findByUsername(String username);
+
+  boolean existsByUsername(String username);
 }

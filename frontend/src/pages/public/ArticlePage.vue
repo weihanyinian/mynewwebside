@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { getPublicArticle, type ArticleDetail } from '../../api/blog'
 import MarkdownView from '../../components/MarkdownView.vue'
 import BackToHomeButton from '../../components/BackToHomeButton.vue'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 const loading = ref(false)
 const article = ref<ArticleDetail | null>(null)
@@ -22,13 +24,13 @@ const activeTocId = ref<string>('')
 const tocOpen = ref(false)
 const showBackTop = ref(false)
 
-const navItems = [
-  { name: '首页', path: '/' },
-  { name: '博客', path: '/blog' },
-  { name: '作品', path: '/#works' },
-  { name: '留言墙', path: '/message' },
-  { name: '摸鱼', path: '/moyu' }
-]
+const navItems = computed(() => [
+  { name: t('breadcrumb.home'), path: '/' },
+  { name: t('nav.blog'), path: '/blog' },
+  { name: t('nav.works'), path: '/#works' },
+  { name: t('nav.message'), path: '/message' },
+  { name: t('nav.moyu'), path: '/moyu' }
+])
 
 const readTime = computed(() => {
   const md = article.value?.contentMd || ''

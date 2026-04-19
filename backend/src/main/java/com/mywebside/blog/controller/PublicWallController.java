@@ -1,16 +1,17 @@
 package com.mywebside.blog.controller;
 
 import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.common.PageResponse;
 import com.mywebside.blog.dto.WallMessageCreateRequest;
 import com.mywebside.blog.dto.WallMessagePublicDto;
 import com.mywebside.blog.dto.WallMessageSubmitVo;
 import com.mywebside.blog.service.WallMessageService;
 import jakarta.validation.Valid;
-import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -28,8 +29,11 @@ public class PublicWallController {
   }
 
   @GetMapping
-  public ApiResponse<List<WallMessagePublicDto>> listApproved() {
-    return ApiResponse.ok(wallMessageService.listApproved());
+  public ApiResponse<PageResponse<WallMessagePublicDto>> listApproved(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size
+  ) {
+    return ApiResponse.ok(wallMessageService.listApproved(page, size));
   }
 
   @PostMapping

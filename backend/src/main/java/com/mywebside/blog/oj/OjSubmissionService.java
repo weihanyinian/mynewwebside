@@ -1,6 +1,5 @@
 package com.mywebside.blog.oj;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mywebside.blog.common.PageResponse;
 import com.mywebside.blog.oj.domain.JudgeResult;
 import com.mywebside.blog.oj.dto.JudgeRequest;
@@ -9,7 +8,9 @@ import com.mywebside.blog.persistence.entity.OjSubmissionEntity;
 import com.mywebside.blog.persistence.mapper.OjSubmissionEntityMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,7 +35,7 @@ public class OjSubmissionService {
     e.setTimeSeconds(r.timeSeconds());
     e.setMemoryKb(r.memoryKb());
     e.setCreatedAt(LocalDateTime.now());
-    submissionMapper.insert(e);
+    submissionMapper.save(e);
   }
 
   public PageResponse<OjSubmissionRowDto> pageMine(long userId, int page, int size) {
@@ -44,14 +45,10 @@ public class OjSubmissionService {
     if (size < 1 || size > 100) {
       size = 20;
     }
-    long total = submissionMapper.selectCount(new LambdaQueryWrapper<OjSubmissionEntity>().eq(OjSubmissionEntity::getUserId, userId));
-    List<OjSubmissionEntity> rows = submissionMapper.selectList(
-        new LambdaQueryWrapper<OjSubmissionEntity>()
-            .eq(OjSubmissionEntity::getUserId, userId)
-            .orderByDesc(OjSubmissionEntity::getId)
-            .last("LIMIT " + size + " OFFSET " + (page * size))
-    );
-    return new PageResponse<>(rows.stream().map(this::toRow).toList(), total, page, size);
+    long total = submissionMapper.countByUserId(userId);
+    PageRequest pr = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    Page<OjSubmissionEntity> pg = submissionMapper.findByUserIdOrderByCreatedAtDesc(userId, pr);
+    return new PageResponse<>(pg.getContent().stream().map(this::toRow).toList(), total, page, size);
   }
 
   public PageResponse<OjSubmissionRowDto> pageAll(int page, int size) {
@@ -61,13 +58,9 @@ public class OjSubmissionService {
     if (size < 1 || size > 100) {
       size = 20;
     }
-    long total = submissionMapper.selectCount(null);
-    List<OjSubmissionEntity> rows = submissionMapper.selectList(
-        new LambdaQueryWrapper<OjSubmissionEntity>()
-            .orderByDesc(OjSubmissionEntity::getId)
-            .last("LIMIT " + size + " OFFSET " + (page * size))
-    );
-    return new PageResponse<>(rows.stream().map(this::toRow).toList(), total, page, size);
+    PageRequest pr = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    Page<OjSubmissionEntity> pg = submissionMapper.findAll(pr);
+    return new PageResponse<>(pg.getContent().stream().map(this::toRow).toList(), pg.getTotalElements(), page, size);
   }
 
   private OjSubmissionRowDto toRow(OjSubmissionEntity e) {

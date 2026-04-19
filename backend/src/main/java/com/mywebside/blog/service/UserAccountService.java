@@ -1,6 +1,5 @@
 package com.mywebside.blog.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mywebside.blog.auth.LoginRequest;
 import com.mywebside.blog.auth.LoginResponse;
 import com.mywebside.blog.auth.RegisterRequest;
@@ -34,7 +33,7 @@ public class UserAccountService {
     if (UserRoles.isBuiltInAdmin(name)) {
       throw new BusinessException(400, "该用户名不可注册");
     }
-    if (userMapper.selectCount(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, name)) > 0) {
+    if (userMapper.existsByUsername(name)) {
       throw new BusinessException(400, "用户名已存在");
     }
     UserEntity u = new UserEntity();
@@ -42,13 +41,14 @@ public class UserAccountService {
     u.setPassword(passwordEncoder.encode(req.password()));
     u.setNickname(req.nickname().trim());
     u.setCreatedAt(LocalDateTime.now());
-    userMapper.insert(u);
+    userMapper.save(u);
   }
 
   public LoginResponse login(LoginRequest req) {
     String name = req.username().trim();
-    UserEntity u = userMapper.selectOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, name));
-    if (u == null || !passwordEncoder.matches(req.password(), u.getPassword())) {
+    UserEntity u = userMapper.findByUsername(name)
+        .orElseThrow(() -> new BusinessException(401, "账号或密码错误"));
+    if (!passwordEncoder.matches(req.password(), u.getPassword())) {
       throw new BusinessException(401, "账号或密码错误");
     }
     boolean admin = UserRoles.isBuiltInAdmin(u.getUsername());
@@ -57,11 +57,8 @@ public class UserAccountService {
   }
 
   public UserEntity requireByUsername(String username) {
-    UserEntity u = userMapper.selectOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, username));
-    if (u == null) {
-      throw new BusinessException(401, "用户不存在或已删除");
-    }
-    return u;
+    return userMapper.findByUsername(username)
+        .orElseThrow(() -> new BusinessException(401, "用户不存在或已删除"));
   }
 
   public long requireUserId(String username) {

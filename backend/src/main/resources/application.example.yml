@@ -1,5 +1,17 @@
 server:
   port: 8080
+  # 小内存机（如 2C2G）建议收紧，避免默认 max≈200 挤占堆外与线程栈
+  tomcat:
+    threads:
+      max: 50
+      min-spare: 5
+    max-connections: 200
+    accept-count: 50
+  # 启用 HTTP 响应压缩（API JSON / HTML 等自动 gzip）
+  compression:
+    enabled: true
+    mime-types: application/json,text/html,text/plain,text/xml,application/xml
+    min-response-size: 1024
 
 spring:
   application:
@@ -8,36 +20,48 @@ spring:
     url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
     username: root
     password: CHANGE_ME
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    baseline-description: existing schema from ddl-auto era
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: false
         jdbc:
           time_zone: Asia/Shanghai
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      connect-timeout: 2s
+      timeout: 2s
 
 app:
   cors:
     allowed-origins: "http://localhost:5173"
-  # 每日一句（按上海时区自然日轮转；可增删改列表）
   daily-quotes:
     - "维寒一念，步履不停。"
     - "代码与文字，都是留给自己和访客的路标。"
     - "今日宜：读一页书，写一行诗。"
-  # 首次启动且数据库中尚无 admin 用户时，用该明文密码创建用户名为 admin 的账号（务必用环境变量注入，勿提交仓库）
   bootstrap-admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
-  # 为 true 时每次启动都会用上一项覆盖已有 admin 的密码；仅用于本地重置，生产请保持 false
   bootstrap-admin-sync-on-startup: false
+  # 必须通过环境变量注入，勿提交真实密钥
   jwt:
-    secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_FOR_PROD"
-    expire-minutes: 10080
+    secret: ${JWT_SECRET:}
+    expire-minutes: ${JWT_EXPIRE_MINUTES:10080}
+  # 为 true 时需可连 Redis；阅读量先 INCR Redis，定时批量 UPDATE MySQL，减轻热点文章压力
+  view-counter:
+    redis: ${VIEW_COUNTER_REDIS:false}
+    flush-ms: 60000
 
 # 在线判题 Judge0 CE（可与生产环境分环境配置）
-# 本地无 MySQL 时可启用内存库（需 pom 已含 h2）：
-# spring.profiles.active: h2
-# 或命令行：mvn spring-boot:run -Dspring-boot.run.profiles=h2
+# 本地无 MySQL 时可启用内存库：spring.profiles.active: h2
 
 oj:
   judge0:
@@ -46,3 +70,14 @@ oj:
     poll-max-rounds: 80
     rapid-api-key: ""
     rapid-api-host: ""
+
+# Actuator 健康检查（生产不暴露详细信息）
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never

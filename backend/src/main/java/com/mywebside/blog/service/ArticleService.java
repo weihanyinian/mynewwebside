@@ -13,6 +13,7 @@ import com.mywebside.blog.dto.TagDto;
 import com.mywebside.blog.repo.ArticleRepository;
 import com.mywebside.blog.repo.CategoryRepository;
 import com.mywebside.blog.repo.TagRepository;
+import com.mywebside.blog.service.views.ArticleViewCounter;
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,15 +28,24 @@ public class ArticleService {
   private final ArticleRepository articleRepo;
   private final CategoryRepository categoryRepo;
   private final TagRepository tagRepo;
+  private final ArticleViewCounter articleViewCounter;
 
-  public ArticleService(ArticleRepository articleRepo, CategoryRepository categoryRepo, TagRepository tagRepo) {
+  public ArticleService(
+      ArticleRepository articleRepo,
+      CategoryRepository categoryRepo,
+      TagRepository tagRepo,
+      ArticleViewCounter articleViewCounter
+  ) {
     this.articleRepo = articleRepo;
     this.categoryRepo = categoryRepo;
     this.tagRepo = tagRepo;
+    this.articleViewCounter = articleViewCounter;
   }
 
   @Transactional(readOnly = true)
   public PageResponse<ArticleListItemDto> pagePublic(String keyword, Long categoryId, Long tagId, int page, int size) {
+    page = Math.max(page, 0);
+    size = (size < 1 || size > 50) ? 10 : size;
     var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "publishedAt", "id"));
     var p = articleRepo.pagePublic(blankToNull(keyword), categoryId, tagId, pageable);
     return new PageResponse<>(
@@ -48,16 +58,19 @@ public class ArticleService {
 
   @Transactional
   public ArticleDetailDto getPublicDetail(long id) {
-    articleRepo.incViews(id);
     Article a = articleRepo.getWithAllById(id);
-    if (a == null || a.getStatus() != ArticleStatus.PUBLISHED) {
+    if (a == null || a.getStatus() != ArticleStatus.PUBLISHED || a.getDeletedAt() != null) {
       throw new BusinessException(404, "文章不存在");
     }
-    return toPublicDetail(a);
+    articleViewCounter.recordView(id);
+    long displayViews = a.getViews() + articleViewCounter.pendingDisplayDelta(id);
+    return toPublicDetail(a, displayViews);
   }
 
   @Transactional(readOnly = true)
   public PageResponse<AdminArticleListItemDto> pageAdmin(String keyword, String status, int page, int size) {
+    page = Math.max(page, 0);
+    size = (size < 1 || size > 100) ? 10 : size;
     ArticleStatus st = status == null ? null : ArticleStatus.valueOf(status.toUpperCase());
     var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt", "id"));
     var p = articleRepo.pageAdmin(blankToNull(keyword), st, pageable);
@@ -72,8 +85,8 @@ public class ArticleService {
   @Transactional(readOnly = true)
   public ArticleDetailDto getAdminDetail(long id) {
     Article a = articleRepo.getWithAllById(id);
-    if (a == null) {
-      throw new BusinessException(404, "文章不存在");
+    if (a == null || a.getDeletedAt() != null) {
+      throw new BusinessException(404, "文章不存在或已删除");
     }
     return toPublicDetail(a);
   }
@@ -109,10 +122,12 @@ public class ArticleService {
 
   @Transactional
   public void delete(long id) {
-    if (!articleRepo.existsById(id)) {
+    Article a = articleRepo.getWithAllById(id);
+    if (a == null || a.getDeletedAt() != null) {
       return;
     }
-    articleRepo.deleteById(id);
+    a.setDeletedAt(Instant.now());
+    a.setStatus(ArticleStatus.DRAFT);
   }
 
   private void applyUpsert(Article a, ArticleUpsertRequest req) {
@@ -177,6 +192,10 @@ public class ArticleService {
   }
 
   private ArticleDetailDto toPublicDetail(Article a) {
+    return toPublicDetail(a, a.getViews());
+  }
+
+  private ArticleDetailDto toPublicDetail(Article a, long displayViews) {
     return new ArticleDetailDto(
         a.getId(),
         a.getTitle(),
@@ -184,7 +203,7 @@ public class ArticleService {
         a.getCoverUrl(),
         a.getStatus().name(),
         a.getContentMd(),
-        a.getViews(),
+        displayViews,
         a.getPublishedAt(),
         a.getCategory() == null ? null : new CategoryDto(a.getCategory().getId(), a.getCategory().getName()),
         a.getTags().stream()

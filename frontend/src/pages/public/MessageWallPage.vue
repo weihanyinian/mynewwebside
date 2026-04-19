@@ -22,7 +22,8 @@ async function load() {
   loading.value = true
   loadError.value = false
   try {
-    messages.value = await fetchWallMessages()
+    const res = await fetchWallMessages({ page: 0, size: 50 })
+    messages.value = res.items
   } catch {
     loadError.value = true
     messages.value = []

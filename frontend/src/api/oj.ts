@@ -55,8 +55,22 @@ export async function fetchOjProblem(id: string) {
 }
 
 export async function postOjJudge(body: JudgeRequestBody) {
-  const res = await http.post<ApiResponse<JudgeResult>>('/api/oj/judge', body, { timeout: 120_000 })
-  return res.data.data
+  // 异步提交，返回 taskId（HTTP 202）
+  const res = await http.post<ApiResponse<{ taskId: string }>>('/api/oj/judge', body, { timeout: 30_000 })
+  const taskId = res.data.data.taskId
+
+  // 前端轮询结果（每 1.5 秒一次，最多 60 次 = 90 秒）
+  const maxAttempts = 60
+  const intervalMs = 1500
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(r => setTimeout(r, intervalMs))
+    const pollRes = await http.get<ApiResponse<JudgeResult | null>>(`/api/oj/judge/${taskId}`, { timeout: 10_000 })
+    const result = pollRes.data.data
+    if (result !== null) {
+      return result
+    }
+  }
+  throw new Error('判题超时，请稍后在提交记录中查看结果')
 }
 
 export type OjSubmissionRow = {

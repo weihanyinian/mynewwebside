@@ -20,8 +20,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
         and (:categoryId is null or a.category.id = :categoryId)
         and (:tagId is null or t.id = :tagId)
         and (:keyword is null or a.title like concat('%', :keyword, '%')
-             or a.summary like concat('%', :keyword, '%')
-             or a.contentMd like concat('%', :keyword, '%'))
+             or a.summary like concat('%', :keyword, '%'))
       order by a.publishedAt desc, a.id desc
       """)
   Page<Article> pagePublic(
@@ -35,10 +34,10 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
   @Query("""
       select distinct a from Article a
       left join a.tags t
-      where (:status is null or a.status = :status)
+      where a.deletedAt is null
+        and (:status is null or a.status = :status)
         and (:keyword is null or a.title like concat('%', :keyword, '%')
-             or a.summary like concat('%', :keyword, '%')
-             or a.contentMd like concat('%', :keyword, '%'))
+             or a.summary like concat('%', :keyword, '%'))
       order by a.updatedAt desc, a.id desc
       """)
   Page<Article> pageAdmin(
@@ -55,4 +54,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
   @Modifying
   @Query("update Article a set a.views = a.views + 1 where a.id = :id")
   int incViews(@Param("id") Long id);
+
+  @Transactional
+  @Modifying
+  @Query("update Article a set a.views = a.views + :delta where a.id = :id")
+  int incrementViewsBy(@Param("id") long id, @Param("delta") long delta);
 }

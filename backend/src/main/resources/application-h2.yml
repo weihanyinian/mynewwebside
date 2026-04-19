@@ -1,13 +1,24 @@
-# 无 MySQL 时使用：mvn spring-boot:run -Dspring-boot.run.profiles=h2
-# 或环境变量 SPRING_PROFILES_ACTIVE=h2
-# 数据在内存中，进程结束即清空；适合本地调试 OJ / 前端联调。
+# 无 MySQL：mvn spring-boot:run -Dspring-boot.run.profiles=h2
+# Flyway 关闭，仍用 ddl-auto: update 便于本地快速改实体；生产请用 MySQL + validate + Flyway。
 spring:
   datasource:
     url: jdbc:h2:mem:blogdb;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
+  flyway:
+    enabled: false
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:h2-local-dev-only-32chars-minimum!!!!}
+  view-counter:
+    redis: false

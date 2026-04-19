@@ -1,25 +1,47 @@
 package com.mywebside.blog.persistence.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
-@TableName("oj_submission")
+@Entity
+@Table(name = "oj_submission")
 public class OjSubmissionEntity {
 
-  @TableId(type = IdType.AUTO)
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
   private Long userId;
+
+  @Column(length = 64)
   private String username;
+
+  @Column(length = 32)
   private String problemId;
+
+  @Column(length = 16)
   private String language;
+
+  @Column(columnDefinition = "MEDIUMTEXT")
   private String sourceCode;
+
   private Boolean submitted;
+
+  @Column(length = 32)
   private String verdict;
+
+  @Column(length = 4000)
   private String message;
+
   private Double timeSeconds;
+
   private Integer memoryKb;
+
   private LocalDateTime createdAt;
 
   public Long getId() {

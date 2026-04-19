@@ -6,6 +6,8 @@ import com.mywebside.blog.dto.CategoryDto;
 import com.mywebside.blog.repo.CategoryRepository;
 import java.time.Instant;
 import java.util.List;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ public class CategoryService {
     this.categoryRepo = categoryRepo;
   }
 
+  @Cacheable("categories")
   @Transactional(readOnly = true)
   public List<CategoryDto> list() {
     return categoryRepo.findAll().stream()
@@ -25,6 +28,7 @@ public class CategoryService {
         .toList();
   }
 
+  @CacheEvict(value = "categories", allEntries = true)
   @Transactional
   public CategoryDto create(String name) {
     categoryRepo.findByName(name).ifPresent(x -> {
@@ -39,6 +43,7 @@ public class CategoryService {
     return new CategoryDto(saved.getId(), saved.getName());
   }
 
+  @CacheEvict(value = "categories", allEntries = true)
   @Transactional
   public CategoryDto update(long id, String name) {
     Category c = categoryRepo.findById(id).orElseThrow(() -> new BusinessException(404, "分类不存在"));
@@ -52,6 +57,7 @@ public class CategoryService {
     return new CategoryDto(c.getId(), c.getName());
   }
 
+  @CacheEvict(value = "categories", allEntries = true)
   @Transactional
   public void delete(long id) {
     if (!categoryRepo.existsById(id)) {

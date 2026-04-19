@@ -1,18 +1,31 @@
 package com.mywebside.blog.persistence.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
-@TableName("users")
+@Entity
+@Table(name = "users")
 public class UserEntity {
 
-  @TableId(type = IdType.AUTO)
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @Column(nullable = false, unique = true, length = 64)
   private String username;
+
+  @Column(nullable = false)
   private String password;
+
+  @Column(length = 64)
   private String nickname;
+
+  @Column
   private LocalDateTime createdAt;
 
   public Long getId() {

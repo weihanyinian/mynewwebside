@@ -1,6 +1,5 @@
 package com.mywebside.blog.oj;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mywebside.blog.common.BusinessException;
@@ -27,15 +26,14 @@ public class OjProblemStore {
   }
 
   public List<Problem> all() {
-    return problemMapper.selectList(new LambdaQueryWrapper<OjProblemEntity>().orderByAsc(OjProblemEntity::getId))
+    return problemMapper.findAllByOrderByIdAsc()
         .stream()
         .map(this::toProblem)
         .toList();
   }
 
   public Optional<Problem> find(String id) {
-    OjProblemEntity e = problemMapper.selectById(id);
-    return e == null ? Optional.empty() : Optional.of(toProblem(e));
+    return problemMapper.findById(id).map(this::toProblem);
   }
 
   public Problem require(String id) {
@@ -46,11 +44,11 @@ public class OjProblemStore {
     OjProblemEntity e = fromProblem(p);
     LocalDateTime now = LocalDateTime.now();
     e.setUpdatedAt(now);
-    if (problemMapper.selectById(p.id()) == null) {
-      e.setCreatedAt(now);
-      problemMapper.insert(e);
+    if (problemMapper.existsById(p.id())) {
+      problemMapper.save(e);
     } else {
-      problemMapper.updateById(e);
+      e.setCreatedAt(now);
+      problemMapper.save(e);
     }
   }
 

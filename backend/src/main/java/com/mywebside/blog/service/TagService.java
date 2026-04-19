@@ -6,6 +6,8 @@ import com.mywebside.blog.dto.TagDto;
 import com.mywebside.blog.repo.TagRepository;
 import java.time.Instant;
 import java.util.List;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ public class TagService {
     this.tagRepo = tagRepo;
   }
 
+  @Cacheable("tags")
   @Transactional(readOnly = true)
   public List<TagDto> list() {
     return tagRepo.findAll().stream()
@@ -25,6 +28,7 @@ public class TagService {
         .toList();
   }
 
+  @CacheEvict(value = "tags", allEntries = true)
   @Transactional
   public TagDto create(String name) {
     tagRepo.findByName(name).ifPresent(x -> {
@@ -39,6 +43,7 @@ public class TagService {
     return new TagDto(saved.getId(), saved.getName());
   }
 
+  @CacheEvict(value = "tags", allEntries = true)
   @Transactional
   public TagDto update(long id, String name) {
     Tag t = tagRepo.findById(id).orElseThrow(() -> new BusinessException(404, "标签不存在"));
@@ -52,6 +57,7 @@ public class TagService {
     return new TagDto(t.getId(), t.getName());
   }
 
+  @CacheEvict(value = "tags", allEntries = true)
   @Transactional
   public void delete(long id) {
     if (!tagRepo.existsById(id)) {

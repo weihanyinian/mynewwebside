@@ -10,7 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -31,7 +30,6 @@ public class Article {
   @Column(nullable = false, length = 400)
   private String summary;
 
-  @Lob
   @Column(nullable = false, columnDefinition = "LONGTEXT")
   private String contentMd;
 
@@ -64,6 +62,10 @@ public class Article {
   private Instant updatedAt;
 
   private Instant publishedAt;
+
+  /** 软删除时间戳，非 null 表示已删除。 */
+  @Column
+  private Instant deletedAt;
 
   public Long getId() {
     return id;
@@ -159,5 +161,13 @@ public class Article {
 
   public void setPublishedAt(Instant publishedAt) {
     this.publishedAt = publishedAt;
+  }
+
+  public Instant getDeletedAt() {
+    return deletedAt;
+  }
+
+  public void setDeletedAt(Instant deletedAt) {
+    this.deletedAt = deletedAt;
   }
 }

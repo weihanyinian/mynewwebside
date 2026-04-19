@@ -1,6 +1,5 @@
 package com.mywebside.blog.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mywebside.blog.admin.dto.UserListItemDto;
 import com.mywebside.blog.common.ApiResponse;
 import com.mywebside.blog.common.BusinessException;
@@ -27,13 +26,13 @@ public class AdminUserController {
 
   @GetMapping
   public ApiResponse<List<UserListItemDto>> list() {
-    List<UserEntity> all = userMapper.selectList(new LambdaQueryWrapper<UserEntity>().orderByAsc(UserEntity::getId));
+    List<UserEntity> all = userMapper.findAll();
     return ApiResponse.ok(all.stream().map(this::toDto).toList());
   }
 
   @DeleteMapping("/{id}")
   public ApiResponse<Void> delete(@PathVariable long id) {
-    UserEntity u = userMapper.selectById(id);
+    UserEntity u = userMapper.findById(id).orElse(null);
     if (u == null) {
       throw new BusinessException(404, "用户不存在");
     }
