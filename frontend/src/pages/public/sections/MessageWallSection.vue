@@ -1,31 +1,42 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Loading } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { fetchWallMessages, submitWallMessage, type WallMessagePublic } from '../../../api/wall'
+import { escapeHtml } from '../../../utils/escapeHtml'
 
 const { t } = useI18n()
 
 const loading = ref(true)
 const messages = ref<WallMessagePublic[]>([])
+const total = ref(0)
+const page = ref(0)
+const pageSize = ref(8)
 const author = ref('')
 const content = ref('')
 const submitting = ref(false)
 
+const canSubmit = computed(() => content.value.trim().length > 0)
+
 async function load() {
   loading.value = true
   try {
-    const res = await fetchWallMessages({ page: 0, size: 50 })
+    const res = await fetchWallMessages({ page: page.value, size: pageSize.value })
     messages.value = res.items
+    total.value = res.total
   } catch {
     messages.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
 
+watch(page, () => void load())
+
 async function submit() {
-  if (!content.value.trim()) {
+  if (!canSubmit.value) {
     ElMessage.warning(t('messageWall.emptyContent'))
     return
   }
@@ -35,6 +46,7 @@ async function submit() {
     content.value = ''
     author.value = ''
     ElMessage.success(t('messageWall.pendingReview'))
+    page.value = 0
     await load()
   } catch (e: unknown) {
     ElMessage.error(e instanceof Error ? e.message : 'Error')
@@ -51,30 +63,67 @@ function formatTime(iso: string) {
   }
 }
 
-// 暴露 load 方法供外部 onMounted 调用
-load()
+function onPageChange(p: number) {
+  page.value = p - 1
+}
+
+void load()
 </script>
 
 <template>
-  <section class="section" id="message">
+  <section class="section message-wall-section" id="message">
     <h2>{{ t('messageWall.title') }}</h2>
     <p class="section-sub">{{ t('messageWall.subtitle') }}</p>
-    <div class="glass-card home-message-form site-el-round-16">
-      <el-input v-model="author" :placeholder="t('messageWall.nickname')" class="home-field" />
-      <el-input v-model="content" type="textarea" :rows="3" :placeholder="t('messageWall.placeholder')" class="home-field" />
-      <button type="button" class="site-pill site-pill--pink" :disabled="submitting" @click="submit">
-        {{ t('messageWall.submit') }}
+
+    <div class="site-module-card home-message-form site-el-round-16 site-field">
+      <el-input
+        v-model="author"
+        class="home-field"
+        :placeholder="t('messageWall.nicknamePlaceholder')"
+        clearable
+      />
+      <el-input
+        v-model="content"
+        type="textarea"
+        :rows="3"
+        class="home-field"
+        :placeholder="t('messageWall.contentPlaceholder')"
+      />
+      <button
+        type="button"
+        class="site-pill site-pill--primary-cta submit-btn"
+        :disabled="!canSubmit || submitting"
+        @click="submit"
+      >
+        <el-icon v-if="submitting" class="submit-btn__spin"><Loading /></el-icon>
+        {{ submitting ? t('messageWall.submitting') : t('messageWall.submit') }}
       </button>
     </div>
+
     <p v-if="loading" class="muted center">{{ t('pages.loading') }}</p>
-    <div v-else class="home-wall-grid">
-      <div v-for="m in messages" :key="m.id" class="glass-card home-wall-card">
-        <div class="home-wall-meta">{{ m.nickname || t('messageWall.anonymous') }} · {{ formatTime(m.createdAt) }}</div>
-        <p class="home-wall-body">{{ m.content }}</p>
-        <p v-if="m.adminReply" class="home-wall-reply">{{ t('messageWall.replyFromAdmin') }}：{{ m.adminReply }}</p>
+    <template v-else>
+      <div v-if="messages.length" class="home-wall-grid">
+        <div v-for="m in messages" :key="m.id" class="site-module-card home-wall-card">
+          <div class="home-wall-meta">{{ m.nickname || t('messageWall.anonymous') }} · {{ formatTime(m.createdAt) }}</div>
+          <p class="home-wall-body" v-html="escapeHtml(m.content)"></p>
+          <p v-if="m.adminReply" class="home-wall-reply">{{ t('messageWall.replyFromAdmin') }}：{{ m.adminReply }}</p>
+        </div>
       </div>
-      <p v-if="!messages.length" class="muted center">{{ t('messageWall.emptyTitle') }}</p>
-    </div>
+      <div v-else class="wall-empty-block">
+        <p class="wall-empty-title">{{ t('messageWall.emptyTitle') }}</p>
+        <p class="muted center wall-empty-hint">{{ t('messageWall.emptyHint') }}</p>
+      </div>
+      <div v-if="total > pageSize" class="wall-pager">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :page-size="pageSize"
+          :current-page="page + 1"
+          :total="total"
+          @current-change="onPageChange"
+        />
+      </div>
+    </template>
   </section>
 </template>
 
@@ -83,10 +132,14 @@ load()
   text-align: center;
   max-width: 640px;
   margin: -1rem auto 1.5rem;
-  opacity: 0.85;
-  line-height: 1.6;
+  font-weight: 400;
+  color: var(--text-muted, rgba(15, 23, 42, 0.68));
+  line-height: 1.72;
+  letter-spacing: 0.02em;
 }
-.center { text-align: center; }
+.center {
+  text-align: center;
+}
 .home-message-form {
   max-width: 560px;
   margin: 0 auto 28px;
@@ -94,6 +147,35 @@ load()
 }
 .home-message-form .home-field {
   margin-bottom: 12px;
+}
+.submit-btn {
+  width: 100%;
+  justify-content: center;
+  min-height: 46px;
+  gap: 8px;
+}
+.submit-btn__spin {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.wall-empty-block {
+  text-align: center;
+  margin: 8px 0 16px;
+}
+
+.wall-empty-title {
+  text-align: center;
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: var(--text-color, #0f172a);
+  margin: 0 0 10px;
+}
+:root[data-theme='dark'] .wall-empty-title {
+  color: #eaf8ff;
 }
 .home-wall-grid {
   display: grid;
@@ -108,18 +190,31 @@ load()
 }
 .home-wall-meta {
   font-size: 0.78rem;
-  opacity: 0.65;
+  color: var(--text-muted);
   margin-bottom: 8px;
 }
 .home-wall-body {
   margin: 0;
   line-height: 1.55;
+  color: var(--text-color, #0f172a);
+  word-break: break-word;
 }
 .home-wall-reply {
   margin: 10px 0 0;
   font-size: 0.85rem;
-  opacity: 0.8;
-  border-left: 3px solid rgba(102, 217, 255, 0.5);
+  color: var(--text-muted);
+  border-left: 3px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
   padding-left: 10px;
+}
+.wall-empty-hint {
+  margin-top: 8px;
+}
+.wall-pager {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+:deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+  background-color: var(--primary-color) !important;
 }
 </style>

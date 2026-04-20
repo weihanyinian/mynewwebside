@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { http, type ApiResponse } from '../api/http'
+import { DEFAULT_NETEASE_PLAYLIST_ID } from '../config/music'
 import { getToken } from '../utils/token'
 
 /** 与播放器、音乐中心共用的曲目结构 */
@@ -22,7 +23,8 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     urlLoading: false,
     loadError: '',
     lyricLrc: '',
-    source: 'random' as PlaySource,
+    /** 默认使用本站配置的网易云歌单（见 config/music.ts），避免依赖第三方随机接口 */
+    source: 'playlist' as PlaySource,
     playlistLoaded: false,
     playlistTracks: [] as PlayerTrack[],
   }),
@@ -178,7 +180,10 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     async playRandom() {
       const t = await this.fetchRandomTrack()
       if (!t) {
-        this.loadError = '暂无随机曲目'
+        await this.loadDefaultPlaylist()
+        if (!this.currentTrack) {
+          this.loadError = this.loadError || '暂无可用曲目'
+        }
         return
       }
       this.source = 'random'
@@ -188,11 +193,10 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     },
 
     async loadDefaultPlaylist() {
-      const DEFAULT_ID = '489057279'
       try {
         const { data } = await http.get<
           ApiResponse<Array<{ id: number; name: string; artist: string; cover: string }>>
-        >('/api/public/music/playlist', { params: { id: DEFAULT_ID, shuffle: false } })
+        >('/api/public/music/playlist', { params: { id: DEFAULT_NETEASE_PLAYLIST_ID, shuffle: false } })
         const rows = data.data
         if (rows.length > 0) {
           this.playlistTracks = rows.map((r) => ({
@@ -205,11 +209,17 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
           this.currentIndex = 0
           this.source = 'playlist'
           this.playlistLoaded = true
+          this.loadError = ''
           await this.loadCurrentUrl()
           return
         }
-      } catch {
-        /* ignore */
+        this.loadError = '歌单暂无曲目'
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        this.loadError =
+          msg.includes('Network Error') || msg.includes('ERR_CONNECTION_REFUSED')
+            ? '无法连接后端：请先在本机启动 Spring Boot（端口 8080），并执行 npm run dev 使用 Vite 代理 /api'
+            : msg || '歌单加载失败'
       }
       this.source = 'random'
     },

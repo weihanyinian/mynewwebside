@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { goToSiteHome } from '../../utils/siteHome'
 import HitokotoCard from '../../components/HitokotoCard.vue'
 import SiteGlassFooter from '../../components/site/SiteGlassFooter.vue'
+import SiteBackToTop from '../../components/site/SiteBackToTop.vue'
 import { useThemeStore } from '../../stores/theme'
 import { useUserStore } from '../../stores/user'
 import MessageWallSection from './sections/MessageWallSection.vue'
@@ -40,26 +41,74 @@ function closeNavMobile() {
   mobileNavOpen.value = false
 }
 
-const works = ref([
-  { title: '大语言模型微调与部署', desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。', link: '#works', tag: 'LLM / GLM4' },
-  { title: 'Transformer 机器翻译', desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。', link: '#works', tag: 'Deep Learning' },
-  { title: 'MyWebSide Blog', desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。', link: '#blog', tag: 'Full Stack' },
-  { title: '在线判题 OJ', desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。', link: '/tools/oj', tag: 'OJ / Sandbox' },
+type WorkItem = {
+  title: string
+  desc: string
+  detail: string
+  tag: string
+  link: string
+  cover: string
+}
+
+const works = ref<WorkItem[]>([
+  {
+    title: '大语言模型微调与部署',
+    desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。',
+    detail: '覆盖数据构建、训练与推理部署流程，可作为 LLM 工程化落地的实践参考。',
+    link: '#works',
+    tag: 'LLM / GLM4',
+    cover: '/avatar.png',
+  },
+  {
+    title: 'Transformer 机器翻译',
+    desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。',
+    detail: '从编码器—解码器到多头注意力，适合巩固序列建模与并行训练要点。',
+    link: '#works',
+    tag: 'Deep Learning',
+    cover: '/avatar.png',
+  },
+  {
+    title: 'MyWebSide Blog',
+    desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。',
+    detail: '博客、留言墙、工具栏与 OJ 一体化；代码开源，欢迎交流与共建。',
+    link: 'https://github.com/weihanyinian/mynewwebside',
+    tag: 'Full Stack',
+    cover: '/avatar.png',
+  },
+  {
+    title: '在线判题 OJ',
+    desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。',
+    detail: '登录后可提交代码、查看评测状态与历史提交记录。',
+    link: '/tools/oj',
+    tag: 'OJ / Sandbox',
+    cover: '/avatar.png',
+  },
 ])
 
 const mobileNavOpen = ref(false)
+const portfolioMoreEl = ref<HTMLDetailsElement | null>(null)
+
+function closePortfolioMore() {
+  if (portfolioMoreEl.value) portfolioMoreEl.value.open = false
+}
+
 watch(
   () => route.fullPath,
   () => {
     mobileNavOpen.value = false
+    closePortfolioMore()
   },
 )
 
+function isHashActive(fragment: string) {
+  return route.path === '/' && route.hash === fragment
+}
+
 function scrollTo(id: string) {
-  const el = document.getElementById(id)
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth' })
-  }
+  void router.replace({ path: '/', hash: '#' + id })
+  void nextTick(() => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+  })
   mobileNavOpen.value = false
 }
 
@@ -70,7 +119,16 @@ function onWorkClick(link: string) {
   }
   if (link.startsWith('/')) {
     router.push(link)
+    return
   }
+  if (link.startsWith('http://') || link.startsWith('https://')) {
+    window.open(link, '_blank', 'noopener,noreferrer')
+  }
+}
+
+function onWorkCardActivate(work: WorkItem, e?: Event) {
+  if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return
+  onWorkClick(work.link)
 }
 
 function onSiteLogoClick() {
@@ -89,6 +147,10 @@ function onHeroParallax() {
 
 onMounted(() => {
   window.addEventListener('scroll', onHeroParallax, { passive: true })
+  if (route.hash) {
+    const id = route.hash.replace(/^#/, '')
+    void nextTick(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }))
+  }
 })
 
 onUnmounted(() => {
@@ -101,6 +163,7 @@ onUnmounted(() => {
     <!-- Video Backgrounds -->
     <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
     <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
+    <div class="portfolio-bg-scrim" aria-hidden="true" />
 
     <!-- Navbar -->
     <nav class="glass-nav site-nav-unified">
@@ -160,36 +223,43 @@ onUnmounted(() => {
           <a
             href="#about"
             class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': isHashActive('#about') }"
             @click.prevent="scrollTo('about')"
           >{{ t('nav.about') }}</a>
           <a
             href="#works"
             class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': isHashActive('#works') }"
             @click.prevent="scrollTo('works')"
           >{{ t('nav.works') }}</a>
           <a
             href="#blog"
             class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': isHashActive('#blog') }"
             @click.prevent="scrollTo('blog')"
           >{{ t('nav.blog') }}</a>
           <a
             href="#contact"
             class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': isHashActive('#contact') }"
             @click.prevent="scrollTo('contact')"
           >{{ t('nav.contact') }}</a>
           <a
             href="#message"
             class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': isHashActive('#message') }"
             @click.prevent="scrollTo('message')"
           >{{ t('nav.message') }}</a>
           <a
             href="#albums"
             class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': isHashActive('#albums') }"
             @click.prevent="scrollTo('albums')"
           >{{ t('breadcrumb.albums') }}</a>
           <a
             href="#tools"
             class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': isHashActive('#tools') }"
             @click.prevent="scrollTo('tools')"
           >{{ t('nav.tools') }}</a>
           <a
@@ -235,12 +305,27 @@ onUnmounted(() => {
             class="site-pill site-pill--nav site-nav-auth site-pill--keep-mobile"
             @click.prevent="logout"
           >{{ t('nav.logout') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile moyu-link"
-            :class="{ 'site-pill--pink': route.path === '/moyu' }"
-            @click.prevent="router.push('/moyu')"
-          >{{ t('nav.moyu') }}</a>
+          <details ref="portfolioMoreEl" class="nav-more-wrap">
+            <summary class="site-pill site-pill--nav nav-more-trigger site-pill--keep-mobile">{{ t('nav.more') }}</summary>
+            <div class="nav-more-panel" @click="closePortfolioMore">
+              <a
+                href="#"
+                :class="{ 'site-pill--active': route.path.startsWith('/moyu') }"
+                @click.prevent="router.push('/moyu')"
+              >{{ t('nav.moyu') }}</a>
+              <a
+                href="#"
+                :class="{ 'site-pill--active': route.path === '/tools/mbti' }"
+                @click.prevent="router.push('/tools/mbti')"
+              >{{ t('nav.mbti') }}</a>
+              <a
+                v-if="isLoggedIn"
+                href="#"
+                :class="{ 'site-pill--active': route.path === '/memories' }"
+                @click.prevent="router.push('/memories')"
+              >{{ t('nav.memories') }}</a>
+            </div>
+          </details>
         </div>
       </div>
     </nav>
@@ -251,7 +336,7 @@ onUnmounted(() => {
         <h1 class="hero-title hero-title--animate">{{ t('home.hello') }} <span class="hero-name-float">{{ t('home.name') }}</span></h1>
         <div class="hero-actions hero-actions--cta">
           <button type="button" class="site-pill site-pill--lg site-pill--active" @click="scrollTo('works')">{{ t('home.explore') }}</button>
-          <button type="button" class="site-pill site-pill--lg" @click="scrollTo('blog')">{{ t('home.readBlog') }}</button>
+          <button type="button" class="site-pill site-pill--lg site-pill--secondary" @click="scrollTo('blog')">{{ t('home.readBlog') }}</button>
         </div>
       </div>
     </section>
@@ -264,7 +349,7 @@ onUnmounted(() => {
       <div class="glass-card about-card">
         <h2>{{ t('home.aboutTitle') }}</h2>
         <div class="about-content">
-          <img src="/avatar.png" alt="维寒一念" class="about-img" />
+          <img src="/avatar.png" alt="维寒一念" class="about-img" loading="lazy" decoding="async" />
           <div class="about-text">
             <p>{{ t('home.aboutText1') }}</p>
             <br />
@@ -278,18 +363,31 @@ onUnmounted(() => {
     <section class="section" id="works">
       <h2>{{ t('home.worksTitle') }}</h2>
       <div class="works-grid">
-        <div v-for="(work, index) in works" :key="index" class="glass-card work-card">
-          <span class="work-tag">{{ work.tag }}</span>
-          <h3>{{ work.title }}</h3>
-          <p>{{ work.desc }}</p>
-          <a
-            v-if="work.link.startsWith('/') || work.link.startsWith('#')"
-            href="#"
-            class="work-link"
-            @click.prevent="onWorkClick(work.link)"
-          >{{ t('home.worksDetail') }} &rarr;</a>
-          <a v-else :href="work.link" class="work-link" target="_blank" rel="noopener noreferrer">{{ t('home.worksDetail') }} &rarr;</a>
-        </div>
+        <article
+          v-for="(work, index) in works"
+          :key="index"
+          class="glass-card work-card site-module-card"
+          role="link"
+          tabindex="0"
+          :aria-label="work.title"
+          @click="onWorkCardActivate(work, $event)"
+          @keydown.enter.prevent="onWorkCardActivate(work, $event)"
+          @keydown.space.prevent="onWorkCardActivate(work, $event)"
+        >
+          <div class="work-card__media">
+            <img :src="work.cover" :alt="''" loading="lazy" decoding="async" class="work-card__img" />
+            <div class="work-card__overlay" :aria-hidden="true">
+              <p class="work-card__overlay-title">{{ work.title }}</p>
+              <p class="work-card__detail">{{ work.desc }}</p>
+            </div>
+          </div>
+          <div class="work-card__body">
+            <span class="work-tag">{{ work.tag }}</span>
+            <h3>{{ work.title }}</h3>
+            <p class="work-card__excerpt">{{ work.desc }}</p>
+            <span class="work-link">{{ t('home.worksDetail') }} →</span>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -299,7 +397,7 @@ onUnmounted(() => {
         <h2>{{ t('home.sectionBlogTitle') }}</h2>
         <p class="home-hub-lead">{{ t('home.sectionBlogLead') }}</p>
         <div class="home-hub-actions">
-          <a :href="githubRepo" class="site-pill site-pill--lg" target="_blank" rel="noopener noreferrer">{{ t('home.sectionBlogRepo') }}</a>
+          <a :href="githubRepo" class="site-pill site-pill--lg site-pill--secondary" target="_blank" rel="noopener noreferrer">{{ t('home.sectionBlogRepo') }}</a>
           <button type="button" class="site-pill site-pill--lg site-pill--active" @click="router.push('/blog')">
             {{ t('home.sectionBlogRead') }}
           </button>
@@ -312,7 +410,7 @@ onUnmounted(() => {
       <div class="glass-card contact-card">
         <h2>{{ t('home.contactTitle') }}</h2>
         <p>{{ t('home.contactText') }}</p>
-        <img src="../../assets/images/contact-miku.jpg" alt="contact miku" class="contact-img" />
+        <img src="../../assets/images/contact-miku.jpg" alt="contact miku" class="contact-img" loading="lazy" decoding="async" />
         <div class="contact-links">
           <a href="https://github.com/weihanyinian" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="mailto:1012308753@qq.com">Email</a>
@@ -330,6 +428,7 @@ onUnmounted(() => {
     <ToolsSection />
 
     <SiteGlassFooter />
+    <SiteBackToTop />
   </div>
 </template>
 
@@ -339,12 +438,45 @@ onUnmounted(() => {
 */
 .portfolio-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, rgba(230, 238, 245, 0.2) 0%, rgba(200, 218, 235, 0.3) 100%);
-  color: #2c3e50;
+  /* 底层几乎透明，主视觉交给背景视频 */
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(230, 242, 255, 0.04) 100%);
+  color: #0f172a;
   font-family: system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   transition: background 0.5s ease, color 0.5s ease;
   position: relative;
+}
+
+.portfolio-bg-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transition: background 0.45s ease;
+}
+
+/* 日间：仅 5%–10% 量级浅色渐变叠在视频上，不糊化画面，保留动态感 */
+.portfolio-container:not(.dark-theme) .portfolio-bg-scrim {
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(232, 244, 255, 0.05) 42%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 夜间：对应轻暗角 + 极轻模糊，通透不闷 */
+.portfolio-container.dark-theme .portfolio-bg-scrim {
+  background: linear-gradient(
+    165deg,
+    rgba(15, 23, 42, 0.12) 0%,
+    rgba(30, 27, 58, 0.08) 50%,
+    rgba(15, 23, 42, 0.14) 100%
+  );
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .bg-video {
@@ -354,7 +486,7 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   object-fit: cover;
-  z-index: -1;
+  z-index: -2;
   transition: opacity 0.5s ease, transform 0.6s ease-out;
   will-change: transform, opacity;
 }
@@ -366,42 +498,62 @@ onUnmounted(() => {
 
 /* Dark Theme */
 .portfolio-container.dark-theme {
-  background: linear-gradient(135deg, rgba(26, 26, 46, 0.4) 0%, rgba(42, 27, 61, 0.5) 100%);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.12) 0%, rgba(30, 27, 50, 0.1) 100%);
   color: #e2e8f0;
 }
 
-/* Typography */
+/* Typography：标题加重、辅文轻量化、阅读节奏 */
 h1, h2, h3 {
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 h2 {
   font-size: 2rem;
   text-align: center;
   margin-bottom: 2rem;
-  background: linear-gradient(to right, #4a90e2, #50e3c2);
+  font-weight: 800;
+  background: linear-gradient(to right, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .dark-theme h2 {
   background: linear-gradient(to right, #a18cd1, #fbc2eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Glassmorphism */
-.glass-nav, .glass-card {
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 32px 0 rgba(74, 144, 226, 0.15);
-  transition: all 0.3s ease;
+/* 顶栏：略强于内容区，保证导航可读 */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+  transition: transform 0.32s ease, box-shadow 0.32s ease, background 0.3s ease;
 }
-.dark-theme .glass-nav, .dark-theme .glass-card {
-  background: rgba(16, 18, 27, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+.dark-theme .glass-nav {
+  background: rgba(15, 23, 42, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* 内容玻璃卡片：≈10% 不透明 + blur(5px)，悬浮于视频之上 */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.07);
+  transition: transform 0.32s ease, box-shadow 0.32s ease, background 0.3s ease;
+}
+.dark-theme .glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
 }
 
 /* Navigation */
@@ -453,7 +605,7 @@ h2 {
   padding: 5px 10px;
   border-radius: 999px;
   text-decoration: none;
-  color: #2c3e50;
+  color: #0f172a;
   background: rgba(255, 255, 255, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(8px);
@@ -487,7 +639,7 @@ h2 {
   letter-spacing: -0.5px;
   white-space: nowrap;
   flex-shrink: 0;
-  background: linear-gradient(to right, #4a90e2, #50e3c2);
+  background: linear-gradient(to right, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -523,8 +675,14 @@ h2 {
   text-align: center;
   max-width: 640px;
   margin: -1rem auto 1.5rem;
-  opacity: 0.85;
-  line-height: 1.6;
+  font-weight: 400;
+  opacity: 0.78;
+  line-height: 1.72;
+  letter-spacing: 0.02em;
+  color: rgba(15, 23, 42, 0.82);
+}
+.dark-theme .section-sub {
+  color: rgba(226, 232, 240, 0.82);
 }
 .center { text-align: center; }
 
@@ -537,8 +695,14 @@ h2 {
 }
 .home-hub-lead {
   margin: 0 0 1.25rem;
-  line-height: 1.65;
-  opacity: 0.9;
+  line-height: 1.75;
+  letter-spacing: 0.015em;
+  font-weight: 400;
+  opacity: 0.82;
+  color: rgba(15, 23, 42, 0.78);
+}
+.dark-theme .home-hub-lead {
+  color: rgba(226, 232, 240, 0.78);
 }
 .home-hub-actions {
   display: flex;
@@ -562,10 +726,14 @@ h2 {
 }
 .hero-title {
   font-size: 4rem;
-  letter-spacing: -1.5px;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
   margin-bottom: 1rem;
-  color: #1a2a3a;
-  text-shadow: 0 2px 4px rgba(255,255,255,0.8);
+  font-weight: 800;
+  color: #0f172a;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55),
+    0 0 40px rgba(255, 255, 255, 0.25);
 }
 .hero-title--animate {
   animation: hero-title-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -581,9 +749,10 @@ h2 {
 }
 .hero-name-float {
   display: inline-block;
-  background: linear-gradient(to right, #4a90e2, #50e3c2);
+  background: linear-gradient(to right, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-shadow: none;
   animation: hero-name-float 4.8s ease-in-out infinite;
   animation-delay: 0.4s;
@@ -628,8 +797,9 @@ h2 {
 .about-card {
   padding: 40px;
   border-radius: 24px;
-  font-size: 1.1rem;
-  line-height: 1.8;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
 }
 .about-content {
   display: flex;
@@ -649,22 +819,22 @@ h2 {
 }
 .about-text { flex: 1; }
 .about-card p {
-  font-weight: 500;
-  color: #2c3e50;
+  font-weight: 400;
+  color: rgba(15, 23, 42, 0.88);
 }
 .dark-theme .about-card p {
   color: #e2e8f0;
 }
 
-/* Cards Hover */
+/* Cards Hover：略提亮，不破坏通透 */
 .glass-card:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 12px 40px 0 rgba(74, 144, 226, 0.25);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
 }
 .dark-theme .glass-card:hover {
-  background: rgba(30, 32, 45, 0.7);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
 }
 
 /* Works Grid */
@@ -674,40 +844,132 @@ h2 {
   gap: 24px;
 }
 .work-card {
-  padding: 30px;
+  padding: 0;
   border-radius: 24px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  outline: none;
+}
+.work-card:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color, #4a90e2) 45%, transparent);
+}
+.work-card__media {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+.work-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.work-card__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.88), transparent 52%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.work-card__overlay-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+}
+.work-card__detail {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  font-weight: 400;
+  color: rgba(248, 250, 252, 0.92);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+}
+.work-card:hover .work-card__overlay,
+.work-card:focus-visible .work-card__overlay {
+  opacity: 1;
+}
+.work-card:hover .work-card__img,
+.work-card:focus-visible .work-card__img {
+  transform: scale(1.06);
+}
+.glass-card.work-card:hover,
+.glass-card.work-card:focus-visible {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow:
+    0 22px 50px rgba(15, 23, 42, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.dark-theme .glass-card.work-card:hover,
+.dark-theme .glass-card.work-card:focus-visible {
+  box-shadow:
+    0 22px 50px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.work-card__body {
+  padding: 22px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 .work-tag {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: rgba(74, 144, 226, 0.15);
-  color: #4a90e2;
+  background: color-mix(in srgb, var(--primary-color, #4a90e2) 18%, transparent);
+  color: var(--primary-color, #4a90e2);
   padding: 4px 10px;
   border-radius: 12px;
   align-self: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   font-weight: 700;
 }
 .dark-theme .work-tag {
   background: rgba(251, 194, 235, 0.15);
   color: #fbc2eb;
 }
-.work-card h3 { font-size: 1.4rem; color: #1a2a3a; }
-.dark-theme .work-card h3 { color: #f0f4f8; }
-.work-card p { color: #2c3e50; font-weight: 500; margin-bottom: 24px; flex-grow: 1; }
-.dark-theme .work-card p { color: #cbd5e1; }
+.work-card h3 {
+  font-size: 1.35rem;
+  color: #0f172a;
+  margin: 0 0 8px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+.dark-theme .work-card h3 {
+  color: #f0f4f8;
+}
+.work-card__excerpt {
+  color: rgba(15, 23, 42, 0.76);
+  font-weight: 400;
+  margin: 0 0 16px;
+  flex-grow: 1;
+  line-height: 1.68;
+  letter-spacing: 0.02em;
+  font-size: 0.95rem;
+}
+.dark-theme .work-card__excerpt {
+  color: rgba(203, 213, 225, 0.88);
+}
 .work-link {
   font-weight: 700;
-  color: #4a90e2;
-  text-decoration: none;
-  cursor: pointer;
-  transition: opacity 0.3s;
+  font-size: 0.95rem;
+  color: var(--primary-color, #4a90e2);
+  margin-top: auto;
 }
-.dark-theme .work-link { color: #fbc2eb; }
-.work-link:hover { opacity: 0.8; }
+.dark-theme .work-link { color: #c4b5fd; }
 
 /* Contact */
 .contact-card {
@@ -715,7 +977,7 @@ h2 {
   border-radius: 24px;
   text-align: center;
 }
-.contact-card p { margin-bottom: 30px; font-size: 1.1rem; font-weight: 500; color: #2c3e50; }
+.contact-card p { margin-bottom: 30px; font-size: 1.1rem; font-weight: 500; color: #0f172a; }
 .dark-theme .contact-card p { color: #e2e8f0; }
 .contact-img {
   width: 100%;
@@ -735,9 +997,9 @@ h2 {
   border-radius: 30px;
   text-decoration: none;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.8);
-  color: #4a90e2;
-  border: 1px solid rgba(74, 144, 226, 0.3);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--primary-color, #4a90e2);
+  border: 1px solid color-mix(in srgb, var(--primary-color, #4a90e2) 35%, transparent);
   transition: all 0.3s ease;
 }
 .dark-theme .contact-links a {
@@ -746,7 +1008,7 @@ h2 {
   border-color: rgba(251, 194, 235, 0.3);
 }
 .contact-links a:hover {
-  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%);
+  background: linear-gradient(135deg, var(--primary-color, #4a90e2) 0%, var(--secondary-color, #8b7fd8) 100%);
   color: white;
   border-color: transparent;
   transform: translateY(-2px);
@@ -769,6 +1031,13 @@ h2 {
 
 /* 首页顶栏汉堡：浅色背景下保证对比度 */
 .portfolio-container:not(.dark-theme) .nav-burger {
-  color: #1a2a3a;
+  color: #0f172a;
+}
+
+.portfolio-container .nav-more-wrap summary.nav-more-trigger {
+  list-style: none;
+}
+.portfolio-container .nav-more-wrap summary::-webkit-details-marker {
+  display: none;
 }
 </style>

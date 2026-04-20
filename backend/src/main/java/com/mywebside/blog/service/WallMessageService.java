@@ -26,10 +26,11 @@ public class WallMessageService {
     this.wallMessageRepository = wallMessageRepository;
   }
 
-  /** 前台：仅展示已通过审核的留言，按 id 倒序，支持分页。 */
+  /** 前台：仅展示已通过审核的留言，按创建时间倒序，支持分页。 */
   public PageResponse<WallMessagePublicDto> listApproved(int page, int size) {
-    PageRequest pr = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-    Page<WallMessage> pg = wallMessageRepository.findByStatus(WallMessageStatus.APPROVED, pr);
+    PageRequest pr = PageRequest.of(page, size);
+    Page<WallMessage> pg =
+        wallMessageRepository.findByStatusOrderByCreatedAtDesc(WallMessageStatus.APPROVED, pr);
     List<WallMessagePublicDto> items = pg.getContent().stream()
         .map(m -> new WallMessagePublicDto(
             m.getId(),

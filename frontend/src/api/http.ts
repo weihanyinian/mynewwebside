@@ -9,13 +9,19 @@ export type ApiResponse<T> = {
   timestamp?: number
 }
 
-/** 生产构建若 VITE_API_BASE_URL 为空字符串，用同源相对路径（需 Nginx 反代 /api）；开发默认连本机后端 */
+/**
+ * - 未设置 VITE_API_BASE_URL：生产用同源 `/api`（需 Nginx 反代）；开发用空串走 Vite proxy，见 vite.config.ts。
+ * - 若仍要直连后端（如调试 CORS），可设 VITE_API_BASE_URL=http://127.0.0.1:8080
+ */
 function resolveApiBaseUrl(): string {
   const v = import.meta.env.VITE_API_BASE_URL as string | undefined
-  if (v === '' || v === undefined) {
-    return import.meta.env.DEV ? 'http://localhost:8080' : ''
+  if (v !== undefined && v !== '') {
+    return v
   }
-  return v
+  if (import.meta.env.DEV) {
+    return ''
+  }
+  return ''
 }
 
 export const http = axios.create({

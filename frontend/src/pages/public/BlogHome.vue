@@ -216,10 +216,7 @@ onUnmounted(() => {
               :key="item.path"
               type="button"
               class="site-pill site-pill--block"
-              :class="{
-                'site-pill--active': item.active && item.path !== '/moyu',
-                'site-pill--pink': item.active && item.path === '/moyu',
-              }"
+              :class="{ 'site-pill--active': item.active }"
               @click="goPath(item.path)"
             >
               {{ item.label }}
@@ -501,13 +498,12 @@ onUnmounted(() => {
     filter 0.25s ease;
 }
 
-.blog-side-nav .site-pill:not(.site-pill--active):not(.site-pill--pink):hover {
+.blog-side-nav .site-pill:not(.site-pill--active):hover {
   transform: translateX(5px);
   box-shadow: 0 4px 18px rgba(102, 217, 255, 0.2);
 }
 
-.blog-side-nav .site-pill--active,
-.blog-side-nav .site-pill--pink {
+.blog-side-nav .site-pill--active {
   box-shadow: 0 4px 20px rgba(102, 217, 255, 0.28);
 }
 

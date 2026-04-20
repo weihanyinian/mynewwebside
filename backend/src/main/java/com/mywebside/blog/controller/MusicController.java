@@ -2,6 +2,7 @@ package com.mywebside.blog.controller;
 
 import com.mywebside.blog.common.ApiResponse;
 import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
+import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongMetaDto;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
@@ -30,31 +31,37 @@ public class MusicController {
 
   private static final Logger log = LoggerFactory.getLogger(MusicController.class);
 
-  /** 默认歌单 ID */
-  private static final String DEFAULT_PLAYLIST_ID = "489057279";
+  private static final int PLAYLIST_TRACK_LIMIT = 1000;
 
   private static final long CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(5);
 
   private final NeteaseBinaryifyClient neteaseBinaryifyClient;
   private final NeteaseMusicProxyService neteaseMusicProxyService;
+  private final NeteaseProxyProperties neteaseProxyProperties;
 
   private final ConcurrentHashMap<String, CachedPlaylist> playlistCache = new ConcurrentHashMap<>();
 
-  public MusicController(NeteaseBinaryifyClient neteaseBinaryifyClient, NeteaseMusicProxyService neteaseMusicProxyService) {
+  public MusicController(
+      NeteaseBinaryifyClient neteaseBinaryifyClient,
+      NeteaseMusicProxyService neteaseMusicProxyService,
+      NeteaseProxyProperties neteaseProxyProperties
+  ) {
     this.neteaseBinaryifyClient = neteaseBinaryifyClient;
     this.neteaseMusicProxyService = neteaseMusicProxyService;
+    this.neteaseProxyProperties = neteaseProxyProperties;
   }
 
   /**
-   * 获取歌单曲目列表。
-   * GET /api/public/music/playlist?id=489057279&shuffle=true
+   * 获取歌单曲目列表；省略 {@code id} 时使用配置项 {@code netease.proxy.default-playlist-id}。
+   * GET /api/public/music/playlist?id=&shuffle=true
    */
   @GetMapping("/playlist")
   public ApiResponse<List<PlaylistTrack>> getPlaylist(
-      @RequestParam(defaultValue = DEFAULT_PLAYLIST_ID) String id,
+      @RequestParam(required = false) String id,
       @RequestParam(defaultValue = "false") boolean shuffle
   ) {
-    List<PlaylistTrack> tracks = loadPlaylist(id);
+    String playlistId = (id == null || id.isBlank()) ? neteaseProxyProperties.getDefaultPlaylistId() : id;
+    List<PlaylistTrack> tracks = loadPlaylist(playlistId);
     if (tracks.isEmpty()) {
       return ApiResponse.error(503, "歌单加载失败，请稍后再试");
     }
@@ -85,7 +92,7 @@ public class MusicController {
       return cached.tracks;
     }
     try {
-      var root = neteaseBinaryifyClient.playlistTrackAll(Long.parseLong(playlistId), 100, null);
+      var root = neteaseBinaryifyClient.playlistTrackAll(Long.parseLong(playlistId), PLAYLIST_TRACK_LIMIT, null);
       List<SongMetaDto> metas = neteaseMusicProxyService.parsePlaylistSongs(root);
       List<PlaylistTrack> tracks = new ArrayList<>();
       for (SongMetaDto m : metas) {

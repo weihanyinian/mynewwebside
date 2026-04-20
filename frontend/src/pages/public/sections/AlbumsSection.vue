@@ -25,8 +25,8 @@ onMounted(() => void load())
   <section class="section" id="albums">
     <h2>{{ manifest?.title || t('pages.albumsTitle') }}</h2>
     <div v-if="manifest?.items?.length" class="home-album-grid">
-      <figure v-for="(it, i) in manifest.items" :key="i" class="home-album-item glass-card">
-        <img :src="it.src" :alt="it.title || ''" loading="lazy" />
+      <figure v-for="(it, i) in manifest.items" :key="i" class="home-album-item glass-card site-module-card">
+        <img :src="it.src" :alt="it.title || ''" loading="lazy" decoding="async" />
         <figcaption v-if="it.title">{{ it.title }}</figcaption>
       </figure>
     </div>

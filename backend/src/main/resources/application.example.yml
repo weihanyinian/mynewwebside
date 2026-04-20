@@ -75,6 +75,7 @@ oj:
 netease:
   proxy:
     base-url: ${NETEASE_PROXY_BASE_URL:https://netease-cloud-music-api-five-roan-58.vercel.app}
+    default-playlist-id: ${NETEASE_DEFAULT_PLAYLIST_ID:489057279}
   music:
     open:
       enabled: false

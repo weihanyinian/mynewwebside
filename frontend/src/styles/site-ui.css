@@ -1,6 +1,5 @@
 /**
- * 【全站 UI 统一】导航与按钮规范：圆角 16px、玻璃态、青蓝渐变选中、粉系主行动按钮。
- * 与首页 Portfolio「前往博客」（青蓝渐变）、「摸鱼」（粉渐变）视觉对齐。
+ * 【全站 UI 统一】圆角 16px、玻璃态；主按钮为青蓝→浅紫渐变，次按钮为浅底描边。
  * 引入顺序：在 main.ts 中于 ./style.css 之后加载。
  */
 
@@ -73,13 +72,13 @@
   transform: none;
 }
 
-/* ---------- 选中 / 主 CTA：青蓝渐变（同「前往博客」） ---------- */
+/* ---------- 选中 / 主 CTA：主题色渐变（日间青蓝→浅紫 / 夜间深紫系） ---------- */
 .site-pill--active {
-  background: linear-gradient(135deg, #4a90e2 0%, #50e3c2 100%) !important;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
   border-color: rgba(255, 255, 255, 0.55) !important;
   color: #fff !important;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) !important;
-  box-shadow: 0 8px 28px rgba(102, 217, 255, 0.32);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--primary-color) 35%, transparent);
 }
 
 .site-pill--active:hover:not(:disabled) {
@@ -87,22 +86,45 @@
   transform: translateY(-2px);
 }
 
-/* ---------- 粉系主按钮（同「摸鱼」、留言墙「发射留言」） ---------- */
-.site-pill--pink {
-  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%) !important;
-  border-color: rgba(255, 255, 255, 0.55) !important;
+/* 主行动按钮（留言提交等），与 --active 同系，可单独加尺寸类 */
+.site-pill--primary-cta {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
   color: #fff !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.22) !important;
-  box-shadow: 0 8px 26px rgba(255, 154, 158, 0.35);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--primary-color) 32%, transparent);
 }
 
-:root[data-theme='dark'] .site-pill--pink {
-  background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%) !important;
-}
-
-.site-pill--pink:hover:not(:disabled) {
+.site-pill--primary-cta:hover:not(:disabled) {
   transform: translateY(-2px);
   filter: brightness(1.05);
+}
+
+.site-pill--primary-cta:disabled {
+  opacity: 0.45 !important;
+  filter: grayscale(0.2);
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ---------- 次按钮：浅底 + 主题色描边 ---------- */
+.site-pill--secondary {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 42%, rgba(255, 255, 255, 0.7)) !important;
+  color: var(--blog-on-glass, var(--text-color)) !important;
+  text-shadow: none !important;
+}
+
+:root[data-theme='dark'] .site-pill--secondary {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(196, 181, 253, 0.45) !important;
+  color: rgba(248, 250, 252, 0.95) !important;
+}
+
+.site-pill--secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--primary-color) 22%, transparent);
 }
 
 /* ---------- 尺寸 / 布局变体 ---------- */
@@ -406,4 +428,74 @@
   min-width: auto;
   border: 1px solid rgba(255, 255, 255, 0.45);
   user-select: none;
+}
+
+/* ---------- 顶栏「更多」下拉（摸鱼等非核心入口） ---------- */
+.nav-more-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.nav-more-wrap summary.nav-more-trigger {
+  display: inline-flex;
+  align-items: center;
+  list-style: none;
+  cursor: pointer;
+}
+
+.nav-more-wrap summary.nav-more-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.nav-more-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 200px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 14px 40px rgba(30, 58, 95, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 200;
+}
+
+:root[data-theme='dark'] .nav-more-panel {
+  background: rgba(22, 24, 38, 0.94);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+.nav-more-panel a {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--blog-on-glass, var(--text-color));
+  transition: background 0.2s ease;
+}
+
+.nav-more-panel a:hover {
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+}
+
+@media (max-width: 900px) {
+  .glass-nav .site-nav-links.is-open .nav-more-wrap {
+    width: 100%;
+  }
+
+  .glass-nav .site-nav-links.is-open .nav-more-panel {
+    position: static;
+    width: 100%;
+    margin-top: 8px;
+    box-shadow: none;
+  }
 }

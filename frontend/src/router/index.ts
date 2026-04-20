@@ -41,6 +41,10 @@ const AdminOjSubmissionsPage = () => import('../pages/admin/AdminOjSubmissionsPa
 const AlbumsPage = () => import('../pages/public/AlbumsPage.vue')
 const StatsPage = () => import('../pages/public/StatsPage.vue')
 const MusicCenterPage = () => import('../pages/music/MusicCenterPage.vue')
+const MbtiTestPage = () => import('../pages/tools/MbtiTestPage.vue')
+const GameGuessNumber = () => import('../pages/moyu/GameGuessNumber.vue')
+const GameMemoryCard = () => import('../pages/moyu/GameMemoryCard.vue')
+const MemoriesPage = () => import('../pages/public/MemoriesPage.vue')
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -69,6 +73,10 @@ export const router = createRouter({
     { path: '/snippets', redirect: '/tools' },
     { path: '/stats', component: StatsPage },
     { path: '/music', component: MusicCenterPage, meta: { requiresAuth: true } },
+    { path: '/memories', component: MemoriesPage, meta: { requiresAuth: true } },
+    { path: '/tools/mbti', component: MbtiTestPage },
+    { path: '/moyu/guess', component: GameGuessNumber },
+    { path: '/moyu/memory-card', component: GameMemoryCard },
     { path: '/admin/login', redirect: '/login' },
     { path: '/tools', component: ToolsHubPage },
     { path: '/tools/reaction', component: ToolReactionPage },

@@ -2,35 +2,46 @@
 /**
  * 留言墙：对接后端审核流；列表仅展示已通过记录；提交后为待审核状态。
  */
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Loading } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import BackToBlogButton from '../../components/BackToBlogButton.vue'
 import { fetchWallMessages, submitWallMessage, type WallMessagePublic } from '../../api/wall'
+import { escapeHtml } from '../../utils/escapeHtml'
 
 const { t } = useI18n()
 
 const loading = ref(true)
 const loadError = ref(false)
 const messages = ref<WallMessagePublic[]>([])
+const total = ref(0)
+const page = ref(0)
+const pageSize = ref(9)
 
 const newAuthor = ref('')
 const newContent = ref('')
 const submitting = ref(false)
 
+const canSubmit = computed(() => newContent.value.trim().length > 0)
+
 async function load() {
   loading.value = true
   loadError.value = false
   try {
-    const res = await fetchWallMessages({ page: 0, size: 50 })
+    const res = await fetchWallMessages({ page: page.value, size: pageSize.value })
     messages.value = res.items
+    total.value = res.total
   } catch {
     loadError.value = true
     messages.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
+
+watch(page, () => void load())
 
 function formatTime(iso: string) {
   try {
@@ -41,7 +52,7 @@ function formatTime(iso: string) {
 }
 
 async function submitMessage() {
-  if (!newContent.value.trim()) {
+  if (!canSubmit.value) {
     ElMessage.warning(t('messageWall.emptyContent'))
     return
   }
@@ -51,12 +62,17 @@ async function submitMessage() {
     newContent.value = ''
     newAuthor.value = ''
     ElMessage.success(t('messageWall.pendingReview'))
+    page.value = 0
     await load()
   } catch (e: unknown) {
     ElMessage.error(e instanceof Error ? e.message : '提交失败')
   } finally {
     submitting.value = false
   }
+}
+
+function onPageChange(p: number) {
+  page.value = p - 1
 }
 
 onMounted(load)
@@ -72,27 +88,30 @@ onMounted(load)
       <p class="wall-subtitle">{{ t('messageWall.subtitle') }}</p>
     </div>
 
-    <!-- site-el-round-16：输入框圆角 16px 与全站统一 -->
-    <div class="message-form glass-card site-el-round-16">
-      <el-input v-model="newAuthor" :placeholder="t('messageWall.nickname')" class="mb-3" />
+    <div class="message-form site-module-card site-el-round-16 site-field">
+      <el-input v-model="newAuthor" :placeholder="t('messageWall.nicknamePlaceholder')" class="mb-3" clearable />
       <el-input
         v-model="newContent"
         type="textarea"
         :rows="3"
-        :placeholder="t('messageWall.placeholder')"
+        :placeholder="t('messageWall.contentPlaceholder')"
         class="mb-3"
       />
       <div class="form-actions">
-        <!-- 「发射留言」→ 与首页「摸鱼」一致的粉系渐变主按钮 -->
-        <button type="button" class="site-pill site-pill--pink" :disabled="submitting" @click="submitMessage">
-          {{ t('messageWall.submit') }}
+        <button
+          type="button"
+          class="site-pill site-pill--primary-cta"
+          :disabled="!canSubmit || submitting"
+          @click="submitMessage"
+        >
+          <el-icon v-if="submitting" class="submit-ico"><Loading /></el-icon>
+          {{ submitting ? t('messageWall.submitting') : t('messageWall.submit') }}
         </button>
       </div>
     </div>
 
-    <!-- 骨架屏 -->
     <div v-if="loading" class="messages-grid" aria-busy="true">
-      <div v-for="n in 4" :key="'sk-' + n" class="message-card glass-card skeleton-card">
+      <div v-for="n in 4" :key="'sk-' + n" class="message-card site-module-card skeleton-card">
         <div class="sk-line sk-line--short" />
         <div class="sk-line" />
         <div class="sk-line" />
@@ -100,21 +119,21 @@ onMounted(load)
       </div>
     </div>
 
-    <p v-else-if="loadError" class="wall-error glass-inline">{{ t('messageWall.loadError') }}</p>
+    <p v-else-if="loadError" class="wall-error">{{ t('messageWall.loadError') }}</p>
 
     <template v-else>
       <div v-if="messages.length" class="messages-grid">
         <transition-group name="list">
-          <div v-for="m in messages" :key="m.id" class="message-card glass-card">
+          <div v-for="m in messages" :key="m.id" class="message-card site-module-card">
             <div class="msg-header">
               <div class="msg-author-info">
-                <span class="msg-avatar">💬</span>
-                <span class="msg-author">{{ m.nickname }}</span>
+                <span class="msg-avatar" aria-hidden="true">💬</span>
+                <span class="msg-author">{{ m.nickname || t('messageWall.anonymous') }}</span>
               </div>
               <div class="msg-time">{{ formatTime(m.createdAt) }}</div>
             </div>
-            <div class="msg-content">{{ m.content }}</div>
-            <div v-if="m.adminReply" class="msg-reply glass-reply">
+            <div class="msg-content" v-html="escapeHtml(m.content)"></div>
+            <div v-if="m.adminReply" class="msg-reply">
               <span class="msg-reply__label">{{ t('messageWall.replyFromAdmin') }}</span>
               <p class="msg-reply__text">{{ m.adminReply }}</p>
             </div>
@@ -122,10 +141,21 @@ onMounted(load)
         </transition-group>
       </div>
 
-      <div v-else class="wall-empty glass-card">
-        <div class="wall-empty__icon">🍃</div>
-        <h2 class="wall-empty__title">{{ t('messageWall.emptyTitle') }}</h2>
+      <div v-else class="wall-empty site-module-card">
+        <div class="wall-empty__icon" aria-hidden="true">🍃</div>
+        <h2 class="wall-empty__title wall-empty__title--emph">{{ t('messageWall.emptyTitle') }}</h2>
         <p class="wall-empty__hint">{{ t('messageWall.emptyHint') }}</p>
+      </div>
+
+      <div v-if="total > pageSize" class="wall-pager">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :page-size="pageSize"
+          :current-page="page + 1"
+          :total="total"
+          @current-change="onPageChange"
+        />
       </div>
     </template>
   </div>
@@ -163,26 +193,35 @@ onMounted(load)
   font-size: 2.5rem;
   font-weight: 800;
   margin-bottom: 8px;
-  background: linear-gradient(to right, #fff, #a5d8ff);
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .wall-subtitle {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-muted);
   font-size: 1.1rem;
 }
 
 .message-form {
   padding: 24px;
   margin-bottom: 40px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px rgba(102, 217, 255, 0.2);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submit-ico {
+  margin-right: 6px;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .messages-grid {
@@ -195,18 +234,10 @@ onMounted(load)
   padding: 20px;
   border-radius: 16px;
   position: relative;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px rgba(102, 217, 255, 0.2);
 }
 
 .message-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 14px 36px rgba(102, 217, 255, 0.28);
 }
 
 .msg-header {
@@ -214,41 +245,42 @@ onMounted(load)
   justify-content: space-between;
   margin-bottom: 12px;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-muted);
 }
 
 .msg-author-info {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: bold;
+  font-weight: 700;
+  color: var(--text-color);
 }
 
 .msg-content {
   line-height: 1.6;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  color: var(--text-color);
   white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .msg-reply {
   margin-top: 12px;
   padding: 10px 12px;
   border-radius: 16px;
-  border: 1px solid rgba(80, 227, 194, 0.35);
-  background: rgba(0, 40, 60, 0.2);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
 }
 
 .msg-reply__label {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #50e3c2;
+  color: var(--primary-color);
 }
 
 .msg-reply__text {
   margin: 6px 0 0;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text-color);
   white-space: pre-wrap;
 }
 
@@ -272,7 +304,12 @@ onMounted(load)
 .sk-line {
   height: 12px;
   border-radius: 8px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--text-color) 8%, transparent),
+    color-mix(in srgb, var(--text-color) 16%, transparent),
+    color-mix(in srgb, var(--text-color) 8%, transparent)
+  );
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite;
   margin-bottom: 10px;
@@ -299,13 +336,16 @@ onMounted(load)
 .wall-error {
   padding: 12px 16px;
   border-radius: 16px;
-  color: #ffe0e0;
+  color: #b91c1c;
+  background: rgba(254, 226, 226, 0.85);
+  border: 1px solid rgba(248, 113, 113, 0.5);
   margin-bottom: 16px;
 }
 
-.glass-inline {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 180, 180, 0.4);
+:root[data-theme='dark'] .wall-error {
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.35);
+  border-color: rgba(248, 113, 113, 0.35);
 }
 
 .wall-empty {
@@ -322,16 +362,32 @@ onMounted(load)
 .wall-empty__title {
   margin: 0 0 8px;
   font-size: 1.25rem;
-  color: #fff;
+  color: var(--text-color);
+}
+
+.wall-empty__title--emph {
+  font-weight: 900;
+  font-size: 1.35rem;
+  color: var(--text-color);
 }
 
 .wall-empty__hint {
   margin: 0;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-muted);
   line-height: 1.6;
   max-width: 420px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.wall-pager {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+:deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+  background-color: var(--primary-color) !important;
 }
 
 .mb-3 {

@@ -157,10 +157,7 @@ watch(
               :key="item.name"
               href="#"
               class="site-pill site-pill--block site-pill--on-dark text-sm whitespace-nowrap flex-shrink-0"
-              :class="{
-                'site-pill--active': isNavActive(item.path) && item.path !== '/moyu',
-                'site-pill--pink': isNavActive(item.path) && item.path === '/moyu',
-              }"
+              :class="{ 'site-pill--active': isNavActive(item.path) }"
               @click.prevent="go(item.path)"
             >
               {{ item.name }}

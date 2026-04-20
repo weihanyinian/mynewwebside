@@ -6,6 +6,7 @@ import com.mywebside.blog.common.IpRateLimiter;
 import com.mywebside.blog.service.UserAccountService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,10 @@ public class AuthController {
   private final UserAccountService userAccountService;
   private final IpRateLimiter registerLimiter;
 
-  public AuthController(UserAccountService userAccountService, IpRateLimiter registerLimiter) {
+  public AuthController(
+      UserAccountService userAccountService,
+      @Qualifier("registerRateLimiter") IpRateLimiter registerLimiter
+  ) {
     this.userAccountService = userAccountService;
     this.registerLimiter = registerLimiter;
   }

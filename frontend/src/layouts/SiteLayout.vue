@@ -7,11 +7,17 @@ import { useUserStore } from '../stores/user'
 import { goToSiteHome } from '../utils/siteHome'
 import GlassBreadcrumb from '../components/GlassBreadcrumb.vue'
 import SiteGlassFooter from '../components/site/SiteGlassFooter.vue'
+import SiteBackToTop from '../components/site/SiteBackToTop.vue'
 import { useThemeStore } from '../stores/theme'
 
 const router = useRouter()
 const route = useRoute()
 const { t, locale } = useI18n()
+const moreDetailsEl = ref<HTMLDetailsElement | null>(null)
+
+function closeMoreMenu() {
+  if (moreDetailsEl.value) moreDetailsEl.value.open = false
+}
 
 /** 【主题】全站共享 Pinia，与首页 Portfolio 同一套日间/夜间状态 */
 const themeStore = useThemeStore()
@@ -61,6 +67,10 @@ function isSectionActive(hash: string) {
   return route.path === '/' && route.hash === hash
 }
 
+function isRoutePrefix(path: string) {
+  return route.path === path || route.path.startsWith(`${path}/`)
+}
+
 /** 顶栏 Logo：全局回主页入口（清除 hash，子页状态随卸载而结束） */
 function onSiteLogoClick() {
   goToSiteHome(router)
@@ -75,6 +85,7 @@ watch(
   () => route.fullPath,
   () => {
     mobileNavOpen.value = false
+    closeMoreMenu()
   },
 )
 
@@ -164,15 +175,9 @@ watch(
           <a
             href="#"
             class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path.startsWith('/albums') }"
+            :class="{ 'site-pill--active': isRoutePrefix('/albums') }"
             @click.prevent="router.push('/albums')"
           >{{ t('breadcrumb.albums') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav moyu-link"
-            :class="{ 'site-pill--pink': route.path === '/moyu' }"
-            @click.prevent="router.push('/moyu')"
-          >{{ t('nav.moyu') }}</a>
           <a
             href="#"
             class="site-pill site-pill--nav site-pill--keep-mobile"
@@ -185,15 +190,36 @@ watch(
           <a
             href="#"
             class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path.startsWith('/tools') }"
+            :class="{ 'site-pill--active': isRoutePrefix('/tools') }"
             @click.prevent="router.push('/tools')"
           >{{ t('nav.tools') }}</a>
           <a
             href="#"
             class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path.startsWith('/blog') || route.path.startsWith('/article') }"
+            :class="{ 'site-pill--active': isRoutePrefix('/blog') || isRoutePrefix('/article') }"
             @click.prevent="router.push('/blog')"
           >{{ t('nav.blog') }}</a>
+          <details ref="moreDetailsEl" class="nav-more-wrap">
+            <summary class="site-pill site-pill--nav nav-more-trigger">{{ t('nav.more') }}</summary>
+            <div class="nav-more-panel" @click="closeMoreMenu">
+              <a
+                href="#"
+                :class="{ 'site-pill--active': isRoutePrefix('/moyu') }"
+                @click.prevent="router.push('/moyu')"
+              >{{ t('nav.moyu') }}</a>
+              <a
+                href="#"
+                :class="{ 'site-pill--active': route.path === '/tools/mbti' }"
+                @click.prevent="router.push('/tools/mbti')"
+              >{{ t('nav.mbti') }}</a>
+              <a
+                v-if="isLoggedIn"
+                href="#"
+                :class="{ 'site-pill--active': route.path === '/memories' }"
+                @click.prevent="router.push('/memories')"
+              >{{ t('nav.memories') }}</a>
+            </div>
+          </details>
           <a
             v-if="isAdminUser"
             href="#"
@@ -237,6 +263,7 @@ watch(
     </main>
 
     <SiteGlassFooter />
+    <SiteBackToTop />
   </div>
 </template>
 

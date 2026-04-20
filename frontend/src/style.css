@@ -9,16 +9,17 @@
  */
 
 :root {
-  --primary-color: #4a90e2;
-  --secondary-color: #50e3c2;
+  --primary-color: #5b9bd8;
+  --secondary-color: #9b8fd4;
   --bg-gradient: linear-gradient(135deg, rgba(230, 238, 245, 0.8) 0%, rgba(200, 218, 235, 0.9) 100%);
-  --glass-bg: rgba(255, 255, 255, 0.4);
-  --glass-border: rgba(255, 255, 255, 0.6);
-  --glass-shadow: 0 8px 32px 0 rgba(74, 144, 226, 0.15);
-  --text-color: #2c3e50;
+  --glass-bg: rgba(255, 255, 255, 0.14);
+  --glass-border: rgba(255, 255, 255, 0.42);
+  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+  --text-color: #0f172a;
+  --text-muted: rgba(15, 23, 42, 0.68);
   /* 博客玻璃卡片上的主/次文字（SiteLayout 切换主题时会覆盖） */
-  --blog-on-glass: #1a3a52;
-  --blog-on-glass-muted: rgba(26, 58, 82, 0.75);
+  --blog-on-glass: #0f172a;
+  --blog-on-glass-muted: rgba(15, 23, 42, 0.72);
   --ux-duration: 0.42s;
   --ux-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -60,8 +61,8 @@ a {
 
 .card {
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   box-shadow: var(--glass-shadow);
@@ -77,7 +78,66 @@ a {
 }
 
 .muted {
-  color: rgba(44, 62, 80, 0.6);
+  color: var(--text-muted, rgba(15, 23, 42, 0.68));
+}
+
+:root[data-theme='dark'] .muted {
+  color: var(--text-muted, rgba(234, 248, 255, 0.78));
+}
+
+/**
+ * 首页/模块：半透明白（或夜间深色）圆角容器，与动态背景区分层次
+ */
+/* 首页留言区 / 工具等：极浅玻璃，与视频背景分层 */
+.site-module-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.07);
+  transition:
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.32s ease,
+    background 0.3s ease;
+}
+
+:root[data-theme='dark'] .site-module-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
+.site-module-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.11);
+}
+
+:root[data-theme='dark'] .site-module-card:hover {
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+}
+
+/** 表单控件：浅底 + 聚焦主题色描边（全局样式，勿用 Vue :deep） */
+.site-field .el-input__wrapper,
+.site-field .el-textarea__inner {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme='dark'] .site-field .el-input__wrapper,
+:root[data-theme='dark'] .site-field .el-textarea__inner {
+  background: rgba(15, 23, 42, 0.45) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: #f1f5f9 !important;
+}
+
+.site-field .el-input__wrapper.is-focus,
+.site-field .el-textarea__inner:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 28%, transparent) !important;
 }
 
 /* 滚动条：双主题 */

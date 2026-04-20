@@ -12,6 +12,14 @@ const psbUrl = computed(() => import.meta.env.VITE_PUBLIC_PSB_URL || '#')
 
 <template>
   <footer class="site-rich-footer">
+    <div class="site-rich-footer__friends">
+      <span class="friends-label">{{ t('footer.friendsTitle') }}</span>
+      <a href="https://github.com/weihanyinian" target="_blank" rel="noopener noreferrer" class="friends-link">{{
+        t('footer.friendGithub')
+      }}</a>
+      <span class="friends-sep">·</span>
+      <router-link to="/blog" class="friends-link">{{ t('footer.friendBlog') }}</router-link>
+    </div>
     <div class="site-rich-footer__filings">
       <span class="filing-item">
         <span class="filing-label">{{ t('footer.icpLabel') }}</span>
@@ -49,6 +57,42 @@ const psbUrl = computed(() => import.meta.env.VITE_PUBLIC_PSB_URL || '#')
 :root[data-theme='dark'] .site-rich-footer {
   --footer-bg: rgba(12, 14, 24, 0.55);
   --footer-border: rgba(255, 255, 255, 0.1);
+}
+
+.site-rich-footer__friends {
+  max-width: 920px;
+  margin: 0 auto 12px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.friends-label {
+  opacity: 0.55;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.friends-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.friends-link:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.friends-sep {
+  opacity: 0.35;
+  user-select: none;
 }
 
 .site-rich-footer__filings {

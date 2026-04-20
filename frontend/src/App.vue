@@ -33,15 +33,15 @@ const isPortfolio = computed(() => route.path === '/')
 .page-fade-slide-enter-active,
 .page-fade-slide-leave-active {
   transition:
-    opacity 0.34s ease,
-    transform 0.34s ease;
+    opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .page-fade-slide-enter-from {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(18px);
 }
 .page-fade-slide-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-12px);
 }
 </style>

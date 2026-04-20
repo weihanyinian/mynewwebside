@@ -23,10 +23,13 @@ export function syncDocumentTheme(isDark: boolean) {
       '--bg-gradient',
       'linear-gradient(145deg, rgba(22, 28, 42, 0.97) 0%, rgba(32, 26, 48, 0.94) 42%, rgba(18, 36, 52, 0.96) 100%)',
     )
+    root.style.setProperty('--primary-color', '#a18cd1')
+    root.style.setProperty('--secondary-color', '#c4b5fd')
     root.style.setProperty('--text-color', '#eaf8ff')
-    root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.12)')
-    root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.45)')
-    root.style.setProperty('--glass-shadow', '0 8px 32px rgba(102, 217, 255, 0.18)')
+    root.style.setProperty('--text-muted', 'rgba(234, 248, 255, 0.78)')
+    root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.09)')
+    root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.16)')
+    root.style.setProperty('--glass-shadow', '0 12px 40px rgba(0, 0, 0, 0.28)')
     root.style.setProperty('--blog-on-glass', '#f0fbff')
     root.style.setProperty('--blog-on-glass-muted', 'rgba(240, 251, 255, 0.82)')
   } else {
@@ -34,12 +37,16 @@ export function syncDocumentTheme(isDark: boolean) {
       '--bg-gradient',
       'linear-gradient(135deg, rgba(230, 238, 245, 0.85) 0%, rgba(200, 218, 235, 0.92) 100%)',
     )
-    root.style.setProperty('--text-color', '#2c3e50')
-    root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.4)')
-    root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.6)')
-    root.style.setProperty('--glass-shadow', '0 8px 32px 0 rgba(74, 144, 226, 0.15)')
-    root.style.setProperty('--blog-on-glass', '#1a3a52')
-    root.style.setProperty('--blog-on-glass-muted', 'rgba(26, 58, 82, 0.75)')
+    /** 日间：淡蓝主色 + 浅紫辅色，与顶栏渐变一致 */
+    root.style.setProperty('--primary-color', '#5b9bd8')
+    root.style.setProperty('--secondary-color', '#9b8fd4')
+    root.style.setProperty('--text-color', '#0f172a')
+    root.style.setProperty('--text-muted', 'rgba(15, 23, 42, 0.68)')
+    root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.14)')
+    root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.42)')
+    root.style.setProperty('--glass-shadow', '0 12px 40px rgba(15, 23, 42, 0.08)')
+    root.style.setProperty('--blog-on-glass', '#0f172a')
+    root.style.setProperty('--blog-on-glass-muted', 'rgba(15, 23, 42, 0.72)')
   }
 
   root.dataset.theme = mode

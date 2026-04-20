@@ -13,6 +13,7 @@ const cards = computed((): Card[] => [
   { id: 'pomodoro', icon: '🍅', titleKey: 'tools.pomodoro', descKey: 'toolsHub.cardPomodoroDesc', to: '/tools/pomodoro' },
   { id: 'password', icon: '🔑', titleKey: 'tools.password', descKey: 'toolsHub.cardPasswordDesc', to: '/tools/password' },
   { id: 'base64', icon: '🔤', titleKey: 'tools.base64', descKey: 'toolsHub.cardBase64Desc', to: '/tools/base64' },
+  { id: 'mbti', icon: '🧠', titleKey: 'toolsHub.cardMbtiTitle', descKey: 'toolsHub.cardMbtiDesc', to: '/tools/mbti' },
 ])
 </script>
 

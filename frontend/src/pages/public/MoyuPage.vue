@@ -13,6 +13,8 @@ const games = [
   { path: '/moyu/flappy', name: 'Flappy Bird', icon: '🐦', desc: '点按飞行，深色高对比' },
   { path: '/moyu/breakout', name: '打砖块', icon: '🏏', desc: '滑动挡板 + 左右键' },
   { path: '/moyu/gomoku', name: '五子棋', icon: '⚫', desc: '大屏棋盘 · 触摸落子' },
+  { path: '/moyu/guess', name: '猜数字', icon: '🎲', desc: '三档难度 · 冷热提示 · 最少次数挑战' },
+  { path: '/moyu/memory-card', name: '记忆翻牌', icon: '🃏', desc: '翻牌配对 · 记忆力挑战 · 计时排名' },
 ] as const
 
 function go(path: string) {
@@ -28,7 +30,7 @@ function go(path: string) {
     <div class="header">
       <h1 class="title">维寒一念 · 摸鱼中心</h1>
       <p class="subtitle">
-        8 款经典小游戏，纯静态页面嵌入、无 npm 依赖；最高分本地保存；随站点主题切换。
+        10 款经典小游戏，纯静态页面嵌入、无 npm 依赖；最高分本地保存；随站点主题切换。
       </p>
     </div>
 

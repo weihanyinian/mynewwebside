@@ -12,4 +12,6 @@ public interface WallMessageRepository extends JpaRepository<WallMessage, Long> 
   List<WallMessage> findByStatusOrderByIdDesc(WallMessageStatus status);
 
   Page<WallMessage> findByStatus(WallMessageStatus status, Pageable pageable);
+
+  Page<WallMessage> findByStatusOrderByCreatedAtDesc(WallMessageStatus status, Pageable pageable);
 }
