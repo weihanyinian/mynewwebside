@@ -41,53 +41,12 @@ function closeNavMobile() {
   mobileNavOpen.value = false
 }
 
-type WorkItem = {
-  title: string
-  desc: string
-  detail: string
-  tag: string
-  link: string
-  cover: string
-}
-
-const works = ref<WorkItem[]>([
-  {
-    title: '大语言模型微调与部署',
-    desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。',
-    detail: '覆盖数据构建、训练与推理部署流程，可作为 LLM 工程化落地的实践参考。',
-    link: '#works',
-    tag: 'LLM / GLM4',
-    cover: '/avatar.png',
-  },
-  {
-    title: 'Transformer 机器翻译',
-    desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。',
-    detail: '从编码器—解码器到多头注意力，适合巩固序列建模与并行训练要点。',
-    link: '#works',
-    tag: 'Deep Learning',
-    cover: '/avatar.png',
-  },
-  {
-    title: 'MyWebSide Blog',
-    desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。',
-    detail: '博客、留言墙、工具栏与 OJ 一体化；代码开源，欢迎交流与共建。',
-    link: 'https://github.com/weihanyinian/mynewwebside',
-    tag: 'Full Stack',
-    cover: '/avatar.png',
-  },
-  {
-    title: '在线判题 OJ',
-    desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。',
-    detail: '登录后可提交代码、查看评测状态与历史提交记录。',
-    link: '/tools/oj',
-    tag: 'OJ / Sandbox',
-    cover: '/avatar.png',
-  },
-])
-
 const mobileNavOpen = ref(false)
 const portfolioMoreEl = ref<HTMLDetailsElement | null>(null)
 const isNavScrolled = ref(false)
+const pointerX = ref(50)
+const pointerY = ref(50)
+let pointerTicking = false
 
 function closePortfolioMore() {
   if (portfolioMoreEl.value) portfolioMoreEl.value.open = false
@@ -104,18 +63,32 @@ watch(
 /** 当前高亮的 section id（由滚动监听驱动，点击时也同步更新） */
 const activeSection = ref(route.hash ? route.hash.replace(/^#/, '') : '')
 
-const NAV_SECTION_IDS = ['about', 'works', 'blog', 'contact', 'message', 'albums', 'tools']
+const NAV_SECTION_IDS = ['about', 'blog', 'contact', 'message', 'albums', 'tools']
 const NAV_SCROLL_OFFSET = 92
 
 let sectionObserver: IntersectionObserver | null = null
 let heroTicking = false
 
+function onPointerMove(e: PointerEvent) {
+  if (pointerTicking) return
+  pointerTicking = true
+  requestAnimationFrame(() => {
+    pointerX.value = (e.clientX / window.innerWidth) * 100
+    pointerY.value = (e.clientY / window.innerHeight) * 100
+    pointerTicking = false
+  })
+}
+
 function setupSectionObserver() {
   sectionObserver = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
+        const sectionEl = entry.target as HTMLElement
         if (entry.isIntersecting) {
           activeSection.value = entry.target.id
+          sectionEl.classList.add('section--visible')
+        } else {
+          sectionEl.classList.remove('section--visible')
         }
       }
     },
@@ -152,25 +125,6 @@ function scrollTo(id: string) {
   mobileNavOpen.value = false
 }
 
-function onWorkClick(link: string) {
-  if (link.startsWith('#') && link.length > 1) {
-    scrollTo(link.slice(1))
-    return
-  }
-  if (link.startsWith('/')) {
-    router.push(link)
-    return
-  }
-  if (link.startsWith('http://') || link.startsWith('https://')) {
-    window.open(link, '_blank', 'noopener,noreferrer')
-  }
-}
-
-function onWorkCardActivate(work: WorkItem, e?: Event) {
-  if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return
-  onWorkClick(work.link)
-}
-
 function onSiteLogoClick() {
   if (route.path === '/') {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -193,6 +147,7 @@ function onHeroParallax() {
 
 onMounted(() => {
   window.addEventListener('scroll', onHeroParallax, { passive: true })
+  window.addEventListener('pointermove', onPointerMove, { passive: true })
   if (route.hash) {
     const id = route.hash.replace(/^#/, '')
     activeSection.value = id
@@ -208,17 +163,26 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onHeroParallax)
+  window.removeEventListener('pointermove', onPointerMove)
   sectionObserver?.disconnect()
 })
 </script>
 
 <template>
-  <div class="portfolio-container" :class="{ 'dark-theme': isDarkMode }">
+  <div
+    class="portfolio-container"
+    :class="{ 'dark-theme': isDarkMode }"
+    :style="{ '--pointer-x': `${pointerX}%`, '--pointer-y': `${pointerY}%` }"
+  >
     <!-- Video Backgrounds -->
     <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
     <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
     <div class="portfolio-bg-scrim" aria-hidden="true" />
     <div class="portfolio-bg-noise" aria-hidden="true" />
+    <div class="portfolio-bg-scanline" aria-hidden="true" />
+    <div class="bg-neon-orb bg-neon-orb--a" aria-hidden="true" />
+    <div class="bg-neon-orb bg-neon-orb--b" aria-hidden="true" />
+    <div class="bg-neon-orb bg-neon-orb--c" aria-hidden="true" />
 
     <!-- Navbar -->
     <nav class="glass-nav site-nav-unified" :class="{ 'nav-scrolled': isNavScrolled }">
@@ -281,12 +245,6 @@ onUnmounted(() => {
             :class="{ 'site-pill--active': isHashActive('#about') }"
             @click.prevent="scrollTo('about')"
           >{{ t('nav.about') }}</a>
-          <a
-            href="#works"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isHashActive('#works') }"
-            @click.prevent="scrollTo('works')"
-          >{{ t('nav.works') }}</a>
           <a
             href="#blog"
             class="site-pill site-pill--nav site-pill--keep-mobile"
@@ -387,10 +345,12 @@ onUnmounted(() => {
 
     <!-- Hero Section -->
     <section class="hero" id="hero">
-      <div class="hero-content" :style="{ transform: `translate3d(0, ${heroParallaxY}px, 0)` }">
-        <h1 class="hero-title hero-title--animate">{{ t('home.hello') }} <span class="hero-name-float">{{ t('home.name') }}</span></h1>
+      <div class="hero-content hero-glass-card" :style="{ transform: `translate3d(0, ${heroParallaxY}px, 0)` }">
+        <h1 class="hero-title hero-title--animate" :data-shadow="`${t('home.hello')} ${t('home.name')}`">
+          {{ t('home.hello') }} <span class="hero-name-float">{{ t('home.name') }}</span>
+        </h1>
         <div class="hero-actions hero-actions--cta">
-          <button type="button" class="site-pill site-pill--lg site-pill--active" @click="scrollTo('works')">{{ t('home.explore') }}</button>
+          <button type="button" class="site-pill site-pill--lg site-pill--active" @click="scrollTo('blog')">{{ t('home.explore') }}</button>
           <button type="button" class="site-pill site-pill--lg site-pill--secondary" @click="scrollTo('blog')">{{ t('home.readBlog') }}</button>
         </div>
       </div>
@@ -411,39 +371,6 @@ onUnmounted(() => {
             <p>{{ t('home.aboutText2') }}</p>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Works Section -->
-    <section class="section" id="works">
-      <h2>{{ t('home.worksTitle') }}</h2>
-      <div class="works-grid">
-        <article
-          v-for="(work, index) in works"
-          :key="index"
-          class="glass-card work-card site-module-card"
-          role="link"
-          tabindex="0"
-          :aria-label="work.title"
-          @click="onWorkCardActivate(work, $event)"
-          @keydown.enter.prevent="onWorkCardActivate(work, $event)"
-          @keydown.space.prevent="onWorkCardActivate(work, $event)"
-        >
-          <div class="work-card__media">
-            <img :src="work.cover" :alt="''" loading="lazy" decoding="async" class="work-card__img" />
-            <div class="work-card__overlay" :aria-hidden="true">
-              <span class="work-card__overlay-tag">{{ work.tag }}</span>
-              <p class="work-card__overlay-title">{{ work.title }}</p>
-              <p class="work-card__detail">{{ work.desc }}</p>
-            </div>
-          </div>
-          <div class="work-card__body">
-            <span class="work-tag">{{ work.tag }}</span>
-            <h3>{{ work.title }}</h3>
-            <p class="work-card__excerpt">{{ work.desc }}</p>
-            <span class="work-link">{{ t('home.worksDetail') }} →</span>
-          </div>
-        </article>
       </div>
     </section>
 
@@ -516,27 +443,87 @@ onUnmounted(() => {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.18;
+  opacity: 0.045;
   background:
     radial-gradient(circle at 20% 25%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px) 0 0 / 4px 4px,
     radial-gradient(circle at 80% 60%, rgba(91, 155, 216, 0.12) 0 1px, transparent 1px) 0 0 / 6px 6px;
   mix-blend-mode: soft-light;
+  animation: noiseDrift 14s linear infinite;
+}
+
+.portfolio-bg-scanline {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.03;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12) 0 1px,
+    transparent 1px 4px
+  );
+  mix-blend-mode: soft-light;
+}
+
+.bg-neon-orb {
+  position: fixed;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: 50%;
+  opacity: 0.045;
+  filter: blur(26px);
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.bg-neon-orb--a {
+  width: min(40vw, 460px);
+  height: min(40vw, 460px);
+  left: -8vw;
+  top: 6vh;
+  background: radial-gradient(circle, rgba(110, 231, 255, 0.42) 0%, rgba(110, 231, 255, 0) 70%);
+  transform: translate3d(calc((var(--pointer-x, 50%) - 50%) * 0.12), calc((var(--pointer-y, 50%) - 50%) * 0.16), 0);
+}
+.bg-neon-orb--b {
+  width: min(34vw, 420px);
+  height: min(34vw, 420px);
+  right: -6vw;
+  top: 18vh;
+  background: radial-gradient(circle, rgba(171, 139, 255, 0.4) 0%, rgba(171, 139, 255, 0) 72%);
+  transform: translate3d(calc((50% - var(--pointer-x, 50%)) * 0.11), calc((var(--pointer-y, 50%) - 50%) * 0.14), 0);
+}
+.bg-neon-orb--c {
+  width: min(30vw, 360px);
+  height: min(30vw, 360px);
+  right: 12vw;
+  bottom: 2vh;
+  background: radial-gradient(circle, rgba(244, 167, 194, 0.36) 0%, rgba(244, 167, 194, 0) 70%);
+  transform: translate3d(calc((var(--pointer-x, 50%) - 50%) * 0.1), calc((50% - var(--pointer-y, 50%)) * 0.14), 0);
+}
+.dark-theme .bg-neon-orb {
+  opacity: 0.05;
+}
+.dark-theme .portfolio-bg-scanline {
+  opacity: 0.028;
 }
 
 .dark-theme .portfolio-bg-noise {
-  opacity: 0.12;
+  opacity: 0.04;
   background:
     radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px) 0 0 / 5px 5px,
     radial-gradient(circle at 75% 70%, rgba(196, 181, 253, 0.14) 0 1px, transparent 1px) 0 0 / 7px 7px;
+}
+@keyframes noiseDrift {
+  0% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(1px, -1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 /* 日间：仅 5%–10% 量级浅色渐变叠在视频上，不糊化画面，保留动态感 */
 .portfolio-container:not(.dark-theme) .portfolio-bg-scrim {
   background: linear-gradient(
     165deg,
-    rgba(255, 255, 255, 0.09) 0%,
-    rgba(232, 244, 255, 0.05) 42%,
-    rgba(255, 255, 255, 0.08) 100%
+    rgba(110, 231, 255, 0.06) 0%,
+    rgba(249, 168, 212, 0.05) 45%,
+    rgba(155, 143, 212, 0.05) 100%
   );
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -757,7 +744,7 @@ h2 {
 .links a.site-pill { text-decoration: none; flex-shrink: 0; }
 
 /* Anchor scroll offset */
-#hero, #about, #works, #blog, #contact, #message, #albums, #tools {
+#hero, #about, #blog, #contact, #message, #albums, #tools {
   scroll-margin-top: 5.5rem;
 }
 
@@ -814,7 +801,27 @@ h2 {
   will-change: transform;
   transition: transform 0.15s ease-out;
 }
+.hero-glass-card {
+  position: relative;
+  padding: clamp(28px, 4.2vw, 46px) clamp(22px, 4vw, 56px);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid color-mix(in srgb, #7dd3fc 40%, rgba(255, 255, 255, 0.5));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 16px 38px rgba(15, 23, 42, 0.1),
+    0 0 22px color-mix(in srgb, var(--primary-color) 18%, transparent);
+}
+.dark-theme .hero-glass-card {
+  background: rgba(15, 23, 42, 0.22);
+  border-color: color-mix(in srgb, #93c5fd 45%, rgba(255, 255, 255, 0.22));
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.4),
+    0 0 26px color-mix(in srgb, #a78bfa 22%, transparent);
+}
 .hero-title {
+  position: relative;
   font-size: 4rem;
   letter-spacing: -0.04em;
   line-height: 1.08;
@@ -824,6 +831,23 @@ h2 {
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.55),
     0 0 40px rgba(255, 255, 255, 0.25);
+}
+.hero-title::before,
+.hero-title::after {
+  content: attr(data-shadow);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.55;
+}
+.hero-title::before {
+  transform: translate3d(-2px, -2px, 0);
+  color: rgba(110, 231, 255, 0.6);
+}
+.hero-title::after {
+  transform: translate3d(2px, 2px, 0);
+  color: rgba(167, 139, 250, 0.55);
 }
 .hero-title--animate {
   animation: hero-title-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -846,15 +870,29 @@ h2 {
   text-shadow: none;
   animation: hero-name-float 4.8s ease-in-out infinite;
   animation-delay: 0.4s;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.48);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--primary-color) 32%, transparent));
+  transition: filter 0.3s ease;
 }
 .dark-theme .hero-name-float {
   background: linear-gradient(to right, #a18cd1, #fbc2eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+}
+.hero-title:hover .hero-name-float {
+  animation:
+    hero-name-float 4.8s ease-in-out infinite,
+    hero-name-flow 1.8s linear infinite;
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--primary-color) 44%, transparent));
 }
 @keyframes hero-name-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-7px); }
+}
+@keyframes hero-name-flow {
+  0% { filter: hue-rotate(0deg) drop-shadow(0 0 12px color-mix(in srgb, var(--primary-color) 38%, transparent)); }
+  100% { filter: hue-rotate(45deg) drop-shadow(0 0 14px color-mix(in srgb, var(--secondary-color) 44%, transparent)); }
 }
 .hero-actions {
   display: flex;
@@ -868,12 +906,50 @@ h2 {
   min-height: 48px;
   padding-left: 1.35rem;
   padding-right: 1.35rem;
+  border: 1px solid transparent;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, background 0.24s ease;
+}
+.hero-actions--cta .site-pill--active {
+  background:
+    linear-gradient(120deg, rgba(110, 231, 255, 0.88), rgba(167, 139, 250, 0.82)) padding-box,
+    linear-gradient(120deg, rgba(110, 231, 255, 0.85), rgba(244, 167, 194, 0.75)) border-box;
+  border-color: transparent;
+  color: #f8fbff;
+}
+.hero-actions--cta .site-pill--active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 24%, rgba(255, 255, 255, 0.35) 48%, transparent 72%);
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+}
+.hero-actions--cta .site-pill--secondary {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(148, 163, 184, 0.48);
+  color: color-mix(in srgb, var(--text-color) 88%, #111827 12%);
+}
+.dark-theme .hero-actions--cta .site-pill--secondary {
+  background: rgba(15, 23, 42, 0.38);
+  border-color: rgba(167, 139, 250, 0.42);
+  color: rgba(241, 245, 249, 0.96);
 }
 .hero-actions--cta .site-pill:hover:not(:disabled) {
+  transform: translateY(-2px);
   box-shadow: 0 0 22px rgba(102, 217, 255, 0.45), 0 10px 28px rgba(74, 144, 226, 0.28);
+}
+.hero-actions--cta .site-pill--active:hover:not(:disabled)::before {
+  transform: translateX(120%);
 }
 .hero-actions--cta .site-pill--active:hover:not(:disabled) {
   box-shadow: 0 0 26px rgba(80, 227, 194, 0.5), 0 10px 32px rgba(74, 144, 226, 0.35);
+}
+.hero-actions--cta .site-pill--secondary:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary-color) 58%, #fff 42%);
+  background: rgba(255, 255, 255, 0.32);
+}
+.dark-theme .hero-actions--cta .site-pill--secondary:hover:not(:disabled) {
+  background: rgba(30, 41, 59, 0.56);
 }
 
 /* General Sections */
@@ -883,13 +959,11 @@ h2 {
   padding: 80px 20px;
   opacity: 0;
   transform: translateY(18px);
-  animation: sectionFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
-@keyframes sectionFadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.section.section--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* About Card */
@@ -927,13 +1001,15 @@ h2 {
 
 /* Cards Hover：略提亮，不破坏通透 */
 .glass-card:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.15);
   box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+  border-color: color-mix(in srgb, var(--primary-color) 38%, rgba(255, 255, 255, 0.6));
 }
 .dark-theme .glass-card:hover {
-  background: rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.12);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  border-color: color-mix(in srgb, #a78bfa 48%, rgba(255, 255, 255, 0.22));
 }
 
 /* Works Grid */
@@ -959,6 +1035,19 @@ h2 {
   position: relative;
   height: 180px;
   overflow: hidden;
+}
+.work-card__media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0 1px,
+    rgba(255, 255, 255, 0) 1px 4px
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
 }
 .work-card__img {
   width: 100%;
@@ -1016,19 +1105,42 @@ h2 {
 .work-card:hover .work-card__img,
 .work-card:focus-visible .work-card__img {
   transform: scale(1.08);
+  filter:
+    contrast(1.08)
+    saturate(1.08)
+    hue-rotate(-4deg)
+    drop-shadow(-2px 0 0 rgba(110, 231, 255, 0.22))
+    drop-shadow(2px 0 0 rgba(167, 139, 250, 0.22));
+}
+.work-card:hover .work-card__media::after,
+.work-card:focus-visible .work-card__media::after {
+  opacity: 0.85;
 }
 .glass-card.work-card:hover,
 .glass-card.work-card:focus-visible {
   transform: translateY(-8px) scale(1.01);
   box-shadow:
     0 22px 50px rgba(15, 23, 42, 0.14),
-    0 0 0 1px rgba(255, 255, 255, 0.35);
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 0 24px color-mix(in srgb, var(--primary-color) 35%, transparent);
+  border-color: color-mix(in srgb, var(--primary-color) 44%, rgba(255, 255, 255, 0.56));
+  animation: neonBorderPulse 1.4s ease-in-out infinite;
 }
 .dark-theme .glass-card.work-card:hover,
 .dark-theme .glass-card.work-card:focus-visible {
   box-shadow:
     0 22px 50px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 0 26px color-mix(in srgb, var(--secondary-color) 42%, transparent);
+  border-color: color-mix(in srgb, var(--secondary-color) 56%, rgba(255, 255, 255, 0.2));
+}
+@keyframes neonBorderPulse {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--primary-color) 44%, rgba(255, 255, 255, 0.56));
+  }
+  50% {
+    border-color: color-mix(in srgb, var(--secondary-color) 52%, rgba(255, 255, 255, 0.56));
+  }
 }
 .work-card__body {
   padding: 22px 24px 24px;
@@ -1054,11 +1166,12 @@ h2 {
 }
 .work-card h3 {
   font-size: 1.35rem;
-  color: #0f172a;
+  color: color-mix(in srgb, var(--primary-color) 62%, #0f172a 38%);
   margin: 0 0 8px;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.25;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--primary-color) 18%, transparent);
 }
 .dark-theme .work-card h3 {
   color: #f0f4f8;

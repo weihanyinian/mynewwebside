@@ -42,17 +42,18 @@ public class WallMessageService {
     return new PageResponse<>(items, pg.getTotalElements(), page, size);
   }
 
-  /** 访客提交：默认待审核。 */
+  /** 访客提交：直接通过，提交后立即可见。 */
   @Transactional
   public WallMessageSubmitVo submit(WallMessageCreateRequest req) {
     WallMessage m = new WallMessage();
     String nick = req.nickname() == null ? "" : req.nickname().trim();
     m.setNickname(nick.isEmpty() ? "匿名" : nick);
     m.setContent(req.content().trim());
-    m.setStatus(WallMessageStatus.PENDING);
+    m.setStatus(WallMessageStatus.APPROVED);
     m.setCreatedAt(Instant.now());
+    m.setReviewedAt(Instant.now());
     wallMessageRepository.save(m);
-    return new WallMessageSubmitVo(m.getId(), "PENDING");
+    return new WallMessageSubmitVo(m.getId(), "APPROVED");
   }
 
   /** 后台分页；status 为空表示全部。 */

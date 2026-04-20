@@ -44,6 +44,7 @@ const MusicCenterPage = () => import('../pages/music/MusicCenterPage.vue')
 const MbtiTestPage = () => import('../pages/tools/MbtiTestPage.vue')
 const GameGuessNumber = () => import('../pages/moyu/GameGuessNumber.vue')
 const GameMemoryCard = () => import('../pages/moyu/GameMemoryCard.vue')
+const GameSnakeball = () => import('../pages/moyu/GameSnakeball.vue')
 const MemoriesPage = () => import('../pages/public/MemoriesPage.vue')
 
 export const router = createRouter({
@@ -77,6 +78,7 @@ export const router = createRouter({
     { path: '/tools/mbti', component: MbtiTestPage },
     { path: '/moyu/guess', component: GameGuessNumber },
     { path: '/moyu/memory-card', component: GameMemoryCard },
+    { path: '/moyu/snakeball', component: GameSnakeball },
     { path: '/admin/login', redirect: '/login' },
     { path: '/tools', component: ToolsHubPage },
     { path: '/tools/reaction', component: ToolReactionPage },

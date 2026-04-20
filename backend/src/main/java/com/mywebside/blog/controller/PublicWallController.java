@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 留言墙公开接口（REST：资源名 wall/messages）。
- * <p>GET 仅返回已审核通过记录；POST 提交后进入待审核队列。</p>
+ * <p>GET 返回公开留言；POST 提交后直接可见。</p>
  */
 @RestController
 @RequestMapping("/api/public/wall/messages")

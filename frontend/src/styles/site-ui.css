@@ -80,12 +80,13 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--primary-color) 22%, rgba(255, 255, 255, 0.5)),
-    0 8px 24px color-mix(in srgb, var(--primary-color) 28%, transparent);
+    0 8px 24px color-mix(in srgb, var(--primary-color) 28%, transparent),
+    0 0 18px color-mix(in srgb, var(--secondary-color) 28%, transparent);
 }
 
 .site-pill--active:hover:not(:disabled) {
   filter: brightness(1.04);
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.02);
 }
 
 /* 主行动按钮（留言提交等），与 --active 同系，可单独加尺寸类 */
@@ -94,7 +95,20 @@
   border-color: rgba(255, 255, 255, 0.5) !important;
   color: #fff !important;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
-  box-shadow: 0 8px 26px color-mix(in srgb, var(--primary-color) 32%, transparent);
+  box-shadow:
+    0 8px 26px color-mix(in srgb, var(--primary-color) 32%, transparent),
+    0 0 20px color-mix(in srgb, var(--secondary-color) 26%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+
+.site-pill--primary-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.35) 48%, transparent 75%);
+  transform: translateX(-120%);
+  transition: transform 0.5s ease;
 }
 
 .site-pill--primary-cta:hover:not(:disabled) {
@@ -102,11 +116,21 @@
   filter: brightness(1.05);
 }
 
+.site-pill--primary-cta:hover:not(:disabled)::before {
+  transform: translateX(120%);
+}
+
 .site-pill--primary-cta:disabled {
   opacity: 0.45 !important;
   filter: grayscale(0.2);
   cursor: not-allowed;
   transform: none !important;
+  animation: cta-disabled-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes cta-disabled-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.6; }
 }
 
 /* ---------- 次按钮：浅底 + 主题色描边 ---------- */
@@ -227,7 +251,8 @@
 }
 
 .glass-nav .site-pill--nav:hover:not(:disabled) {
-  transform: translateY(-3px);
+  transform: translateY(-3px) scale(1.03);
+  border-color: color-mix(in srgb, var(--primary-color) 46%, rgba(255, 255, 255, 0.42));
   box-shadow:
     0 0 18px rgba(102, 217, 255, 0.35),
     0 8px 22px rgba(74, 144, 226, 0.22);

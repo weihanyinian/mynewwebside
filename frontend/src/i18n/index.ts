@@ -231,10 +231,10 @@ const messages = {
       deleteSuccess: '删除成功',
       emptyContent: '请填写留言内容哦~',
       anonymous: '匿名用户',
-      pendingReview: '提交成功！留言将在站长审核通过后公开展示。',
+      pendingReview: '留言发布成功！已立即展示。',
       loadError: '留言加载失败，请稍后重试',
-      emptyTitle: '还没有通过审核的留言',
-      emptyHint: '来做第一个留言的人吧，或通过管理后台审核待处理留言。',
+      emptyTitle: '还没有留言',
+      emptyHint: '来做第一个留言的人吧。',
       replyFromAdmin: '站长回复'
     },
     hitokoto: {
@@ -486,10 +486,10 @@ const messages = {
       deleteSuccess: 'Deleted successfully',
       emptyContent: 'Please enter a message~',
       anonymous: 'Anonymous',
-      pendingReview: 'Submitted! It will appear after approval.',
+      pendingReview: 'Posted successfully! It is visible now.',
       loadError: 'Failed to load messages.',
-      emptyTitle: 'No approved messages yet',
-      emptyHint: 'Be the first to leave a message, or approve pending items in admin.',
+      emptyTitle: 'No messages yet',
+      emptyHint: 'Be the first to leave a message.',
       replyFromAdmin: 'Reply'
     },
     hitokoto: {

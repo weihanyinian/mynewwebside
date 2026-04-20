@@ -180,7 +180,10 @@ function openTool(path: string) {
 }
 .home-tool-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.13);
+  box-shadow:
+    0 18px 38px rgba(15, 23, 42, 0.13),
+    0 0 24px color-mix(in srgb, var(--primary-color) 24%, transparent);
+  border-color: color-mix(in srgb, var(--secondary-color) 48%, rgba(255, 255, 255, 0.6));
 }
 .home-tool-card:hover .home-tool-ico {
   transform: translateY(-1px) scale(1.05);
@@ -188,6 +191,7 @@ function openTool(path: string) {
 }
 .home-tool-card:hover h3 {
   color: color-mix(in srgb, var(--primary-color) 72%, #0f172a 28%);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--primary-color) 22%, transparent);
 }
 .home-tool-card__head {
   display: flex;
@@ -226,6 +230,10 @@ function openTool(path: string) {
   color: var(--text-muted);
   line-height: 1.65;
   letter-spacing: 0.02em;
+  transition: color 0.24s ease;
+}
+.home-tool-card:hover .home-tool-card__desc {
+  color: color-mix(in srgb, var(--text-muted) 70%, #fff 30%);
 }
 .home-tool-fab {
   align-self: flex-end;

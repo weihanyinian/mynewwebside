@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * 留言墙：对接后端审核流；列表仅展示已通过记录；提交后为待审核状态。
+ * 留言墙：公开发布；提交后立即展示。
  */
 import { computed, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'

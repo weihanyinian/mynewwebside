@@ -148,7 +148,9 @@ void load()
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.48);
-  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.1);
+  box-shadow:
+    0 12px 34px rgba(15, 23, 42, 0.1),
+    0 0 20px color-mix(in srgb, var(--primary-color) 24%, transparent);
 }
 .home-message-form .home-field {
   margin-bottom: 12px;
@@ -177,6 +179,8 @@ void load()
 .home-message-form :deep(.el-textarea__inner:focus) {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
   border-color: color-mix(in srgb, var(--primary-color) 52%, #fff 48%) !important;
+  filter: brightness(1.02);
+  animation: inputNeonBreath 1.9s ease-in-out infinite;
 }
 .submit-btn {
   width: 100%;
@@ -184,6 +188,16 @@ void load()
   min-height: 46px;
   gap: 8px;
   transition: transform 0.24s ease, box-shadow 0.24s ease, filter 0.24s ease;
+  position: relative;
+  overflow: hidden;
+}
+.submit-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.34) 48%, transparent 72%);
+  transform: translateX(-120%);
+  transition: transform 0.52s ease;
 }
 .submit-btn__spin {
   animation: spin 0.9s linear infinite;
@@ -192,13 +206,33 @@ void load()
   transform: translateY(-2px);
   box-shadow: 0 12px 26px color-mix(in srgb, var(--primary-color) 30%, transparent);
 }
+.submit-btn:not(:disabled):hover::before {
+  transform: translateX(120%);
+}
 .submit-btn:disabled {
   filter: grayscale(0.2);
   opacity: 0.52;
+  animation: disabledFlicker 1.8s ease-in-out infinite;
+}
+@keyframes disabledFlicker {
+  0%, 100% { opacity: 0.52; }
+  50% { opacity: 0.62; }
 }
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+@keyframes inputNeonBreath {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--primary-color) 30%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--secondary-color) 0%, transparent) !important;
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--primary-color) 36%, transparent),
+      0 0 14px 0 color-mix(in srgb, var(--secondary-color) 22%, transparent) !important;
   }
 }
 .wall-empty-block {
@@ -213,6 +247,7 @@ void load()
   color: color-mix(in srgb, var(--text-color) 90%, #000 10%);
   margin: 0 0 10px;
   text-shadow: 0 1px 10px rgba(255, 255, 255, 0.32);
+  letter-spacing: 0.01em;
 }
 :root[data-theme='dark'] .wall-empty-title {
   color: #eaf8ff;
