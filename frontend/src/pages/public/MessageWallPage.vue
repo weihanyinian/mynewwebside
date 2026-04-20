@@ -2,80 +2,32 @@
 /**
  * 留言墙：公开发布；提交后立即展示。
  */
-import { computed, onMounted, ref, watch } from 'vue'
+import { onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import BackToBlogButton from '../../components/BackToBlogButton.vue'
-import { fetchWallMessages, submitWallMessage, type WallMessagePublic } from '../../api/wall'
-import { escapeHtml } from '../../utils/escapeHtml'
+import { useWallMessages } from '../../hooks/useWallMessages'
+import WallComposer from '../../components/home/wall/WallComposer.vue'
+import WallList from '../../components/home/wall/WallList.vue'
+import WallPager from '../../components/home/wall/WallPager.vue'
 
 const { t } = useI18n()
-
-const loading = ref(true)
-const loadError = ref(false)
-const messages = ref<WallMessagePublic[]>([])
-const total = ref(0)
-const page = ref(0)
-const pageSize = ref(9)
-
-const newAuthor = ref('')
-const newContent = ref('')
-const submitting = ref(false)
-
-const canSubmit = computed(() => newContent.value.trim().length > 0)
-
-async function load() {
-  loading.value = true
-  loadError.value = false
-  try {
-    const res = await fetchWallMessages({ page: page.value, size: pageSize.value })
-    messages.value = res.items
-    total.value = res.total
-  } catch {
-    loadError.value = true
-    messages.value = []
-    total.value = 0
-  } finally {
-    loading.value = false
-  }
-}
-
-watch(page, () => void load())
-
-function formatTime(iso: string) {
-  try {
-    return new Date(iso).toLocaleString()
-  } catch {
-    return iso
-  }
-}
+const wall = useWallMessages(5)
 
 async function submitMessage() {
-  if (!canSubmit.value) {
+  if (!wall.canSubmit.value) {
     ElMessage.warning(t('messageWall.emptyContent'))
     return
   }
-  submitting.value = true
   try {
-    await submitWallMessage(newAuthor.value, newContent.value)
-    newContent.value = ''
-    newAuthor.value = ''
+    const ok = await wall.submit()
+    if (!ok) return
     ElMessage.success(t('messageWall.pendingReview'))
-    page.value = 0
-    await load()
   } catch (e: unknown) {
     ElMessage.error(e instanceof Error ? e.message : '提交失败')
-  } finally {
-    submitting.value = false
   }
 }
-
-function onPageChange(p: number) {
-  page.value = p - 1
-}
-
-onMounted(load)
+onMounted(() => void wall.load())
 </script>
 
 <template>
@@ -88,76 +40,40 @@ onMounted(load)
       <p class="wall-subtitle">{{ t('messageWall.subtitle') }}</p>
     </div>
 
-    <div class="message-form site-module-card site-el-round-16 site-field">
-      <el-input v-model="newAuthor" :placeholder="t('messageWall.nicknamePlaceholder')" class="mb-3" clearable />
-      <el-input
-        v-model="newContent"
-        type="textarea"
-        :rows="3"
-        :placeholder="t('messageWall.contentPlaceholder')"
-        class="mb-3"
+    <div class="message-form-wrap">
+      <WallComposer
+        :nickname="wall.nickname.value"
+        :content="wall.content.value"
+        :submitting="wall.submitting.value"
+        :can-submit="wall.canSubmit.value"
+        :nickname-placeholder="t('messageWall.nicknamePlaceholder')"
+        :content-placeholder="t('messageWall.contentPlaceholder')"
+        :submit-label="t('messageWall.submit')"
+        :submitting-label="t('messageWall.submitting')"
+        @update:nickname="wall.nickname.value = $event"
+        @update:content="wall.content.value = $event"
+        @submit="submitMessage"
       />
-      <div class="form-actions">
-        <button
-          type="button"
-          class="site-pill site-pill--primary-cta"
-          :disabled="!canSubmit || submitting"
-          @click="submitMessage"
-        >
-          <el-icon v-if="submitting" class="submit-ico"><Loading /></el-icon>
-          {{ submitting ? t('messageWall.submitting') : t('messageWall.submit') }}
-        </button>
-      </div>
     </div>
 
-    <div v-if="loading" class="messages-grid" aria-busy="true">
-      <div v-for="n in 4" :key="'sk-' + n" class="message-card site-module-card skeleton-card">
-        <div class="sk-line sk-line--short" />
-        <div class="sk-line" />
-        <div class="sk-line" />
-        <div class="sk-line sk-line--meta" />
-      </div>
-    </div>
+    <WallList
+      :loading="wall.loading.value"
+      :load-error="wall.loadError.value"
+      :load-error-label="t('messageWall.loadError')"
+      :items="wall.messages.value"
+      :anonymous-label="t('messageWall.anonymous')"
+      :reply-from-admin-label="t('messageWall.replyFromAdmin')"
+      :empty-title="t('messageWall.emptyTitle')"
+      :empty-hint="t('messageWall.emptyHint')"
+      :loading-label="t('pages.loading')"
+    />
 
-    <p v-else-if="loadError" class="wall-error">{{ t('messageWall.loadError') }}</p>
-
-    <template v-else>
-      <div v-if="messages.length" class="messages-grid">
-        <transition-group name="list">
-          <div v-for="m in messages" :key="m.id" class="message-card site-module-card">
-            <div class="msg-header">
-              <div class="msg-author-info">
-                <span class="msg-avatar" aria-hidden="true">💬</span>
-                <span class="msg-author">{{ m.nickname || t('messageWall.anonymous') }}</span>
-              </div>
-              <div class="msg-time">{{ formatTime(m.createdAt) }}</div>
-            </div>
-            <div class="msg-content" v-html="escapeHtml(m.content)"></div>
-            <div v-if="m.adminReply" class="msg-reply">
-              <span class="msg-reply__label">{{ t('messageWall.replyFromAdmin') }}</span>
-              <p class="msg-reply__text">{{ m.adminReply }}</p>
-            </div>
-          </div>
-        </transition-group>
-      </div>
-
-      <div v-else class="wall-empty site-module-card">
-        <div class="wall-empty__icon" aria-hidden="true">🍃</div>
-        <h2 class="wall-empty__title wall-empty__title--emph">{{ t('messageWall.emptyTitle') }}</h2>
-        <p class="wall-empty__hint">{{ t('messageWall.emptyHint') }}</p>
-      </div>
-
-      <div v-if="total > pageSize" class="wall-pager">
-        <el-pagination
-          background
-          layout="prev, pager, next"
-          :page-size="pageSize"
-          :current-page="page + 1"
-          :total="total"
-          @current-change="onPageChange"
-        />
-      </div>
-    </template>
+    <WallPager
+      :total="wall.total.value"
+      :page-size="wall.pageSize.value"
+      :current-page="wall.page.value + 1"
+      @change="wall.setPage"
+    />
   </div>
 </template>
 
@@ -190,7 +106,7 @@ onMounted(load)
 }
 
 .wall-title {
-  font-size: 2.5rem;
+  font-size: clamp(1.9rem, 4.8vw, 2.5rem);
   font-weight: 800;
   margin-bottom: 8px;
   background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
@@ -201,11 +117,10 @@ onMounted(load)
 
 .wall-subtitle {
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
-.message-form {
-  padding: 24px;
+.message-form-wrap {
   margin-bottom: 40px;
 }
 
@@ -258,6 +173,7 @@ onMounted(load)
 
 .msg-content {
   line-height: 1.6;
+  font-size: 0.99rem;
   color: var(--text-color);
   white-space: pre-wrap;
   word-break: break-word;

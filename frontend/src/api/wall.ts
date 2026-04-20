@@ -13,11 +13,15 @@ export type WallMessagePublic = {
 export type WallSubmitResult = {
   id: number
   reviewHint: string
+  nickname: string
+  content: string
+  adminReply: string | null
+  createdAt: string
 }
 
 export async function fetchWallMessages(params?: { page?: number; size?: number }) {
   const res = await http.get<ApiResponse<PageResponse<WallMessagePublic>>>('/api/public/wall/messages', {
-    params: { page: params?.page ?? 0, size: params?.size ?? 50 },
+    params: { page: params?.page ?? 0, size: params?.size ?? 5 },
   })
   return res.data.data
 }

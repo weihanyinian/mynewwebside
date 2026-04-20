@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -10,8 +10,12 @@ import SiteBackToTop from '../../components/site/SiteBackToTop.vue'
 import { useThemeStore } from '../../stores/theme'
 import { useUserStore } from '../../stores/user'
 import MessageWallSection from './sections/MessageWallSection.vue'
-import AlbumsSection from './sections/AlbumsSection.vue'
 import ToolsSection from './sections/ToolsSection.vue'
+import HomeHero from '../../components/home/HomeHero.vue'
+import HomeWorksSection from '../../components/home/HomeWorksSection.vue'
+import { useHeroMotion } from '../../hooks/useHeroMotion'
+import { useSectionObserver } from '../../hooks/useSectionObserver'
+import { HOME_SECTION_IDS, type HomeWorkItem } from '../../types/home'
 
 const router = useRouter()
 const route = useRoute()
@@ -41,12 +45,43 @@ function closeNavMobile() {
   mobileNavOpen.value = false
 }
 
+const works = ref<HomeWorkItem[]>([
+  {
+    title: '大语言模型微调与部署',
+    desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。',
+    detail: '覆盖数据构建、训练与推理部署流程，可作为 LLM 工程化落地的实践参考。',
+    link: '#works',
+    tag: 'LLM / GLM4',
+    cover: '/avatar.png',
+  },
+  {
+    title: 'Transformer 机器翻译',
+    desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。',
+    detail: '从编码器—解码器到多头注意力，适合巩固序列建模与并行训练要点。',
+    link: '#works',
+    tag: 'Deep Learning',
+    cover: '/avatar.png',
+  },
+  {
+    title: 'MyWebSide Blog',
+    desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。',
+    detail: '博客、留言墙、工具栏与 OJ 一体化；代码开源，欢迎交流与共建。',
+    link: 'https://github.com/weihanyinian/mynewwebside',
+    tag: 'Full Stack',
+    cover: '/avatar.png',
+  },
+  {
+    title: '在线判题 OJ',
+    desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。',
+    detail: '登录后可提交代码、查看评测状态与历史提交记录。',
+    link: '/tools/oj',
+    tag: 'OJ / Sandbox',
+    cover: '/avatar.png',
+  },
+])
+
 const mobileNavOpen = ref(false)
 const portfolioMoreEl = ref<HTMLDetailsElement | null>(null)
-const isNavScrolled = ref(false)
-const pointerX = ref(50)
-const pointerY = ref(50)
-let pointerTicking = false
 
 function closePortfolioMore() {
   if (portfolioMoreEl.value) portfolioMoreEl.value.open = false
@@ -61,68 +96,35 @@ watch(
 )
 
 /** 当前高亮的 section id（由滚动监听驱动，点击时也同步更新） */
-const activeSection = ref(route.hash ? route.hash.replace(/^#/, '') : '')
+const { isHashActive, scrollToSection } = useSectionObserver(
+  computed(() => route.fullPath),
+  computed(() => route.hash),
+  HOME_SECTION_IDS,
+)
+const { heroParallaxY, isNavScrolled, pointerX, pointerY } = useHeroMotion()
 
-const NAV_SECTION_IDS = ['about', 'blog', 'contact', 'message', 'albums', 'tools']
-const NAV_SCROLL_OFFSET = 92
-
-let sectionObserver: IntersectionObserver | null = null
-let heroTicking = false
-
-function onPointerMove(e: PointerEvent) {
-  if (pointerTicking) return
-  pointerTicking = true
-  requestAnimationFrame(() => {
-    pointerX.value = (e.clientX / window.innerWidth) * 100
-    pointerY.value = (e.clientY / window.innerHeight) * 100
-    pointerTicking = false
-  })
+function scrollTo(id: string) {
+  scrollToSection(id, 92)
+  mobileNavOpen.value = false
 }
 
-function setupSectionObserver() {
-  sectionObserver = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        const sectionEl = entry.target as HTMLElement
-        if (entry.isIntersecting) {
-          activeSection.value = entry.target.id
-          sectionEl.classList.add('section--visible')
-        } else {
-          sectionEl.classList.remove('section--visible')
-        }
-      }
-    },
-    {
-      // 检测区域：顶部偏移 90px（避开固定导航栏），底部去掉 65% 视口高度
-      // 效果：section 进入视口上方 35% 区域时触发高亮
-      rootMargin: '-90px 0px -65% 0px',
-      threshold: 0,
-    },
-  )
-  for (const id of NAV_SECTION_IDS) {
-    const el = document.getElementById(id)
-    if (el) sectionObserver.observe(el)
+function onWorkClick(link: string) {
+  if (link.startsWith('#') && link.length > 1) {
+    scrollTo(link.slice(1))
+    return
+  }
+  if (link.startsWith('/')) {
+    router.push(link)
+    return
+  }
+  if (link.startsWith('http://') || link.startsWith('https://')) {
+    window.open(link, '_blank', 'noopener,noreferrer')
   }
 }
 
-function isHashActive(fragment: string) {
-  return '#' + activeSection.value === fragment
-}
-
-function updateHashWithoutRouteJump(id: string) {
-  const hash = `#${id}`
-  if (window.location.hash === hash) return
-  window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${hash}`)
-}
-
-function scrollTo(id: string) {
-  const target = document.getElementById(id)
-  if (!target) return
-  activeSection.value = id
-  const top = window.scrollY + target.getBoundingClientRect().top - NAV_SCROLL_OFFSET
-  window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' })
-  updateHashWithoutRouteJump(id)
-  mobileNavOpen.value = false
+function onWorkCardActivate(work: HomeWorkItem, e?: Event) {
+  if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return
+  onWorkClick(work.link)
 }
 
 function onSiteLogoClick() {
@@ -133,38 +135,17 @@ function onSiteLogoClick() {
   }
 }
 
-/** Hero 轻微视差 */
-const heroParallaxY = ref(0)
-function onHeroParallax() {
-  if (heroTicking) return
-  heroTicking = true
-  requestAnimationFrame(() => {
-    heroParallaxY.value = Math.min(window.scrollY * 0.14, 88)
-    isNavScrolled.value = window.scrollY > 24
-    heroTicking = false
-  })
-}
-
 onMounted(() => {
-  window.addEventListener('scroll', onHeroParallax, { passive: true })
-  window.addEventListener('pointermove', onPointerMove, { passive: true })
   if (route.hash) {
     const id = route.hash.replace(/^#/, '')
-    activeSection.value = id
+    scrollToSection(id, 92)
     void nextTick(() => {
       const target = document.getElementById(id)
       if (!target) return
-      const top = window.scrollY + target.getBoundingClientRect().top - NAV_SCROLL_OFFSET
+      const top = window.scrollY + target.getBoundingClientRect().top - 92
       window.scrollTo({ top: Math.max(top, 0), behavior: 'auto' })
     })
   }
-  void nextTick(() => setupSectionObserver())
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', onHeroParallax)
-  window.removeEventListener('pointermove', onPointerMove)
-  sectionObserver?.disconnect()
 })
 </script>
 
@@ -246,6 +227,12 @@ onUnmounted(() => {
             @click.prevent="scrollTo('about')"
           >{{ t('nav.about') }}</a>
           <a
+            href="#works"
+            class="site-pill site-pill--nav site-pill--keep-mobile"
+            :class="{ 'site-pill--active': isHashActive('#works') }"
+            @click.prevent="scrollTo('works')"
+          >{{ t('nav.works') }}</a>
+          <a
             href="#blog"
             class="site-pill site-pill--nav site-pill--keep-mobile"
             :class="{ 'site-pill--active': isHashActive('#blog') }"
@@ -263,12 +250,6 @@ onUnmounted(() => {
             :class="{ 'site-pill--active': isHashActive('#message') }"
             @click.prevent="scrollTo('message')"
           >{{ t('nav.message') }}</a>
-          <a
-            href="#albums"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isHashActive('#albums') }"
-            @click.prevent="scrollTo('albums')"
-          >{{ t('breadcrumb.albums') }}</a>
           <a
             href="#tools"
             class="site-pill site-pill--nav site-pill--keep-mobile"
@@ -344,17 +325,16 @@ onUnmounted(() => {
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero" id="hero">
-      <div class="hero-content hero-glass-card" :style="{ transform: `translate3d(0, ${heroParallaxY}px, 0)` }">
-        <h1 class="hero-title hero-title--animate" :data-shadow="`${t('home.hello')} ${t('home.name')}`">
-          {{ t('home.hello') }} <span class="hero-name-float">{{ t('home.name') }}</span>
-        </h1>
-        <div class="hero-actions hero-actions--cta">
-          <button type="button" class="site-pill site-pill--lg site-pill--active" @click="scrollTo('blog')">{{ t('home.explore') }}</button>
-          <button type="button" class="site-pill site-pill--lg site-pill--secondary" @click="scrollTo('blog')">{{ t('home.readBlog') }}</button>
-        </div>
-      </div>
-    </section>
+    <HomeHero
+      :title-prefix="t('home.hello')"
+      :name="t('home.name')"
+      :explore-label="t('home.explore')"
+      :read-blog-label="t('home.readBlog')"
+      :subtitle="'全栈开发 | 二次元爱好者 | 分享与记录'"
+      :parallax-y="heroParallaxY"
+      @explore="scrollTo('works')"
+      @read-blog="scrollTo('blog')"
+    />
 
     <!-- Hitokoto Quote -->
     <HitokotoCard />
@@ -373,6 +353,13 @@ onUnmounted(() => {
         </div>
       </div>
     </section>
+
+    <HomeWorksSection
+      :title="t('home.worksTitle')"
+      :detail-label="t('home.worksDetail')"
+      :works="works"
+      @open="onWorkCardActivate"
+    />
 
     <!-- Blog & open source -->
     <section class="section" id="blog">
@@ -403,9 +390,6 @@ onUnmounted(() => {
 
     <!-- 留言墙（拆分为独立组件） -->
     <MessageWallSection />
-
-    <!-- 相册（拆分为独立组件） -->
-    <AlbumsSection />
 
     <!-- 工具栏入口（拆分为独立组件） -->
     <ToolsSection />
@@ -572,7 +556,7 @@ h1, h2, h3 {
   line-height: 1.2;
 }
 h2 {
-  font-size: 2rem;
+  font-size: clamp(1.58rem, 2.45vw, 2rem);
   text-align: center;
   margin-bottom: 2rem;
   font-weight: 850;
@@ -744,7 +728,7 @@ h2 {
 .links a.site-pill { text-decoration: none; flex-shrink: 0; }
 
 /* Anchor scroll offset */
-#hero, #about, #blog, #contact, #message, #albums, #tools {
+#hero, #about, #works, #blog, #contact, #message, #tools {
   scroll-margin-top: 5.5rem;
 }
 
@@ -752,7 +736,8 @@ h2 {
   text-align: center;
   max-width: 640px;
   margin: -1rem auto 1.5rem;
-  font-weight: 420;
+  font-size: 0.92rem;
+  font-weight: 450;
   opacity: 0.92;
   line-height: 1.75;
   letter-spacing: 0.02em;
@@ -772,7 +757,8 @@ h2 {
 }
 .home-hub-lead {
   margin: 0 0 1.25rem;
-  line-height: 1.78;
+  font-size: 0.94rem;
+  line-height: 1.82;
   letter-spacing: 0.015em;
   font-weight: 430;
   opacity: 0.92;
@@ -822,15 +808,15 @@ h2 {
 }
 .hero-title {
   position: relative;
-  font-size: 4rem;
-  letter-spacing: -0.04em;
-  line-height: 1.08;
+  font-size: clamp(1.86rem, 5.2vw, 3.22rem);
+  letter-spacing: -0.03em;
+  line-height: 1.12;
   margin-bottom: 1rem;
   font-weight: 800;
   color: #0f172a;
   text-shadow:
     0 1px 0 rgba(255, 255, 255, 0.55),
-    0 0 40px rgba(255, 255, 255, 0.25);
+    0 0 30px rgba(255, 255, 255, 0.2);
 }
 .hero-title::before,
 .hero-title::after {
@@ -903,7 +889,8 @@ h2 {
 .hero-actions--cta .site-pill {
   position: relative;
   overflow: hidden;
-  min-height: 48px;
+  min-height: 46px;
+  font-size: 0.9rem;
   padding-left: 1.35rem;
   padding-right: 1.35rem;
   border: 1px solid transparent;
@@ -950,6 +937,9 @@ h2 {
 }
 .dark-theme .hero-actions--cta .site-pill--secondary:hover:not(:disabled) {
   background: rgba(30, 41, 59, 0.56);
+}
+.links a.site-pill.site-pill--nav {
+  font-size: 0.8rem;
 }
 
 /* General Sections */
@@ -1246,7 +1236,7 @@ h2 {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .hero-title { font-size: 2.5rem; }
+  .hero-title { font-size: 2.2rem; }
   .works-grid { grid-template-columns: 1fr; }
   .hero-actions { flex-direction: column; }
   .about-content { flex-direction: column; text-align: center; }

@@ -65,6 +65,7 @@ function openTool(path: string) {
         v-for="card in toolCards"
         :key="card.path"
         class="site-module-card home-tool-card"
+        :data-icon="card.icon"
         role="button"
         tabindex="0"
         :aria-label="card.title"
@@ -154,7 +155,8 @@ function openTool(path: string) {
   color: var(--text-muted, rgba(15, 23, 42, 0.68));
   line-height: 1.72;
   letter-spacing: 0.02em;
-  font-weight: 400;
+  font-size: 0.98rem;
+  font-weight: 450;
 }
 .home-tools-grid {
   display: grid;
@@ -165,94 +167,169 @@ function openTool(path: string) {
   align-items: stretch;
 }
 .home-tool-card {
-  padding: 22px 22px 20px;
-  border-radius: 18px;
+  padding: 24px 24px 22px;
+  border-radius: 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  min-height: 218px;
+  gap: 16px;
+  min-height: 220px;
   cursor: pointer;
   outline: none;
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+  border: 2px solid rgba(167, 139, 250, 0.2);
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
 }
+
+/* 卡片顶部装饰线 */
+.home-tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--tool-color, #a78bfa), transparent);
+  border-radius: 0 0 3px 3px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.home-tool-card:hover::before {
+  opacity: 1;
+}
+
 .home-tool-card:focus-visible {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 40%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tool-color, var(--primary-color)) 45%, transparent);
+  border-color: color-mix(in srgb, var(--tool-color, var(--primary-color)) 60%, transparent);
 }
 .home-tool-card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-8px);
   box-shadow:
-    0 18px 38px rgba(15, 23, 42, 0.13),
-    0 0 24px color-mix(in srgb, var(--primary-color) 24%, transparent);
-  border-color: color-mix(in srgb, var(--secondary-color) 48%, rgba(255, 255, 255, 0.6));
+    0 20px 48px rgba(15, 23, 42, 0.16),
+    0 0 32px color-mix(in srgb, var(--tool-color, var(--primary-color)) 25%, transparent);
+  border-color: color-mix(in srgb, var(--tool-color, var(--primary-color)) 50%, rgba(255, 255, 255, 0.5));
 }
 .home-tool-card:hover .home-tool-ico {
-  transform: translateY(-1px) scale(1.05);
-  color: color-mix(in srgb, var(--primary-color) 82%, #fff 18%);
+  transform: translateY(-2px) scale(1.1);
 }
 .home-tool-card:hover h3 {
-  color: color-mix(in srgb, var(--primary-color) 72%, #0f172a 28%);
-  text-shadow: 0 0 10px color-mix(in srgb, var(--primary-color) 22%, transparent);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--tool-color, var(--primary-color)) 35%, transparent);
 }
 .home-tool-card__head {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 16px;
 }
+
+/* 各工具图标独立颜色 */
+.home-tool-card[data-icon="reaction"] .home-tool-ico {
+  --tool-color: #fbbf24;
+  --tool-color-2: #f97316;
+  background: linear-gradient(145deg, rgba(251, 191, 36, 0.28), rgba(249, 115, 22, 0.16));
+  color: #f59e0b;
+}
+.home-tool-card[data-icon="cps"] .home-tool-ico {
+  --tool-color: #22d3ee;
+  --tool-color-2: #3b82f6;
+  background: linear-gradient(145deg, rgba(34, 211, 238, 0.28), rgba(59, 130, 246, 0.14));
+  color: #06b6d4;
+}
+.home-tool-card[data-icon="pomodoro"] .home-tool-ico {
+  --tool-color: #f472b6;
+  --tool-color-2: #fb7185;
+  background: linear-gradient(145deg, rgba(244, 114, 182, 0.28), rgba(251, 113, 133, 0.16));
+  color: #ec4899;
+}
+.home-tool-card[data-icon="lock"] .home-tool-ico {
+  --tool-color: #a78bfa;
+  --tool-color-2: #8b5cf6;
+  background: linear-gradient(145deg, rgba(167, 139, 250, 0.28), rgba(139, 92, 246, 0.14));
+  color: #8b5cf6;
+}
+.home-tool-card[data-icon="b64"] .home-tool-ico {
+  --tool-color: #34d399;
+  --tool-color-2: #22c55e;
+  background: linear-gradient(145deg, rgba(52, 211, 153, 0.28), rgba(34, 197, 94, 0.14));
+  color: #10b981;
+}
+.home-tool-card[data-icon="mbti"] .home-tool-ico {
+  --tool-color: #fb923c;
+  --tool-color-2: #ec4899;
+  background: linear-gradient(145deg, rgba(251, 146, 60, 0.3), rgba(236, 72, 153, 0.15));
+  color: #f97316;
+}
+.home-tool-card[data-icon="code"] .home-tool-ico,
+.home-tool-card:not([data-icon]) .home-tool-ico {
+  --tool-color: #66d9ff;
+  --tool-color-2: #60a5fa;
+  background: linear-gradient(145deg, rgba(102, 217, 255, 0.3), rgba(96, 165, 250, 0.14));
+  color: #0ea5e9;
+}
+
 .home-tool-ico {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--primary-color) 22%, transparent), transparent);
-  color: var(--primary-color);
   flex-shrink: 0;
-  transition: transform 0.26s ease, color 0.26s ease, background 0.26s ease;
+  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1), color 0.26s ease, background 0.26s ease;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--tool-color, var(--primary-color)) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tool-color-2, var(--tool-color, var(--primary-color))) 34%, rgba(255, 255, 255, 0.5));
 }
 .home-tool-ico__svg {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 1px 6px color-mix(in srgb, var(--tool-color, var(--primary-color)) 36%, transparent));
 }
 .home-tool-card h3 {
-  margin: 2px 0 0;
-  font-size: 1.06rem;
+  margin: 4px 0 0;
+  font-size: 1.16rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.3;
   color: var(--text-color, #0f172a);
+  transition: color 0.26s ease, text-shadow 0.26s ease;
 }
 .home-tool-card__desc {
   margin: 0;
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 400;
   color: var(--text-muted);
-  line-height: 1.65;
-  letter-spacing: 0.02em;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
   transition: color 0.24s ease;
 }
 .home-tool-card:hover .home-tool-card__desc {
-  color: color-mix(in srgb, var(--text-muted) 70%, #fff 30%);
+  color: color-mix(in srgb, var(--text-muted) 65%, #000 35%);
+}
+.dark-theme .home-tool-card:hover .home-tool-card__desc {
+  color: color-mix(in srgb, var(--text-muted) 65%, #fff 35%);
 }
 .home-tool-fab {
   align-self: flex-end;
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   margin-top: auto;
   padding: 0;
-  border: none;
-  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: linear-gradient(145deg, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
+  background: linear-gradient(145deg, var(--tool-color, var(--primary-color)), color-mix(in srgb, var(--tool-color, var(--primary-color)) 70%, var(--secondary-color) 30%));
   color: #fff;
   box-shadow:
-    0 8px 22px color-mix(in srgb, var(--primary-color, #4a90e2) 38%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    0 8px 24px color-mix(in srgb, var(--tool-color, var(--primary-color)) 40%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transition:
     transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.28s ease,
@@ -260,21 +337,44 @@ function openTool(path: string) {
   -webkit-tap-highlight-color: transparent;
 }
 .home-tool-fab:hover {
-  transform: scale(1.08);
+  transform: scale(1.1) translateX(2px);
   box-shadow:
-    0 14px 32px color-mix(in srgb, var(--primary-color, #4a90e2) 45%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  filter: brightness(1.03);
+    0 12px 36px color-mix(in srgb, var(--tool-color, var(--primary-color)) 50%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  filter: brightness(1.05);
 }
 .home-tool-card:hover .home-tool-fab {
   transform: translateX(2px) scale(1.08);
 }
 .home-tool-fab:active {
-  transform: scale(0.96);
+  transform: scale(0.95);
 }
 .home-tool-fab__ico {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   margin-left: 2px;
+}
+
+/* Dark Theme 支持 */
+.dark-theme .home-tool-card {
+  background: rgba(15, 23, 42, 0.35);
+  border-color: rgba(167, 139, 250, 0.15);
+}
+
+.dark-theme .home-tool-card:hover {
+  background: rgba(30, 27, 58, 0.45);
+  border-color: color-mix(in srgb, var(--tool-color, var(--primary-color)) 40%, rgba(255, 255, 255, 0.2));
+}
+
+.dark-theme .home-tool-ico {
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--tool-color, var(--primary-color)) 30%, transparent);
+}
+
+.dark-theme .home-tool-card h3 {
+  color: #f0f4f8;
+}
+
+.dark-theme .home-tool-card .home-tool-card__desc {
+  color: rgba(203, 213, 225, 0.85);
 }
 </style>

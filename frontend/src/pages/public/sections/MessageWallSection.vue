@@ -1,73 +1,29 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
-import { fetchWallMessages, submitWallMessage, type WallMessagePublic } from '../../../api/wall'
-import { escapeHtml } from '../../../utils/escapeHtml'
+import { onMounted } from 'vue'
+import { useWallMessages } from '../../../hooks/useWallMessages'
+import WallComposer from '../../../components/home/wall/WallComposer.vue'
+import WallList from '../../../components/home/wall/WallList.vue'
+import WallPager from '../../../components/home/wall/WallPager.vue'
 
 const { t } = useI18n()
-
-const loading = ref(true)
-const messages = ref<WallMessagePublic[]>([])
-const total = ref(0)
-const page = ref(0)
-const pageSize = ref(8)
-const author = ref('')
-const content = ref('')
-const submitting = ref(false)
-
-const canSubmit = computed(() => content.value.trim().length > 0)
-
-async function load() {
-  loading.value = true
-  try {
-    const res = await fetchWallMessages({ page: page.value, size: pageSize.value })
-    messages.value = res.items
-    total.value = res.total
-  } catch {
-    messages.value = []
-    total.value = 0
-  } finally {
-    loading.value = false
-  }
-}
-
-watch(page, () => void load())
+const wall = useWallMessages(5)
 
 async function submit() {
-  if (!canSubmit.value) {
+  if (!wall.canSubmit.value) {
     ElMessage.warning(t('messageWall.emptyContent'))
     return
   }
-  submitting.value = true
   try {
-    await submitWallMessage(author.value, content.value)
-    content.value = ''
-    author.value = ''
+    const ok = await wall.submit()
+    if (!ok) return
     ElMessage.success(t('messageWall.pendingReview'))
-    page.value = 0
-    await load()
   } catch (e: unknown) {
     ElMessage.error(e instanceof Error ? e.message : 'Error')
-  } finally {
-    submitting.value = false
   }
 }
-
-function formatTime(iso: string) {
-  try {
-    return new Date(iso).toLocaleString()
-  } catch {
-    return iso
-  }
-}
-
-function onPageChange(p: number) {
-  page.value = p - 1
-}
-
-void load()
+onMounted(() => void wall.load())
 </script>
 
 <template>
@@ -75,55 +31,38 @@ void load()
     <h2>{{ t('messageWall.title') }}</h2>
     <p class="section-sub">{{ t('messageWall.subtitle') }}</p>
 
-    <div class="site-module-card home-message-form site-el-round-16 site-field">
-      <el-input
-        v-model="author"
-        class="home-field"
-        :placeholder="t('messageWall.nicknamePlaceholder')"
-        clearable
-      />
-      <el-input
-        v-model="content"
-        type="textarea"
-        :rows="3"
-        class="home-field"
-        :placeholder="t('messageWall.contentPlaceholder')"
-      />
-      <button
-        type="button"
-        class="site-pill site-pill--primary-cta submit-btn"
-        :disabled="!canSubmit || submitting"
-        @click="submit"
-      >
-        <el-icon v-if="submitting" class="submit-btn__spin"><Loading /></el-icon>
-        {{ submitting ? t('messageWall.submitting') : t('messageWall.submit') }}
-      </button>
-    </div>
+    <WallComposer
+      :nickname="wall.nickname.value"
+      :content="wall.content.value"
+      :submitting="wall.submitting.value"
+      :can-submit="wall.canSubmit.value"
+      :nickname-placeholder="t('messageWall.nicknamePlaceholder')"
+      :content-placeholder="t('messageWall.contentPlaceholder')"
+      :submit-label="t('messageWall.submit')"
+      :submitting-label="t('messageWall.submitting')"
+      @update:nickname="wall.nickname.value = $event"
+      @update:content="wall.content.value = $event"
+      @submit="submit"
+    />
 
-    <p v-if="loading" class="muted center">{{ t('pages.loading') }}</p>
-    <template v-else>
-      <div v-if="messages.length" class="home-wall-grid">
-        <div v-for="m in messages" :key="m.id" class="site-module-card home-wall-card">
-          <div class="home-wall-meta">{{ m.nickname || t('messageWall.anonymous') }} · {{ formatTime(m.createdAt) }}</div>
-          <p class="home-wall-body" v-html="escapeHtml(m.content)"></p>
-          <p v-if="m.adminReply" class="home-wall-reply">{{ t('messageWall.replyFromAdmin') }}：{{ m.adminReply }}</p>
-        </div>
-      </div>
-      <div v-else class="wall-empty-block">
-        <p class="wall-empty-title"><span aria-hidden="true">💬</span> {{ t('messageWall.emptyTitle') }}</p>
-        <p class="muted center wall-empty-hint">{{ t('messageWall.emptyHint') }}</p>
-      </div>
-      <div v-if="total > pageSize" class="wall-pager">
-        <el-pagination
-          background
-          layout="prev, pager, next"
-          :page-size="pageSize"
-          :current-page="page + 1"
-          :total="total"
-          @current-change="onPageChange"
-        />
-      </div>
-    </template>
+    <WallList
+      :loading="wall.loading.value"
+      :load-error="wall.loadError.value"
+      :load-error-label="t('messageWall.loadError')"
+      :items="wall.messages.value"
+      :anonymous-label="t('messageWall.anonymous')"
+      :reply-from-admin-label="t('messageWall.replyFromAdmin')"
+      :empty-title="t('messageWall.emptyTitle')"
+      :empty-hint="t('messageWall.emptyHint')"
+      :loading-label="t('pages.loading')"
+    />
+
+    <WallPager
+      :total="wall.total.value"
+      :page-size="wall.pageSize.value"
+      :current-page="wall.page.value + 1"
+      @change="wall.setPage"
+    />
   </section>
 </template>
 
@@ -132,7 +71,8 @@ void load()
   text-align: center;
   max-width: 640px;
   margin: -1rem auto 1.5rem;
-  font-weight: 400;
+  font-size: 0.98rem;
+  font-weight: 450;
   color: var(--text-muted, rgba(15, 23, 42, 0.68));
   line-height: 1.72;
   letter-spacing: 0.02em;
@@ -143,14 +83,34 @@ void load()
 .home-message-form {
   max-width: 560px;
   margin: 0 auto 28px;
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.48);
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(102, 217, 255, 0.35);
+  border-radius: 24px;
   box-shadow:
-    0 12px 34px rgba(15, 23, 42, 0.1),
-    0 0 20px color-mix(in srgb, var(--primary-color) 24%, transparent);
+    0 16px 48px rgba(15, 23, 42, 0.12),
+    0 0 32px color-mix(in srgb, rgba(102, 217, 255, 0.2) 40%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 顶部装饰线 */
+.home-message-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    rgba(102, 217, 255, 0.6),
+    rgba(167, 139, 250, 0.6),
+    rgba(244, 167, 194, 0.6)
+  );
+  border-radius: 0 0 3px 3px;
 }
 .home-message-form .home-field {
   margin-bottom: 12px;
@@ -158,14 +118,16 @@ void load()
 
 .home-message-form :deep(.el-input__wrapper),
 .home-message-form :deep(.el-textarea__inner) {
-  border-radius: 14px !important;
-  padding: 8px 12px !important;
+  border-radius: 16px !important;
+  padding: 10px 14px !important;
+  border: 1.5px solid rgba(167, 139, 250, 0.25);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .home-message-form :deep(.el-input__inner),
 .home-message-form :deep(.el-textarea__inner) {
-  font-size: 0.95rem;
-  line-height: 1.65;
+  font-size: 1rem;
+  line-height: 1.7;
   letter-spacing: 0.01em;
   color: color-mix(in srgb, var(--text-color) 92%, #000 8%);
 }
@@ -181,6 +143,11 @@ void load()
   border-color: color-mix(in srgb, var(--primary-color) 52%, #fff 48%) !important;
   filter: brightness(1.02);
   animation: inputNeonBreath 1.9s ease-in-out infinite;
+}
+.dark-theme .home-message-form :deep(.el-input__wrapper),
+.dark-theme .home-message-form :deep(.el-textarea__inner) {
+  background: rgba(15, 23, 42, 0.72);
+  border-color: rgba(167, 139, 250, 0.35);
 }
 .submit-btn {
   width: 100%;
@@ -255,32 +222,69 @@ void load()
 }
 .home-wall-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
   max-width: 1100px;
   margin: 0 auto;
 }
 .home-wall-card {
-  padding: 16px;
-  border-radius: 16px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(167, 139, 250, 0.25);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
+
+/* 卡片左上角装饰圆点 */
+.home-wall-card::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #66d9ff, #a78bfa);
+  box-shadow: 0 0 8px rgba(102, 217, 255, 0.5);
+}
+
+.home-wall-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(167, 139, 250, 0.5);
+  box-shadow: 
+    0 16px 40px rgba(15, 23, 42, 0.15),
+    0 0 24px color-mix(in srgb, rgba(167, 139, 250, 0.3) 50%, transparent);
+}
+
 .home-wall-meta {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-bottom: 8px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: rgba(102, 217, 255, 0.9);
+  margin-bottom: 12px;
+  margin-left: 16px;
+  letter-spacing: 0.02em;
 }
 .home-wall-body {
   margin: 0;
-  line-height: 1.55;
+  margin-left: 16px;
+  line-height: 1.65;
+  font-size: 0.99rem;
   color: var(--text-color, #0f172a);
   word-break: break-word;
 }
 .home-wall-reply {
-  margin: 10px 0 0;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  border-left: 3px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
-  padding-left: 10px;
+  margin: 12px 0 0;
+  margin-left: 16px;
+  font-size: 0.9rem;
+  color: rgba(167, 139, 250, 0.9);
+  background: rgba(167, 139, 250, 0.1);
+  border-left: 3px solid rgba(167, 139, 250, 0.6);
+  padding: 10px 12px;
+  border-radius: 0 12px 12px 0;
 }
 .wall-empty-hint {
   margin-top: 8px;

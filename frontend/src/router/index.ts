@@ -3,7 +3,7 @@ import { getToken } from '../utils/token'
 import { getSafeInternalPath } from '../utils/safeRedirect'
 import { useUserStore } from '../stores/user'
 
-const PortfolioPage = () => import('../pages/public/PortfolioPage.vue')
+const PortfolioPage = () => import('../views/home/HomePage.vue')
 const HomePage = () => import('../pages/public/BlogHome.vue')
 const ArticlePage = () => import('../pages/public/ArticlePage.vue')
 const CategoriesPage = () => import('../pages/public/CategoriesPage.vue')

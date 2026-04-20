@@ -53,7 +53,14 @@ public class WallMessageService {
     m.setCreatedAt(Instant.now());
     m.setReviewedAt(Instant.now());
     wallMessageRepository.save(m);
-    return new WallMessageSubmitVo(m.getId(), "APPROVED");
+    return new WallMessageSubmitVo(
+        m.getId(),
+        "APPROVED",
+        m.getNickname(),
+        m.getContent(),
+        m.getAdminReply(),
+        m.getCreatedAt()
+    );
   }
 
   /** 后台分页；status 为空表示全部。 */
