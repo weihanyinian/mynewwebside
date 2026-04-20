@@ -203,87 +203,128 @@ const dimPercents = computed(() => {
 
 <template>
   <div class="mbti-page">
+    <!-- 动态背景光球 -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
     <div class="mbti-back"><BackToHomeButton /></div>
 
     <!-- 标题区 -->
     <div class="mbti-header">
-      <h1 class="mbti-title">🧠 MBTI 人格测试</h1>
+      <div class="mbti-icon">🧠</div>
+      <h1 class="mbti-title">MBTI 人格测试</h1>
       <p class="mbti-subtitle">32 道题 · 解读你的人格密码 · 发现真实的自己</p>
     </div>
 
     <!-- ─── 结果页 ─── -->
-    <div v-if="showResult && result" class="result-card glass-surface">
-      <div class="result-badge" :style="{ background: result.color }">
-        <span class="result-emoji">{{ result.emoji }}</span>
-        <span class="result-type">{{ result.type }}</span>
-      </div>
-      <h2 class="result-title">{{ result.title }}</h2>
-      <p class="result-desc">{{ result.desc }}</p>
+    <template v-if="showResult && result">
+      <transition name="result-pop" appear>
+        <div class="result-card glass-surface">
+        <!-- 发光边框 -->
+        <div class="result-glow-border" :style="{ '--glow-color': result.color }"></div>
 
-      <!-- 维度条 -->
-      <div class="dim-bars" v-if="dimPercents">
-        <div v-for="d in dimPercents" :key="d.a" class="dim-row">
-          <span class="dim-label-l">{{ d.a }}</span>
-          <div class="dim-bar-track">
-            <div class="dim-bar-fill-l" :style="{ width: d.pctA + '%' }"></div>
-            <div class="dim-bar-fill-r" :style="{ width: d.pctB + '%' }"></div>
+        <div class="result-badge" :style="{ background: result.color }">
+          <span class="result-emoji">{{ result.emoji }}</span>
+          <span class="result-type">{{ result.type }}</span>
+        </div>
+        <h2 class="result-title" :style="{ color: result.color }">{{ result.title }}</h2>
+        <p class="result-desc">{{ result.desc }}</p>
+
+        <!-- 维度条 -->
+        <div class="dim-bars" v-if="dimPercents">
+          <div v-for="(d, i) in dimPercents" :key="d.a" class="dim-row" :style="{ '--delay': i * 0.12 + 's' }">
+            <span class="dim-label-l">{{ d.a }}</span>
+            <div class="dim-bar-track">
+              <div class="dim-bar-fill" :style="{ width: d.pctA + '%', '--bar-color': result.color }"></div>
+              <div class="dim-bar-fill dim-bar-fill--off" :style="{ width: d.pctB + '%' }"></div>
+            </div>
+            <span class="dim-label-r">{{ d.b }}</span>
           </div>
-          <span class="dim-label-r">{{ d.b }}</span>
         </div>
-      </div>
 
-      <!-- 优劣 -->
-      <div class="result-grid">
-        <div class="result-col">
-          <h4>✨ 优势</h4>
-          <ul><li v-for="s in result.strengths" :key="s">{{ s }}</li></ul>
+        <!-- 优劣 -->
+        <div class="result-grid">
+          <div class="result-col">
+            <h4>✨ 优势</h4>
+            <ul><li v-for="(s, i) in result.strengths" :key="s" :style="{ '--i': i }">{{ s }}</li></ul>
+          </div>
+          <div class="result-col">
+            <h4>⚠️ 盲区</h4>
+            <ul><li v-for="(w, i) in result.weaknesses" :key="w" :style="{ '--i': i }">{{ w }}</li></ul>
+          </div>
         </div>
-        <div class="result-col">
-          <h4>⚠️ 盲区</h4>
-          <ul><li v-for="w in result.weaknesses" :key="w">{{ w }}</li></ul>
+        <div class="result-section">
+          <h4>💼 适合方向</h4>
+          <div class="tag-row"><span v-for="(c, i) in result.careers" :key="c" class="tag" :style="{ '--i': i }">{{ c }}</span></div>
         </div>
-      </div>
-      <div class="result-section">
-        <h4>💼 适合方向</h4>
-        <div class="tag-row"><span v-for="c in result.careers" :key="c" class="tag">{{ c }}</span></div>
-      </div>
-      <div class="result-section">
-        <h4>🌍 同类名人</h4>
-        <div class="tag-row"><span v-for="f in result.famous" :key="f" class="tag tag--gold">{{ f }}</span></div>
-      </div>
+        <div class="result-section">
+          <h4>🌍 同类名人</h4>
+          <div class="tag-row"><span v-for="(f, i) in result.famous" :key="f" class="tag tag--gold" :style="{ '--i': i }">{{ f }}</span></div>
+        </div>
 
-      <button class="btn-restart" @click="restart">🔄 重新测试</button>
-    </div>
+        <button class="btn-restart" @click="restart">
+          <span>🔄</span> 重新测试
+        </button>
+      </div>
+    </transition>
+    </template>
 
     <!-- ─── 答题页 ─── -->
-    <div v-else class="quiz-wrap">
+    <template v-else>
+      <transition name="slide" mode="out-in">
+        <div class="quiz-wrap">
       <!-- 进度条 -->
       <div class="progress-wrap">
-        <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+        <div class="progress-bar" :style="{ width: progress + '%' }">
+          <div class="progress-glow"></div>
+        </div>
+        <div class="progress-dots">
+          <span
+            v-for="i in totalPages"
+            :key="i"
+            class="dot"
+            :class="{ done: (i - 1) * 8 <= Object.keys(answers).length, active: currentPage === i - 1 }"
+          ></span>
+        </div>
       </div>
-      <p class="progress-text">已完成 {{ Object.keys(answers).length }} / {{ questions.length }} 题</p>
+      <div class="progress-text-wrap">
+        <span class="progress-text">已完成 {{ Object.keys(answers).length }} / {{ questions.length }} 题</span>
+        <span class="page-badge">{{ currentPage + 1 }} / {{ totalPages }}</span>
+      </div>
 
       <!-- 题目列表 -->
       <transition name="slide" mode="out-in">
         <div :key="currentPage" class="questions-list">
           <div
-            v-for="q in pageQuestions"
+            v-for="(q, idx) in pageQuestions"
             :key="q.id"
             class="question-card glass-surface"
             :class="{ answered: answers[q.id] !== undefined }"
+            :style="{ '--idx': idx }"
           >
-            <p class="q-text"><span class="q-num">Q{{ q.id }}</span>{{ q.text }}</p>
+            <div class="q-header">
+              <span class="q-num">Q{{ q.id }}</span>
+              <span v-if="answers[q.id] !== undefined" class="q-check">✓</span>
+            </div>
+            <p class="q-text">{{ q.text }}</p>
             <div class="options">
               <button
                 class="option-btn"
                 :class="{ selected: answers[q.id] === 'a' }"
                 @click="choose(q.id, 'a')"
-              >{{ q.a.text }}</button>
+              >
+                <span class="opt-letter">A</span>
+                <span class="opt-text">{{ q.a.text }}</span>
+              </button>
               <button
                 class="option-btn"
                 :class="{ selected: answers[q.id] === 'b' }"
                 @click="choose(q.id, 'b')"
-              >{{ q.b.text }}</button>
+              >
+                <span class="opt-letter">B</span>
+                <span class="opt-text">{{ q.b.text }}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -291,15 +332,23 @@ const dimPercents = computed(() => {
 
       <!-- 翻页按钮 -->
       <div class="page-nav">
-        <button class="nav-btn nav-btn--prev" :disabled="currentPage === 0" @click="prevPage">← 上一页</button>
-        <span class="page-indicator">{{ currentPage + 1 }} / {{ totalPages }}</span>
+        <button class="nav-btn nav-btn--prev" :disabled="currentPage === 0" @click="prevPage">
+          <span>←</span> 上一页
+        </button>
+        <div class="nav-center">
+          <span class="page-indicator">{{ currentPage + 1 }} / {{ totalPages }}</span>
+        </div>
         <button
           class="nav-btn nav-btn--next"
           :disabled="!answeredOnPage"
           @click="nextPage"
-        >{{ currentPage === totalPages - 1 ? '查看结果 🎯' : '下一页 →' }}</button>
+        >
+          {{ currentPage === totalPages - 1 ? '查看结果 🎯' : '下一页 →' }}
+        </button>
       </div>
-    </div>
+        </div>
+      </transition>
+    </template>
   </div>
 </template>
 
@@ -311,56 +360,187 @@ const dimPercents = computed(() => {
   margin: 0 auto;
   padding: max(16px, env(safe-area-inset-top)) 16px max(40px, calc(env(safe-area-inset-bottom) + 20px));
   animation: fadeIn 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
 }
 
-.mbti-back { margin-bottom: 12px; }
+/* 动态光球背景 */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+  animation: orbFloat 20s ease-in-out infinite;
+}
+.orb-1 {
+  width: 400px; height: 400px;
+  background: #66d9ff;
+  top: -100px; left: -100px;
+  animation-duration: 22s;
+}
+.orb-2 {
+  width: 300px; height: 300px;
+  background: #a78bfa;
+  top: 40%; right: -80px;
+  animation-duration: 18s;
+  animation-delay: -7s;
+}
+.orb-3 {
+  width: 250px; height: 250px;
+  background: #f472b6;
+  bottom: 0; left: 30%;
+  animation-duration: 25s;
+  animation-delay: -12s;
+}
 
-.mbti-header { text-align: center; margin-bottom: 28px; }
-.mbti-title {
-  font-size: clamp(1.6rem, 5vw, 2.2rem);
-  color: var(--primary-color, #66d9ff);
+.mbti-back { margin-bottom: 12px; position: relative; z-index: 1; }
+
+.mbti-header {
+  text-align: center;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+}
+.mbti-icon {
+  font-size: 3.5rem;
   margin-bottom: 8px;
-  text-shadow: 0 2px 12px rgba(102,217,255,0.3);
+  animation: iconBounce 3s ease-in-out infinite;
+  display: inline-block;
 }
-.mbti-subtitle { color: var(--text-color); opacity: 0.8; font-size: 0.9rem; }
+.mbti-title {
+  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  background: linear-gradient(135deg, #66d9ff 0%, #a78bfa 50%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.mbti-subtitle {
+  color: var(--text-color);
+  opacity: 0.7;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
 
 /* 进度条 */
 .progress-wrap {
-  height: 6px;
-  background: rgba(255,255,255,0.12);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 6px;
+  position: relative;
+  margin-bottom: 4px;
+  z-index: 1;
 }
 .progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #66d9ff, #a78bfa);
-  border-radius: 3px;
-  transition: width 0.4s ease;
+  height: 8px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
 }
-.progress-text { font-size: 0.78rem; color: var(--text-color); opacity: 0.6; margin-bottom: 20px; text-align: right; }
+.progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #1a1a2e, rgba(255,255,255,0.12));
+  overflow: hidden;
+}
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #66d9ff, #a78bfa, #f472b6);
+  border-radius: 4px;
+  width: var(--progress, 0%);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.progress-glow {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(circle, rgba(167,139,250,0.6) 0%, transparent 70%);
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transition: all 0.3s;
+}
+.dot.done { background: #66d9ff; transform: scale(1.2); }
+.dot.active { background: #a78bfa; box-shadow: 0 0 8px #a78bfa; transform: scale(1.4); }
+
+.progress-text-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+.progress-text { font-size: 0.78rem; color: var(--text-color); opacity: 0.6; }
+.page-badge {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(102,217,255,0.15);
+  border: 1px solid rgba(102,217,255,0.3);
+  color: #66d9ff;
+  font-weight: 700;
+}
 
 /* 题目卡片 */
-.questions-list { display: flex; flex-direction: column; gap: 16px; }
+.quiz-wrap { position: relative; z-index: 1; }
+.questions-list { display: flex; flex-direction: column; gap: 14px; }
 .question-card {
   padding: 20px;
   border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.08);
-  transition: border-color 0.3s;
+  animation: cardSlideIn 0.4s ease-out both;
+  animation-delay: calc(var(--idx, 0) * 0.08s);
 }
-.question-card.answered { border-color: rgba(102,217,255,0.4); }
+.question-card.answered {
+  border-color: rgba(167,139,250,0.5);
+  box-shadow: 0 0 20px rgba(167,139,250,0.08);
+}
 
-.q-text { font-size: 1rem; line-height: 1.6; color: var(--text-color); margin-bottom: 14px; }
+.q-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
 .q-num {
-  display: inline-block;
-  background: var(--primary-color, #66d9ff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #66d9ff, #a78bfa);
   color: #000;
-  font-weight: 700;
-  font-size: 0.72rem;
-  padding: 2px 8px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 3px 10px;
   border-radius: 20px;
-  margin-right: 10px;
+  letter-spacing: 0.5px;
+}
+.q-check {
+  font-size: 1.1rem;
+  color: #10b981;
+  animation: checkPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.q-text {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text-color);
+  margin-bottom: 14px;
+  font-weight: 500;
 }
 
 .options { display: flex; flex-direction: column; gap: 10px; }
@@ -368,139 +548,271 @@ const dimPercents = computed(() => {
 
 .option-btn {
   flex: 1;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1.5px solid rgba(255,255,255,0.2);
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.4;
+}
+.opt-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.opt-text { flex: 1; }
+.option-btn:hover {
+  border-color: rgba(167,139,250,0.6);
+  background: rgba(167,139,250,0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(167,139,250,0.15);
+}
+.option-btn:hover .opt-letter { background: rgba(167,139,250,0.2); }
+.option-btn.selected {
+  border-color: #a78bfa;
+  background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(102,217,255,0.12));
+  color: #e0d4ff;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(167,139,250,0.2);
+}
+.option-btn.selected .opt-letter {
+  background: linear-gradient(135deg, #a78bfa, #66d9ff);
+  color: #000;
+}
+
+/* 翻页 */
+.page-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28px;
+  gap: 12px;
+}
+.nav-btn {
+  padding: 11px 22px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(255,255,255,0.15);
   background: rgba(255,255,255,0.06);
   color: var(--text-color);
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
-  line-height: 1.4;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.option-btn:hover { border-color: var(--primary-color, #66d9ff); background: rgba(102,217,255,0.1); }
-.option-btn.selected {
-  border-color: var(--primary-color, #66d9ff);
-  background: rgba(102,217,255,0.2);
-  color: var(--primary-color, #66d9ff);
-  font-weight: 600;
-}
-
-/* 翻页 */
-.page-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 28px; gap: 12px; }
-.nav-btn {
-  padding: 10px 20px;
-  border-radius: 12px;
-  border: 1.5px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.08);
-  color: var(--text-color);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+.nav-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+.nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .nav-btn--next:not(:disabled) {
-  background: var(--primary-color, #66d9ff);
+  background: linear-gradient(135deg, #a78bfa, #66d9ff);
   color: #000;
-  border-color: var(--primary-color, #66d9ff);
-  font-weight: 700;
+  border-color: transparent;
+  font-weight: 800;
+  box-shadow: 0 4px 16px rgba(167,139,250,0.3);
 }
-.page-indicator { font-size: 0.85rem; color: var(--text-color); opacity: 0.6; }
+.nav-btn--next:not(:disabled):hover {
+  box-shadow: 0 6px 24px rgba(167,139,250,0.45);
+  transform: translateY(-2px);
+}
+.nav-center { flex: 1; text-align: center; }
+.page-indicator { font-size: 0.85rem; color: var(--text-color); opacity: 0.5; }
 
 /* 结果卡片 */
 .result-card {
-  padding: 28px 24px;
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: rgba(255,255,255,0.08);
+  padding: 32px 28px;
+  border-radius: 24px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+  animation: resultReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.result-glow-border {
+  position: absolute;
+  inset: -2px;
+  border-radius: 26px;
+  background: conic-gradient(from var(--angle, 0deg), var(--glow-color), transparent 30%, var(--glow-color));
+  opacity: 0.6;
+  z-index: -1;
+  animation: borderRotate 4s linear infinite;
 }
 .result-badge {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 24px;
-  border-radius: 50px;
+  gap: 12px;
+  padding: 12px 28px;
+  border-radius: 60px;
   color: #fff;
   font-weight: 800;
   font-size: 1.5rem;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  animation: badgePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
 }
-.result-emoji { font-size: 1.8rem; }
-.result-type { font-size: 1.8rem; letter-spacing: 4px; }
-.result-title { font-size: 1.6rem; color: var(--primary-color, #66d9ff); margin-bottom: 12px; }
-.result-desc { color: var(--text-color); opacity: 0.88; line-height: 1.7; margin-bottom: 24px; font-size: 0.95rem; }
+.result-emoji { font-size: 2rem; }
+.result-type { font-size: 2rem; letter-spacing: 6px; }
+.result-title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  margin-bottom: 14px;
+  font-weight: 800;
+  animation: fadeUp 0.5s ease 0.3s both;
+}
+.result-desc {
+  color: var(--text-color);
+  opacity: 0.88;
+  line-height: 1.75;
+  margin-bottom: 24px;
+  font-size: 0.96rem;
+  animation: fadeUp 0.5s ease 0.4s both;
+}
 
 /* 维度条 */
 .dim-bars { margin: 20px 0 24px; }
-.dim-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.dim-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  animation: fadeUp 0.5s ease calc(0.4s + var(--delay, 0s)) both;
+}
 .dim-label-l, .dim-label-r {
   width: 22px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--primary-color, #66d9ff);
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--bar-color, #a78bfa);
   flex-shrink: 0;
 }
 .dim-label-r { text-align: right; }
 .dim-bar-track {
   flex: 1;
-  height: 10px;
-  border-radius: 5px;
+  height: 12px;
+  border-radius: 6px;
   overflow: hidden;
   display: flex;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.08);
 }
-.dim-bar-fill-l {
+.dim-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #66d9ff, #a78bfa);
-  transition: width 0.6s ease;
+  background: linear-gradient(90deg, var(--bar-color, #a78bfa), color-mix(in srgb, var(--bar-color, #a78bfa) 60%, #fff));
+  border-radius: 6px 0 0 6px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: barFill 0.8s cubic-bezier(0.4, 0, 0.2, 1) calc(0.4s + var(--delay, 0s)) both;
 }
-.dim-bar-fill-r {
-  height: 100%;
-  background: rgba(255,255,255,0.2);
+.dim-bar-fill--off {
+  background: rgba(255,255,255,0.15);
+  border-radius: 0 6px 6px 0;
+  animation: barFill 0.8s cubic-bezier(0.4, 0, 0.2, 1) calc(0.4s + var(--delay, 0s)) both;
 }
 
 /* 优劣势 */
-.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; text-align: left; }
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+  text-align: left;
+  animation: fadeUp 0.5s ease 0.8s both;
+}
 @media (max-width: 480px) { .result-grid { grid-template-columns: 1fr; } }
-.result-col { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; }
-.result-col h4 { margin: 0 0 10px; font-size: 0.88rem; color: var(--primary-color, #66d9ff); }
+.result-col {
+  background: rgba(255,255,255,0.05);
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.result-col h4 { margin: 0 0 10px; font-size: 0.88rem; color: #a78bfa; font-weight: 700; }
 .result-col ul { list-style: none; padding: 0; margin: 0; }
-.result-col li { font-size: 0.85rem; color: var(--text-color); opacity: 0.85; padding: 3px 0; }
-.result-col li::before { content: '• '; color: var(--primary-color, #66d9ff); }
+.result-col li {
+  font-size: 0.85rem;
+  color: var(--text-color);
+  opacity: 0.85;
+  padding: 4px 0;
+  animation: fadeUp 0.3s ease calc(0.9s + var(--i, 0) * 0.05s) both;
+}
+.result-col li::before { content: '✦ '; color: #a78bfa; font-size: 0.7rem; }
 
-.result-section { text-align: left; margin-bottom: 16px; }
-.result-section h4 { font-size: 0.9rem; color: var(--primary-color, #66d9ff); margin-bottom: 10px; }
+.result-section {
+  text-align: left;
+  margin-bottom: 16px;
+  animation: fadeUp 0.5s ease 1s both;
+}
+.result-section h4 { font-size: 0.9rem; color: #a78bfa; margin-bottom: 10px; font-weight: 700; }
 .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .tag {
   padding: 5px 14px;
   border-radius: 20px;
-  background: rgba(102,217,255,0.15);
-  border: 1px solid rgba(102,217,255,0.3);
+  background: rgba(167,139,250,0.12);
+  border: 1px solid rgba(167,139,250,0.25);
   color: var(--text-color);
   font-size: 0.82rem;
+  animation: fadeUp 0.3s ease calc(1s + var(--i, 0) * 0.06s) both;
 }
-.tag--gold { background: rgba(245,158,11,0.15); border-color: rgba(245,158,11,0.3); }
+.tag--gold {
+  background: rgba(245,158,11,0.12);
+  border-color: rgba(245,158,11,0.25);
+}
 
 .btn-restart {
-  margin-top: 24px;
-  padding: 12px 32px;
-  border-radius: 12px;
-  border: 1.5px solid var(--primary-color, #66d9ff);
-  background: rgba(102,217,255,0.12);
-  color: var(--primary-color, #66d9ff);
+  margin-top: 28px;
+  padding: 14px 36px;
+  border-radius: 16px;
+  border: 2px solid rgba(167,139,250,0.5);
+  background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(102,217,255,0.1));
+  color: #e0d4ff;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeUp 0.5s ease 1.1s both;
 }
-.btn-restart:hover { background: rgba(102,217,255,0.25); transform: translateY(-2px); }
+.btn-restart:hover {
+  background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(102,217,255,0.2));
+  border-color: #a78bfa;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(167,139,250,0.3);
+}
+.btn-restart:active { transform: translateY(0) scale(0.97); }
 
 /* 动画 */
 .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
 .slide-enter-from { opacity: 0; transform: translateX(30px); }
 .slide-leave-to { opacity: 0; transform: translateX(-30px); }
 
+.result-pop-enter-active { transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.result-pop-enter-from { opacity: 0; transform: scale(0.9) translateY(20px); }
+
 @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes cardSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes checkPop { from { transform: scale(0); } to { transform: scale(1.2); } }
+@keyframes badgePop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes resultReveal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes barFill { from { width: 0 !important; } }
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -40px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.95); }
+  75% { transform: translate(40px, 10px) scale(1.05); }
+}
+@keyframes glowPulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+@keyframes iconBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes borderRotate { to { --angle: 360deg; } }
 </style>

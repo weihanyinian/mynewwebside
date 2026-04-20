@@ -110,7 +110,7 @@ void load()
         </div>
       </div>
       <div v-else class="wall-empty-block">
-        <p class="wall-empty-title">{{ t('messageWall.emptyTitle') }}</p>
+        <p class="wall-empty-title"><span aria-hidden="true">💬</span> {{ t('messageWall.emptyTitle') }}</p>
         <p class="muted center wall-empty-hint">{{ t('messageWall.emptyHint') }}</p>
       </div>
       <div v-if="total > pageSize" class="wall-pager">
@@ -144,18 +144,57 @@ void load()
   max-width: 560px;
   margin: 0 auto 28px;
   padding: 24px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.1);
 }
 .home-message-form .home-field {
   margin-bottom: 12px;
+}
+
+.home-message-form :deep(.el-input__wrapper),
+.home-message-form :deep(.el-textarea__inner) {
+  border-radius: 14px !important;
+  padding: 8px 12px !important;
+}
+
+.home-message-form :deep(.el-input__inner),
+.home-message-form :deep(.el-textarea__inner) {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--text-color) 92%, #000 8%);
+}
+
+.home-message-form :deep(.el-input__inner::placeholder),
+.home-message-form :deep(.el-textarea__inner::placeholder) {
+  color: #94a3b8;
+  font-weight: 500;
+}
+.home-message-form :deep(.el-input__wrapper.is-focus),
+.home-message-form :deep(.el-textarea__inner:focus) {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-color) 52%, #fff 48%) !important;
 }
 .submit-btn {
   width: 100%;
   justify-content: center;
   min-height: 46px;
   gap: 8px;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, filter 0.24s ease;
 }
 .submit-btn__spin {
   animation: spin 0.9s linear infinite;
+}
+.submit-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--primary-color) 30%, transparent);
+}
+.submit-btn:disabled {
+  filter: grayscale(0.2);
+  opacity: 0.52;
 }
 @keyframes spin {
   to {
@@ -170,12 +209,14 @@ void load()
 .wall-empty-title {
   text-align: center;
   font-weight: 900;
-  font-size: 1.15rem;
-  color: var(--text-color, #0f172a);
+  font-size: 1.2rem;
+  color: color-mix(in srgb, var(--text-color) 90%, #000 10%);
   margin: 0 0 10px;
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.32);
 }
 :root[data-theme='dark'] .wall-empty-title {
   color: #eaf8ff;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.4);
 }
 .home-wall-grid {
   display: grid;

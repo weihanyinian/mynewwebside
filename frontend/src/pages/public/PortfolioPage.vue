@@ -87,6 +87,7 @@ const works = ref<WorkItem[]>([
 
 const mobileNavOpen = ref(false)
 const portfolioMoreEl = ref<HTMLDetailsElement | null>(null)
+const isNavScrolled = ref(false)
 
 function closePortfolioMore() {
   if (portfolioMoreEl.value) portfolioMoreEl.value.open = false
@@ -100,15 +101,54 @@ watch(
   },
 )
 
+/** 当前高亮的 section id（由滚动监听驱动，点击时也同步更新） */
+const activeSection = ref(route.hash ? route.hash.replace(/^#/, '') : '')
+
+const NAV_SECTION_IDS = ['about', 'works', 'blog', 'contact', 'message', 'albums', 'tools']
+const NAV_SCROLL_OFFSET = 92
+
+let sectionObserver: IntersectionObserver | null = null
+let heroTicking = false
+
+function setupSectionObserver() {
+  sectionObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          activeSection.value = entry.target.id
+        }
+      }
+    },
+    {
+      // 检测区域：顶部偏移 90px（避开固定导航栏），底部去掉 65% 视口高度
+      // 效果：section 进入视口上方 35% 区域时触发高亮
+      rootMargin: '-90px 0px -65% 0px',
+      threshold: 0,
+    },
+  )
+  for (const id of NAV_SECTION_IDS) {
+    const el = document.getElementById(id)
+    if (el) sectionObserver.observe(el)
+  }
+}
+
 function isHashActive(fragment: string) {
-  return route.path === '/' && route.hash === fragment
+  return '#' + activeSection.value === fragment
+}
+
+function updateHashWithoutRouteJump(id: string) {
+  const hash = `#${id}`
+  if (window.location.hash === hash) return
+  window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${hash}`)
 }
 
 function scrollTo(id: string) {
-  void router.replace({ path: '/', hash: '#' + id })
-  void nextTick(() => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  })
+  const target = document.getElementById(id)
+  if (!target) return
+  activeSection.value = id
+  const top = window.scrollY + target.getBoundingClientRect().top - NAV_SCROLL_OFFSET
+  window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' })
+  updateHashWithoutRouteJump(id)
   mobileNavOpen.value = false
 }
 
@@ -142,19 +182,33 @@ function onSiteLogoClick() {
 /** Hero 轻微视差 */
 const heroParallaxY = ref(0)
 function onHeroParallax() {
-  heroParallaxY.value = Math.min(window.scrollY * 0.14, 88)
+  if (heroTicking) return
+  heroTicking = true
+  requestAnimationFrame(() => {
+    heroParallaxY.value = Math.min(window.scrollY * 0.14, 88)
+    isNavScrolled.value = window.scrollY > 24
+    heroTicking = false
+  })
 }
 
 onMounted(() => {
   window.addEventListener('scroll', onHeroParallax, { passive: true })
   if (route.hash) {
     const id = route.hash.replace(/^#/, '')
-    void nextTick(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }))
+    activeSection.value = id
+    void nextTick(() => {
+      const target = document.getElementById(id)
+      if (!target) return
+      const top = window.scrollY + target.getBoundingClientRect().top - NAV_SCROLL_OFFSET
+      window.scrollTo({ top: Math.max(top, 0), behavior: 'auto' })
+    })
   }
+  void nextTick(() => setupSectionObserver())
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onHeroParallax)
+  sectionObserver?.disconnect()
 })
 </script>
 
@@ -164,9 +218,10 @@ onUnmounted(() => {
     <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
     <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
     <div class="portfolio-bg-scrim" aria-hidden="true" />
+    <div class="portfolio-bg-noise" aria-hidden="true" />
 
     <!-- Navbar -->
-    <nav class="glass-nav site-nav-unified">
+    <nav class="glass-nav site-nav-unified" :class="{ 'nav-scrolled': isNavScrolled }">
       <div class="nav-inner">
         <div class="nav-left">
           <div
@@ -377,6 +432,7 @@ onUnmounted(() => {
           <div class="work-card__media">
             <img :src="work.cover" :alt="''" loading="lazy" decoding="async" class="work-card__img" />
             <div class="work-card__overlay" :aria-hidden="true">
+              <span class="work-card__overlay-tag">{{ work.tag }}</span>
               <p class="work-card__overlay-title">{{ work.title }}</p>
               <p class="work-card__detail">{{ work.desc }}</p>
             </div>
@@ -455,6 +511,25 @@ onUnmounted(() => {
   transition: background 0.45s ease;
 }
 
+.portfolio-bg-noise {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.18;
+  background:
+    radial-gradient(circle at 20% 25%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px) 0 0 / 4px 4px,
+    radial-gradient(circle at 80% 60%, rgba(91, 155, 216, 0.12) 0 1px, transparent 1px) 0 0 / 6px 6px;
+  mix-blend-mode: soft-light;
+}
+
+.dark-theme .portfolio-bg-noise {
+  opacity: 0.12;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px) 0 0 / 5px 5px,
+    radial-gradient(circle at 75% 70%, rgba(196, 181, 253, 0.14) 0 1px, transparent 1px) 0 0 / 7px 7px;
+}
+
 /* 日间：仅 5%–10% 量级浅色渐变叠在视频上，不糊化画面，保留动态感 */
 .portfolio-container:not(.dark-theme) .portfolio-bg-scrim {
   background: linear-gradient(
@@ -513,11 +588,12 @@ h2 {
   font-size: 2rem;
   text-align: center;
   margin-bottom: 2rem;
-  font-weight: 800;
+  font-weight: 850;
   background: linear-gradient(to right, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.2);
 }
 .dark-theme h2 {
   background: linear-gradient(to right, #a18cd1, #fbc2eb);
@@ -570,10 +646,24 @@ h2 {
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
     0 8px 32px 0 rgba(74, 144, 226, 0.15);
 }
+.portfolio-container .glass-nav.site-nav-unified.nav-scrolled {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 14px 36px rgba(15, 23, 42, 0.12);
+}
 .portfolio-container.dark-theme .glass-nav.site-nav-unified {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+.portfolio-container.dark-theme .glass-nav.site-nav-unified.nav-scrolled {
+  background: rgba(15, 23, 42, 0.35);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 14px 36px rgba(0, 0, 0, 0.45);
 }
 .nav-inner {
   max-width: min(1400px, 100%);
@@ -675,14 +765,14 @@ h2 {
   text-align: center;
   max-width: 640px;
   margin: -1rem auto 1.5rem;
-  font-weight: 400;
-  opacity: 0.78;
-  line-height: 1.72;
+  font-weight: 420;
+  opacity: 0.92;
+  line-height: 1.75;
   letter-spacing: 0.02em;
-  color: rgba(15, 23, 42, 0.82);
+  color: rgba(15, 23, 42, 0.92);
 }
 .dark-theme .section-sub {
-  color: rgba(226, 232, 240, 0.82);
+  color: rgba(226, 232, 240, 0.9);
 }
 .center { text-align: center; }
 
@@ -695,14 +785,14 @@ h2 {
 }
 .home-hub-lead {
   margin: 0 0 1.25rem;
-  line-height: 1.75;
+  line-height: 1.78;
   letter-spacing: 0.015em;
-  font-weight: 400;
-  opacity: 0.82;
-  color: rgba(15, 23, 42, 0.78);
+  font-weight: 430;
+  opacity: 0.92;
+  color: rgba(15, 23, 42, 0.9);
 }
 .dark-theme .home-hub-lead {
-  color: rgba(226, 232, 240, 0.78);
+  color: rgba(226, 232, 240, 0.9);
 }
 .home-hub-actions {
   display: flex;
@@ -791,6 +881,15 @@ h2 {
   max-width: 1080px;
   margin: 0 auto;
   padding: 80px 20px;
+  opacity: 0;
+  transform: translateY(18px);
+  animation: sectionFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes sectionFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* About Card */
@@ -841,7 +940,8 @@ h2 {
 .works-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
+  gap: 30px;
+  margin-top: 8px;
 }
 .work-card {
   padding: 0;
@@ -880,6 +980,18 @@ h2 {
   opacity: 0;
   transition: opacity 0.35s ease;
 }
+.work-card__overlay-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
 .work-card__overlay-title {
   margin: 0;
   font-size: 1rem;
@@ -903,7 +1015,7 @@ h2 {
 }
 .work-card:hover .work-card__img,
 .work-card:focus-visible .work-card__img {
-  transform: scale(1.06);
+  transform: scale(1.08);
 }
 .glass-card.work-card:hover,
 .glass-card.work-card:focus-visible {

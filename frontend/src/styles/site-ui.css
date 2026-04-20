@@ -74,15 +74,17 @@
 
 /* ---------- 选中 / 主 CTA：主题色渐变（日间青蓝→浅紫 / 夜间深紫系） ---------- */
 .site-pill--active {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
-  border-color: rgba(255, 255, 255, 0.55) !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 84%, #fff 16%) 0%, color-mix(in srgb, var(--secondary-color) 84%, #fff 16%) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.62) !important;
   color: #fff !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) !important;
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--primary-color) 35%, transparent);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary-color) 22%, rgba(255, 255, 255, 0.5)),
+    0 8px 24px color-mix(in srgb, var(--primary-color) 28%, transparent);
 }
 
 .site-pill--active:hover:not(:disabled) {
-  filter: brightness(1.06);
+  filter: brightness(1.04);
   transform: translateY(-2px);
 }
 
@@ -233,8 +235,8 @@
 
 .glass-nav .site-pill--nav.site-pill--active {
   box-shadow:
-    0 0 20px rgba(102, 217, 255, 0.42),
-    0 8px 26px rgba(74, 144, 226, 0.28);
+    0 0 14px rgba(102, 217, 255, 0.3),
+    0 8px 22px rgba(74, 144, 226, 0.22);
 }
 
 :root[data-theme='dark'] .glass-nav .site-pill--nav:hover:not(:disabled) {

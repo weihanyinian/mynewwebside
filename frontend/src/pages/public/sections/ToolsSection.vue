@@ -38,6 +38,12 @@ const toolCards = computed(() => [
     icon: 'b64',
   },
   {
+    path: '/tools/mbti',
+    title: t('toolsHub.cardMbtiTitle'),
+    desc: t('toolsHub.cardMbtiDesc'),
+    icon: 'mbti',
+  },
+  {
     path: '/tools/oj',
     title: t('toolsHub.cardOjTitle'),
     desc: t('toolsHub.cardOjDesc'),
@@ -103,6 +109,13 @@ function openTool(path: string) {
                 d="M4 4h7v2H6v12h5v2H4V4zm9 4h7v2h-5v8h5v2h-7V8zm-1 4h2v4h-2v-4z"
               />
             </svg>
+            <!-- mbti -->
+            <svg v-else-if="card.icon === 'mbti'" viewBox="0 0 24 24" class="home-tool-ico__svg">
+              <path
+                fill="currentColor"
+                d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm-1 4h2v2h-2Zm4 0h2v2h-2ZM7 6h2v2H7Zm8.6 6.8-2.9 3.6a1 1 0 0 1-1.6 0l-2.9-3.6A1 1 0 0 1 9 11.2h6a1 1 0 0 1 .6 1.6ZM7 10h2v2H7Zm8 0h2v2h-2Z"
+              />
+            </svg>
             <!-- code / OJ -->
             <svg v-else viewBox="0 0 24 24" class="home-tool-ico__svg">
               <path
@@ -160,9 +173,21 @@ function openTool(path: string) {
   min-height: 218px;
   cursor: pointer;
   outline: none;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
 }
 .home-tool-card:focus-visible {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 40%, transparent);
+}
+.home-tool-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.13);
+}
+.home-tool-card:hover .home-tool-ico {
+  transform: translateY(-1px) scale(1.05);
+  color: color-mix(in srgb, var(--primary-color) 82%, #fff 18%);
+}
+.home-tool-card:hover h3 {
+  color: color-mix(in srgb, var(--primary-color) 72%, #0f172a 28%);
 }
 .home-tool-card__head {
   display: flex;
@@ -179,6 +204,7 @@ function openTool(path: string) {
   background: linear-gradient(145deg, color-mix(in srgb, var(--primary-color) 22%, transparent), transparent);
   color: var(--primary-color);
   flex-shrink: 0;
+  transition: transform 0.26s ease, color 0.26s ease, background 0.26s ease;
 }
 .home-tool-ico__svg {
   width: 26px;
@@ -231,6 +257,9 @@ function openTool(path: string) {
     0 14px 32px color-mix(in srgb, var(--primary-color, #4a90e2) 45%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
   filter: brightness(1.03);
+}
+.home-tool-card:hover .home-tool-fab {
+  transform: translateX(2px) scale(1.08);
 }
 .home-tool-fab:active {
   transform: scale(0.96);
