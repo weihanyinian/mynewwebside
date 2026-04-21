@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import SiteLayout from './layouts/SiteLayout.vue'
 import AdminLayout from './layouts/AdminLayout.vue'
-import Mascot from './components/Mascot.vue'
+import AvatarBadge from './components/AvatarBadge.vue'
 import MusicPlayer from './components/MusicPlayer.vue'
 const route = useRoute()
 const isAdmin = computed(() => route.path.startsWith('/admin'))
@@ -11,21 +11,23 @@ const isPortfolio = computed(() => route.path === '/')
 </script>
 
 <template>
-  <router-view v-slot="{ Component }">
-    <transition name="page-fade-slide" mode="out-in">
-      <AdminLayout v-if="isAdmin && Component" :key="'a-' + route.fullPath">
-        <component :is="Component" />
-      </AdminLayout>
-      <component :is="Component" v-else-if="isPortfolio && Component" :key="'p-' + route.fullPath" />
-      <SiteLayout v-else-if="Component" :key="'s-' + route.fullPath">
-        <component :is="Component" />
-      </SiteLayout>
-    </transition>
-  </router-view>
-  <template v-if="!isAdmin">
-    <Mascot />
-    <MusicPlayer />
-  </template>
+  <div>
+    <router-view v-slot="{ Component }">
+      <transition name="page-fade-slide" mode="out-in">
+        <AdminLayout v-if="isAdmin && Component" :key="'a-' + route.fullPath">
+          <component :is="Component" />
+        </AdminLayout>
+        <component :is="Component" v-else-if="isPortfolio && Component" :key="'p-' + route.fullPath" />
+        <SiteLayout v-else-if="Component" :key="'s-' + route.fullPath">
+          <component :is="Component" />
+        </SiteLayout>
+      </transition>
+    </router-view>
+    <template v-if="!isAdmin">
+      <AvatarBadge />
+      <MusicPlayer />
+    </template>
+  </div>
 </template>
 
 <style>

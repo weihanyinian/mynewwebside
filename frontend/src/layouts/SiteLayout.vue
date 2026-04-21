@@ -13,11 +13,6 @@ import { useThemeStore } from '../stores/theme'
 const router = useRouter()
 const route = useRoute()
 const { t, locale } = useI18n()
-const moreDetailsEl = ref<HTMLDetailsElement | null>(null)
-
-function closeMoreMenu() {
-  if (moreDetailsEl.value) moreDetailsEl.value.open = false
-}
 
 /** 【主题】全站共享 Pinia，与首页 Portfolio 同一套日间/夜间状态 */
 const themeStore = useThemeStore()
@@ -85,7 +80,6 @@ watch(
   () => route.fullPath,
   () => {
     mobileNavOpen.value = false
-    closeMoreMenu()
   },
 )
 
@@ -199,27 +193,6 @@ watch(
             :class="{ 'site-pill--active': isRoutePrefix('/blog') || isRoutePrefix('/article') }"
             @click.prevent="router.push('/blog')"
           >{{ t('nav.blog') }}</a>
-          <details ref="moreDetailsEl" class="nav-more-wrap">
-            <summary class="site-pill site-pill--nav nav-more-trigger">{{ t('nav.more') }}</summary>
-            <div class="nav-more-panel" @click="closeMoreMenu">
-              <a
-                href="#"
-                :class="{ 'site-pill--active': isRoutePrefix('/moyu') }"
-                @click.prevent="router.push('/moyu')"
-              >{{ t('nav.moyu') }}</a>
-              <a
-                href="#"
-                :class="{ 'site-pill--active': route.path === '/tools/mbti' }"
-                @click.prevent="router.push('/tools/mbti')"
-              >{{ t('nav.mbti') }}</a>
-              <a
-                v-if="isLoggedIn"
-                href="#"
-                :class="{ 'site-pill--active': route.path === '/memories' }"
-                @click.prevent="router.push('/memories')"
-              >{{ t('nav.memories') }}</a>
-            </div>
-          </details>
           <a
             v-if="isAdminUser"
             href="#"

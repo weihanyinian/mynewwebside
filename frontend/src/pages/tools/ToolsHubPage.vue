@@ -1,20 +1,44 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useToolsStore } from '../../stores/tools'
 
 const { t } = useI18n()
+const router = useRouter()
+const toolsStore = useToolsStore()
+toolsStore.hydrate()
 
-type Card = { id: string; icon: string; titleKey: string; descKey: string; to: string; accent?: boolean }
+const cards = computed(() =>
+  toolsStore.tools.map((card) => ({
+    id: card.id,
+    icon: card.icon === 'reaction'
+      ? '⚡'
+      : card.icon === 'cps'
+        ? '🖱️'
+        : card.icon === 'pomodoro'
+          ? '🍅'
+          : card.icon === 'lock'
+            ? '🔑'
+            : card.icon === 'b64'
+              ? '🔤'
+              : card.icon === 'mbti'
+                ? '🧠'
+                : '⌨️',
+    titleKey: card.titleKey,
+    descKey: card.descKey,
+    to: card.path,
+  })),
+)
 
-const cards = computed((): Card[] => [
-  { id: 'oj', icon: '⌨️', titleKey: 'toolsHub.cardOjTitle', descKey: 'toolsHub.cardOjDesc', to: '/tools/oj' },
-  { id: 'reaction', icon: '⚡', titleKey: 'tools.reaction', descKey: 'toolsHub.cardReactionDesc', to: '/tools/reaction' },
-  { id: 'cps', icon: '🖱️', titleKey: 'tools.cps', descKey: 'toolsHub.cardCpsDesc', to: '/tools/cps' },
-  { id: 'pomodoro', icon: '🍅', titleKey: 'tools.pomodoro', descKey: 'toolsHub.cardPomodoroDesc', to: '/tools/pomodoro' },
-  { id: 'password', icon: '🔑', titleKey: 'tools.password', descKey: 'toolsHub.cardPasswordDesc', to: '/tools/password' },
-  { id: 'base64', icon: '🔤', titleKey: 'tools.base64', descKey: 'toolsHub.cardBase64Desc', to: '/tools/base64' },
-  { id: 'mbti', icon: '🧠', titleKey: 'toolsHub.cardMbtiTitle', descKey: 'toolsHub.cardMbtiDesc', to: '/tools/mbti' },
-])
+function openTool(id: string, path: string) {
+  toolsStore.markUsed(id)
+  void router.push(path)
+}
+
+function toggleFavorite(id: string) {
+  toolsStore.toggleFavorite(id)
+}
 </script>
 
 <template>
@@ -22,21 +46,32 @@ const cards = computed((): Card[] => [
     <header class="tools-hub__header">
       <h1 class="tools-hub__title">{{ t('toolsHub.title') }}</h1>
       <p class="tools-hub__sub">{{ t('toolsHub.subtitle') }}</p>
+      <p v-if="toolsStore.recentTools.length" class="tools-hub__recent">
+        最近使用：{{ toolsStore.recentTools.map((v) => t(v.titleKey)).join(' / ') }}
+      </p>
     </header>
 
     <div class="tools-hub__grid">
       <!-- RouterLink 与 router.push(to) 等价，无子元素拦截冒泡 -->
-      <RouterLink
+      <article
         v-for="c in cards"
         :key="c.id"
-        :to="c.to"
         class="tool-card glass-tool-card"
-        :class="{ 'tool-card--accent': c.accent }"
+        role="button"
+        tabindex="0"
+        @click="openTool(c.id, c.to)"
+        @keydown.enter.prevent="openTool(c.id, c.to)"
       >
+        <button
+          type="button"
+          class="tool-fav"
+          :class="{ 'tool-fav--active': toolsStore.favorites.includes(c.id) }"
+          @click.stop="toggleFavorite(c.id)"
+        >★</button>
         <span class="tool-card__icon" aria-hidden="true">{{ c.icon }}</span>
         <span class="tool-card__name">{{ t(c.titleKey) }}</span>
         <span class="tool-card__desc">{{ t(c.descKey) }}</span>
-      </RouterLink>
+      </article>
     </div>
   </div>
 </template>
@@ -76,6 +111,12 @@ const cards = computed((): Card[] => [
   font-size: 0.95rem;
   font-weight: 600;
 }
+.tools-hub__recent {
+  margin: 0.7rem auto 0;
+  font-size: 0.82rem;
+  opacity: 0.9;
+  color: var(--blog-on-glass-muted, rgba(26, 58, 82, 0.75));
+}
 
 .tools-hub__grid {
   display: grid;
@@ -84,6 +125,7 @@ const cards = computed((): Card[] => [
 }
 
 .tool-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -102,6 +144,21 @@ const cards = computed((): Card[] => [
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.2s ease;
   color: var(--text-color, #2c3e50);
   font: inherit;
+}
+.tool-fav {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+  color: #64748b;
+}
+.tool-fav--active {
+  color: #f59e0b;
 }
 
 .tool-card:hover {

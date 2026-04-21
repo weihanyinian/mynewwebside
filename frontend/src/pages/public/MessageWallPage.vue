@@ -5,13 +5,17 @@
 import { onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import BackToBlogButton from '../../components/BackToBlogButton.vue'
 import { useWallMessages } from '../../hooks/useWallMessages'
+import { useUserStore } from '../../stores/user'
 import WallComposer from '../../components/home/wall/WallComposer.vue'
 import WallList from '../../components/home/wall/WallList.vue'
 import WallPager from '../../components/home/wall/WallPager.vue'
 
 const { t } = useI18n()
+const router = useRouter()
+const userStore = useUserStore()
 const wall = useWallMessages(5)
 
 async function submitMessage() {
@@ -38,6 +42,14 @@ onMounted(() => void wall.load())
     <div class="wall-header">
       <h1 class="wall-title">{{ t('messageWall.title') }}</h1>
       <p class="wall-subtitle">{{ t('messageWall.subtitle') }}</p>
+      <button
+        v-if="userStore.isAdmin"
+        type="button"
+        class="wall-admin-btn"
+        @click="router.push('/admin/messages')"
+      >
+        管理留言
+      </button>
     </div>
 
     <div class="message-form-wrap">
@@ -118,6 +130,16 @@ onMounted(() => void wall.load())
 .wall-subtitle {
   color: var(--text-muted);
   font-size: 1rem;
+}
+.wall-admin-btn {
+  margin-top: 10px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 35%, rgba(255, 255, 255, 0.6));
+  background: rgba(255, 255, 255, 0.28);
+  color: var(--text-color);
+  border-radius: 999px;
+  min-height: 34px;
+  padding: 0 0.86rem;
+  cursor: pointer;
 }
 
 .message-form-wrap {

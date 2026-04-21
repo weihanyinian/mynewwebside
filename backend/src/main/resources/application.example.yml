@@ -17,7 +17,7 @@ spring:
   application:
     name: blog-backend
   datasource:
-    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
     username: root
     password: CHANGE_ME
   flyway:
@@ -59,6 +59,22 @@ app:
   view-counter:
     redis: ${VIEW_COUNTER_REDIS:false}
     flush-ms: 60000
+
+ai:
+  companion:
+    # ===== 看板娘 AI（云端 LLM）配置 =====
+    enabled: ${AI_COMPANION_ENABLED:false}
+    # DeepSeek API BaseURL（OpenAI 兼容）
+    base-url: ${AI_COMPANION_BASE_URL:https://api.deepseek.com/v1}
+    # DeepSeek 模型名（禁止本地模型）
+    model: ${AI_COMPANION_MODEL:deepseek-chat}
+    # API Key（必须走环境变量，严禁写死到仓库）
+    api-key: ${AI_COMPANION_API_KEY:}
+    # 轻量服务器建议限制输入与频率
+    max-input-chars: ${AI_COMPANION_MAX_INPUT_CHARS:300}
+    rate-limit-per-minute: ${AI_COMPANION_RATE_LIMIT_PER_MINUTE:20}
+    timeout-ms: ${AI_COMPANION_TIMEOUT_MS:12000}
+    temperature: ${AI_COMPANION_TEMPERATURE:0.65}
 
 # 在线判题 Judge0 CE（可与生产环境分环境配置）
 # 本地无 MySQL 时可启用内存库：spring.profiles.active: h2

@@ -5,16 +5,31 @@ defineProps<{
   title: string
   detailLabel: string
   works: HomeWorkItem[]
+  categories: string[]
+  selectedCategory: string
 }>()
 
 const emit = defineEmits<{
   open: [work: HomeWorkItem, event?: Event]
+  changeCategory: [category: string]
 }>()
 </script>
 
 <template>
   <section class="section" id="works">
     <h2>{{ title }}</h2>
+    <div class="works-filters">
+      <button
+        v-for="category in categories"
+        :key="category"
+        type="button"
+        class="works-filter-chip"
+        :class="{ 'works-filter-chip--active': selectedCategory === category }"
+        @click="emit('changeCategory', category)"
+      >
+        {{ category === 'all' ? '全部' : category }}
+      </button>
+    </div>
     <div class="works-grid">
       <article
         v-for="(work, index) in works"
@@ -64,6 +79,33 @@ const emit = defineEmits<{
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
   margin-top: 8px;
+}
+.works-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: -6px 0 20px;
+}
+.works-filter-chip {
+  border: 1px solid color-mix(in srgb, var(--primary-color, #5b9bd8) 30%, rgba(255, 255, 255, 0.65));
+  background: rgba(255, 255, 255, 0.28);
+  color: var(--text-color, #0f172a);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.78rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.works-filter-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary-color, #5b9bd8);
+}
+.works-filter-chip--active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(120deg, var(--primary-color, #5b9bd8), var(--secondary-color, #9b8fd4));
+  box-shadow: 0 8px 20px rgba(91, 155, 216, 0.28);
 }
 .work-card {
   padding: 0;

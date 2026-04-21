@@ -9,6 +9,8 @@ import SiteGlassFooter from '../../components/site/SiteGlassFooter.vue'
 import SiteBackToTop from '../../components/site/SiteBackToTop.vue'
 import { useThemeStore } from '../../stores/theme'
 import { useUserStore } from '../../stores/user'
+import { useWorksStore } from '../../stores/works'
+import { useVisitStore } from '../../stores/visit'
 import MessageWallSection from './sections/MessageWallSection.vue'
 import ToolsSection from './sections/ToolsSection.vue'
 import HomeHero from '../../components/home/HomeHero.vue'
@@ -28,6 +30,8 @@ const { isDarkMode } = storeToRefs(themeStore)
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const isAdminUser = computed(() => userStore.isAdmin)
+const worksStore = useWorksStore()
+const visitStore = useVisitStore()
 
 const githubRepo =
   import.meta.env.VITE_PUBLIC_GITHUB_REPO || 'https://github.com/weihanyinian/mynewwebside'
@@ -45,53 +49,19 @@ function closeNavMobile() {
   mobileNavOpen.value = false
 }
 
-const works = ref<HomeWorkItem[]>([
-  {
-    title: '大语言模型微调与部署',
-    desc: '基于 GLM4 与 LoRA 技术的大模型微调实战项目，探索垂直领域大语言模型应用。',
-    detail: '覆盖数据构建、训练与推理部署流程，可作为 LLM 工程化落地的实践参考。',
-    link: '#works',
-    tag: 'LLM / GLM4',
-    cover: '/avatar.png',
-  },
-  {
-    title: 'Transformer 机器翻译',
-    desc: '基于底层 Transformer 架构从零构建的机器翻译模型，深入理解 Attention 机制。',
-    detail: '从编码器—解码器到多头注意力，适合巩固序列建模与并行训练要点。',
-    link: '#works',
-    tag: 'Deep Learning',
-    cover: '/avatar.png',
-  },
-  {
-    title: 'MyWebSide Blog',
-    desc: '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。',
-    detail: '博客、留言墙、工具栏与 OJ 一体化；代码开源，欢迎交流与共建。',
-    link: 'https://github.com/weihanyinian/mynewwebside',
-    tag: 'Full Stack',
-    cover: '/avatar.png',
-  },
-  {
-    title: '在线判题 OJ',
-    desc: '内置算法题库与 Judge0 沙箱，支持 C/C++/Java/Python，ACM 与力扣风格评测。',
-    detail: '登录后可提交代码、查看评测状态与历史提交记录。',
-    link: '/tools/oj',
-    tag: 'OJ / Sandbox',
-    cover: '/avatar.png',
-  },
-])
+const works = computed(() => worksStore.filteredWorks)
+const workCategories = computed(() => worksStore.categories)
+const selectedWorkCategory = computed(() => worksStore.selectedCategory)
+const visitBadge = computed(
+  () => `访问 ${visitStore.homeVisits} 次 · 今日 ${visitStore.todayVisits} 次`,
+)
 
 const mobileNavOpen = ref(false)
-const portfolioMoreEl = ref<HTMLDetailsElement | null>(null)
-
-function closePortfolioMore() {
-  if (portfolioMoreEl.value) portfolioMoreEl.value.open = false
-}
 
 watch(
   () => route.fullPath,
   () => {
     mobileNavOpen.value = false
-    closePortfolioMore()
   },
 )
 
@@ -136,6 +106,7 @@ function onSiteLogoClick() {
 }
 
 onMounted(() => {
+  visitStore.initHomeVisit()
   if (route.hash) {
     const id = route.hash.replace(/^#/, '')
     scrollToSection(id, 92)
@@ -299,27 +270,6 @@ onMounted(() => {
             class="site-pill site-pill--nav site-nav-auth site-pill--keep-mobile"
             @click.prevent="logout"
           >{{ t('nav.logout') }}</a>
-          <details ref="portfolioMoreEl" class="nav-more-wrap">
-            <summary class="site-pill site-pill--nav nav-more-trigger site-pill--keep-mobile">{{ t('nav.more') }}</summary>
-            <div class="nav-more-panel" @click="closePortfolioMore">
-              <a
-                href="#"
-                :class="{ 'site-pill--active': route.path.startsWith('/moyu') }"
-                @click.prevent="router.push('/moyu')"
-              >{{ t('nav.moyu') }}</a>
-              <a
-                href="#"
-                :class="{ 'site-pill--active': route.path === '/tools/mbti' }"
-                @click.prevent="router.push('/tools/mbti')"
-              >{{ t('nav.mbti') }}</a>
-              <a
-                v-if="isLoggedIn"
-                href="#"
-                :class="{ 'site-pill--active': route.path === '/memories' }"
-                @click.prevent="router.push('/memories')"
-              >{{ t('nav.memories') }}</a>
-            </div>
-          </details>
         </div>
       </div>
     </nav>
@@ -331,6 +281,7 @@ onMounted(() => {
       :explore-label="t('home.explore')"
       :read-blog-label="t('home.readBlog')"
       :subtitle="'全栈开发 | 二次元爱好者 | 分享与记录'"
+      :stats-badge="visitBadge"
       :parallax-y="heroParallaxY"
       @explore="scrollTo('works')"
       @read-blog="scrollTo('blog')"
@@ -358,7 +309,10 @@ onMounted(() => {
       :title="t('home.worksTitle')"
       :detail-label="t('home.worksDetail')"
       :works="works"
+      :categories="workCategories"
+      :selected-category="selectedWorkCategory"
       @open="onWorkCardActivate"
+      @change-category="worksStore.setCategory"
     />
 
     <!-- Blog & open source -->
@@ -1249,10 +1203,4 @@ h2 {
   color: #0f172a;
 }
 
-.portfolio-container .nav-more-wrap summary.nav-more-trigger {
-  list-style: none;
-}
-.portfolio-container .nav-more-wrap summary::-webkit-details-marker {
-  display: none;
-}
 </style>

@@ -5,6 +5,7 @@ defineProps<{
   exploreLabel: string
   readBlogLabel: string
   subtitle: string
+  statsBadge?: string
   parallaxY: number
 }>()
 
@@ -21,6 +22,7 @@ const emit = defineEmits<{
         {{ titlePrefix }} <span class="hero-name-float">{{ name }}</span>
       </h1>
       <p class="hero-subtitle">{{ subtitle }}</p>
+      <p v-if="statsBadge" class="hero-stats">{{ statsBadge }}</p>
       <div class="hero-actions hero-actions--cta">
         <button type="button" class="site-pill site-pill--lg site-pill--active" @click="emit('explore')">{{ exploreLabel }}</button>
         <button type="button" class="site-pill site-pill--lg site-pill--secondary" @click="emit('readBlog')">{{ readBlogLabel }}</button>
@@ -113,6 +115,16 @@ const emit = defineEmits<{
   flex-wrap: wrap;
   gap: 16px;
   justify-content: center;
+}
+.hero-stats {
+  margin: -0.2rem auto 1rem;
+  width: fit-content;
+  padding: 0.34rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--text-color, #0f172a) 78%, #fff 22%);
+  border: 1px solid color-mix(in srgb, var(--primary-color, #5b9bd8) 28%, rgba(255, 255, 255, 0.55));
+  background: color-mix(in srgb, var(--primary-color, #5b9bd8) 10%, rgba(255, 255, 255, 0.42));
 }
 .hero-actions--cta .site-pill {
   min-height: 46px;

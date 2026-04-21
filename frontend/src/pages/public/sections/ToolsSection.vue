@@ -2,57 +2,28 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useToolsStore } from '../../../stores/tools'
 
 const router = useRouter()
 const { t } = useI18n()
+const toolsStore = useToolsStore()
+toolsStore.hydrate()
 
-const toolCards = computed(() => [
-  {
-    path: '/tools/reaction',
-    title: t('tools.reaction'),
-    desc: t('toolsHub.cardReactionDesc'),
-    icon: 'reaction',
-  },
-  {
-    path: '/tools/cps',
-    title: t('tools.cps'),
-    desc: t('toolsHub.cardCpsDesc'),
-    icon: 'cps',
-  },
-  {
-    path: '/tools/pomodoro',
-    title: t('tools.pomodoro'),
-    desc: t('toolsHub.cardPomodoroDesc'),
-    icon: 'pomodoro',
-  },
-  {
-    path: '/tools/password',
-    title: t('tools.password'),
-    desc: t('toolsHub.cardPasswordDesc'),
-    icon: 'lock',
-  },
-  {
-    path: '/tools/base64',
-    title: t('tools.base64'),
-    desc: t('toolsHub.cardBase64Desc'),
-    icon: 'b64',
-  },
-  {
-    path: '/tools/mbti',
-    title: t('toolsHub.cardMbtiTitle'),
-    desc: t('toolsHub.cardMbtiDesc'),
-    icon: 'mbti',
-  },
-  {
-    path: '/tools/oj',
-    title: t('toolsHub.cardOjTitle'),
-    desc: t('toolsHub.cardOjDesc'),
-    icon: 'code',
-  },
-])
+const toolCards = computed(() =>
+  toolsStore.tools.map((card) => ({
+    ...card,
+    title: t(card.titleKey),
+    desc: t(card.descKey),
+  })),
+)
 
-function openTool(path: string) {
+function openTool(id: string, path: string) {
+  toolsStore.markUsed(id)
   void router.push(path)
+}
+
+function toggleFavorite(id: string) {
+  toolsStore.toggleFavorite(id)
 }
 </script>
 
@@ -69,10 +40,19 @@ function openTool(path: string) {
         role="button"
         tabindex="0"
         :aria-label="card.title"
-        @click="openTool(card.path)"
-        @keydown.enter.prevent="openTool(card.path)"
-        @keydown.space.prevent="openTool(card.path)"
+        @click="openTool(card.id, card.path)"
+        @keydown.enter.prevent="openTool(card.id, card.path)"
+        @keydown.space.prevent="openTool(card.id, card.path)"
       >
+        <button
+          type="button"
+          class="tool-favorite"
+          :class="{ 'tool-favorite--active': toolsStore.favorites.includes(card.id) }"
+          :title="toolsStore.favorites.includes(card.id) ? '取消收藏' : '收藏工具'"
+          @click.stop="toggleFavorite(card.id)"
+        >
+          ★
+        </button>
         <div class="home-tool-card__head">
           <span class="home-tool-ico" aria-hidden="true">
             <!-- reaction: 闪电 -->
@@ -133,7 +113,7 @@ function openTool(path: string) {
           class="home-tool-fab"
           :aria-label="t('home.sectionToolsOpen')"
           :title="t('home.sectionToolsOpen')"
-          @click.stop="openTool(card.path)"
+          @click.stop="openTool(card.id, card.path)"
         >
           <svg class="home-tool-fab__ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path
@@ -182,6 +162,24 @@ function openTool(path: string) {
   -webkit-backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+}
+.tool-favorite {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.28);
+  color: rgba(100, 116, 139, 0.95);
+  border-radius: 10px;
+  width: 30px;
+  height: 30px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.tool-favorite--active {
+  color: #f59e0b;
+  transform: scale(1.04);
 }
 
 /* 卡片顶部装饰线 */
