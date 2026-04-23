@@ -18,12 +18,16 @@ const cards = computed(() =>
         ? '🖱️'
         : card.icon === 'pomodoro'
           ? '🍅'
+          : card.icon === 'moyu'
+            ? '🎮'
           : card.icon === 'lock'
             ? '🔑'
             : card.icon === 'b64'
               ? '🔤'
               : card.icon === 'mbti'
                 ? '🧠'
+                : card.icon === 'schulte'
+                  ? '🔢'
                 : '⌨️',
     titleKey: card.titleKey,
     descKey: card.descKey,

@@ -336,6 +336,26 @@
   }
 }
 
+/* ---------- Mobile: touch target + keyboard friendliness ---------- */
+@media (max-width: 900px) {
+  .site-pill,
+  .nav-social-link,
+  button,
+  .music-row,
+  .music-tab,
+  .music-submit,
+  .mp-btn,
+  .auth-link {
+    min-height: 44px;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 /* 顶栏内层：允许折行以便移动端第二行展开菜单 */
 .glass-nav .nav-inner {
   flex-wrap: wrap;

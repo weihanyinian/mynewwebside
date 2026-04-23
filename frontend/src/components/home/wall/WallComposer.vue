@@ -17,16 +17,27 @@ const emit = defineEmits<{
   'update:content': [value: string]
   submit: []
 }>()
+
+function onNicknameInput(v: string | number | null | undefined) {
+  emit('update:nickname', String(v ?? ''))
+}
+
+function onContentInput(v: string | number | null | undefined) {
+  emit('update:content', String(v ?? ''))
+}
 </script>
 
 <template>
   <div class="site-module-card home-message-form site-el-round-16 site-field">
     <el-input
       :model-value="props.nickname"
+      type="text"
+      inputmode="text"
+      autocapitalize="off"
       class="home-field"
       :placeholder="props.nicknamePlaceholder"
       clearable
-      @update:model-value="(v: string | number | null | undefined) => emit('update:nickname', String(v ?? ''))"
+      @update:model-value="onNicknameInput"
     />
     <el-input
       :model-value="props.content"
@@ -34,7 +45,7 @@ const emit = defineEmits<{
       :rows="3"
       class="home-field"
       :placeholder="props.contentPlaceholder"
-      @update:model-value="(v: string | number | null | undefined) => emit('update:content', String(v ?? ''))"
+      @update:model-value="onContentInput"
     />
     <button
       type="button"

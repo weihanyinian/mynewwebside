@@ -184,13 +184,18 @@ onUnmounted(() => {
       <aside class="blog-sidebar glass-surface">
         <div class="blog-sidebar__inner">
           <div class="blog-profile">
-            <img
-              src="/avatar.png"
-              alt=""
-              class="blog-avatar"
-              width="72"
-              height="72"
-            />
+            <picture class="blog-avatar-wrap">
+              <source srcset="/avatar.webp" type="image/webp" />
+              <img
+                src="/avatar.png"
+                alt=""
+                class="blog-avatar"
+                width="72"
+                height="72"
+                loading="lazy"
+                decoding="async"
+              />
+            </picture>
             <div class="blog-profile__text">
               <h2 class="blog-profile__name">{{ t('home.name') }}</h2>
               <p class="blog-profile__bio">{{ locale === 'zh' ? '保持热爱，奔赴山海' : 'Stay curious.' }}</p>
@@ -293,6 +298,8 @@ onUnmounted(() => {
                 :src="article.coverUrl"
                 :alt="article.title"
                 class="blog-card__img"
+                loading="lazy"
+                decoding="async"
               />
               <div v-else class="blog-card__placeholder">✦</div>
             </div>
@@ -442,6 +449,13 @@ onUnmounted(() => {
   border: 1px solid v-bind('STYLE.glassBorder');
   cursor: pointer;
   transition: transform v-bind('STYLE.transition');
+}
+
+.blog-avatar-wrap {
+  width: 72px;
+  height: 72px;
+  display: block;
+  flex-shrink: 0;
 }
 
 .blog-avatar:hover {

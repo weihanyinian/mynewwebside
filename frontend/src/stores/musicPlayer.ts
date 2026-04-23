@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { http, type ApiResponse } from '../api/http'
-import { DEFAULT_NETEASE_PLAYLIST_ID } from '../config/music'
+import { fetchNeteaseStatus, fetchPublicPlaylist, fetchSongLyric, fetchSongUrl, type SongMeta } from '../api/musicApi'
+import { DEFAULT_NETEASE_BR, DEFAULT_NETEASE_PLAYLIST_ID } from '../config/music'
 import { getToken } from '../utils/token'
 
 /** 与播放器、音乐中心共用的曲目结构 */
@@ -12,6 +12,10 @@ export type PlayerTrack = {
 }
 
 export type PlaySource = 'random' | 'playlist' | 'library'
+export type PlayMode = 'sequence' | 'loop_one' | 'shuffle'
+
+const PREF_KEY = 'mp_player_pref_v1'
+const MAX_AUTO_SKIP = 5
 
 export const useMusicPlayerStore = defineStore('musicPlayer', {
   state: () => ({
@@ -27,6 +31,8 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     source: 'playlist' as PlaySource,
     playlistLoaded: false,
     playlistTracks: [] as PlayerTrack[],
+    playMode: 'shuffle' as PlayMode,
+    volume: 0.65,
   }),
   getters: {
     currentTrack(state): PlayerTrack | null {
@@ -51,25 +57,13 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
         return
       }
       try {
-        const { data } = await http.get<
-          ApiResponse<{ bound: boolean; neteaseUid: number | null; neteaseNickname: string | null }>
-        >('/api/music/netease/status')
-        const d = data.data
+        const d = await fetchNeteaseStatus()
         this.neteaseBound = d.bound
         this.neteaseNickname = d.neteaseNickname
       } catch {
         this.neteaseBound = false
         this.neteaseNickname = null
       }
-    },
-
-    async fetchSongUrlDto(id: number) {
-      const useAuth = !!getToken() && this.neteaseBound
-      const path = useAuth ? '/api/music/netease/song/url' : '/api/public/music/song/url'
-      const { data } = await http.get<
-        ApiResponse<{ url: string | null; playable: boolean; reasonCode: string; reasonMessage: string | null }>
-      >(path, { params: { id } })
-      return data.data
     },
 
     async loadLyricForCurrent() {
@@ -79,32 +73,44 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
         return
       }
       try {
-        const { data } = await http.get<ApiResponse<{ lrc: string; tlyric: string }>>('/api/public/music/lyric', {
-          params: { id: t.id },
-        })
-        this.lyricLrc = data.data.lrc || ''
+        const useAuth = !!getToken() && this.neteaseBound
+        const data = await fetchSongLyric(t.id, useAuth)
+        const main = data.lrc || ''
+        const sub = data.tlyric || ''
+        this.lyricLrc = main || sub ? [main, sub].filter(Boolean).join('\n') : ''
       } catch {
         this.lyricLrc = ''
       }
     },
 
     async loadCurrentUrl() {
+      await this.loadSong(this.currentIndex)
+    },
+
+    async loadSong(index: number) {
       const t = this.currentTrack
-      if (!t || !t.id) {
+      if (!t || !t.id || index < 0 || this.queue.length === 0) {
         this.resolvedUrl = ''
         return
       }
       this.loadError = ''
       this.urlLoading = true
+      const useAuth = !!getToken() && this.neteaseBound
       try {
-        const dto = await this.fetchSongUrlDto(t.id)
+        const dto = await fetchSongUrl(t.id, DEFAULT_NETEASE_BR, useAuth)
         if (dto.playable && dto.url) {
           this.resolvedUrl = dto.url
         } else {
           this.resolvedUrl = ''
-          this.loadError =
+          const message =
             dto.reasonMessage ||
             (dto.reasonCode === 'NO_COPYRIGHT' ? '无版权或需登录网易云后播放' : '暂时无法播放')
+          this.loadError = message
+          // 无版权或不可播放时自动跳过，避免播放器卡死在当前曲目
+          if (dto.reasonCode === 'NO_COPYRIGHT' || dto.reasonCode === 'NO_DATA' || dto.reasonCode === 'UPSTREAM') {
+            const skipped = await this.tryAutoSkip(index, MAX_AUTO_SKIP)
+            if (skipped) return
+          }
         }
       } catch (e: unknown) {
         this.resolvedUrl = ''
@@ -115,12 +121,33 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
       await this.loadLyricForCurrent()
     },
 
+    async tryAutoSkip(startIndex: number, maxSkip: number) {
+      if (this.queue.length <= 1) return false
+      for (let i = 1; i <= maxSkip; i++) {
+        const nextIdx = (startIndex + i) % this.queue.length
+        this.currentIndex = nextIdx
+        try {
+          const useAuth = !!getToken() && this.neteaseBound
+          const dto = await fetchSongUrl(this.queue[nextIdx].id, DEFAULT_NETEASE_BR, useAuth)
+          if (dto.playable && dto.url) {
+            this.resolvedUrl = dto.url
+            this.loadError = '检测到当前歌曲不可播放，已自动切到下一首'
+            await this.loadLyricForCurrent()
+            return true
+          }
+        } catch {
+          // continue
+        }
+      }
+      return false
+    },
+
     async playTracks(tracks: PlayerTrack[], startIndex: number) {
       if (tracks.length === 0) return
       this.queue = tracks.slice()
       this.currentIndex = Math.max(0, Math.min(startIndex, tracks.length - 1))
       this.source = 'library'
-      await this.loadCurrentUrl()
+      await this.loadSong(this.currentIndex)
     },
 
     async playTrack(t: PlayerTrack) {
@@ -129,7 +156,7 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
 
     async playNext(opts?: { shuffle?: boolean; loopOne?: boolean }) {
       if (opts?.loopOne) {
-        await this.loadCurrentUrl()
+        await this.loadSong(this.currentIndex)
         return
       }
       if (this.source === 'random') {
@@ -142,7 +169,7 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
       } else {
         this.currentIndex = (this.currentIndex + 1) % this.queue.length
       }
-      await this.loadCurrentUrl()
+      await this.loadSong(this.currentIndex)
     },
 
     async playPrev(opts?: { shuffle?: boolean }) {
@@ -153,64 +180,35 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
       } else {
         this.currentIndex = (this.currentIndex - 1 + this.queue.length) % this.queue.length
       }
-      await this.loadCurrentUrl()
-    },
-
-    async fetchRandomTrack(): Promise<PlayerTrack | null> {
-      const RANDOM_API = 'https://api.52vmy.cn/api/music/wy/rand'
-      try {
-        const res = await fetch(RANDOM_API, { cache: 'no-store' })
-        if (res.ok) {
-          const json = await res.json()
-          if (json.code === 200 && json.data?.Music) {
-            return {
-              id: json.data.id || 0,
-              title: json.data.song || '未知歌曲',
-              artist: json.data.singer || '',
-              cover: json.data.cover || '',
-            }
-          }
-        }
-      } catch {
-        /* ignore */
-      }
-      return null
+      await this.loadSong(this.currentIndex)
     },
 
     async playRandom() {
-      const t = await this.fetchRandomTrack()
-      if (!t) {
+      if (this.playlistTracks.length === 0) {
         await this.loadDefaultPlaylist()
-        if (!this.currentTrack) {
-          this.loadError = this.loadError || '暂无可用曲目'
-        }
+      }
+      if (this.playlistTracks.length === 0) {
+        this.loadError = this.loadError || '暂无可用曲目'
         return
       }
+      const randomIndex = Math.floor(Math.random() * this.playlistTracks.length)
       this.source = 'random'
-      this.queue = [t]
-      this.currentIndex = 0
-      await this.loadCurrentUrl()
+      this.queue = [...this.playlistTracks]
+      this.currentIndex = randomIndex
+      await this.loadSong(this.currentIndex)
     },
 
     async loadDefaultPlaylist() {
       try {
-        const { data } = await http.get<
-          ApiResponse<Array<{ id: number; name: string; artist: string; cover: string }>>
-        >('/api/public/music/playlist', { params: { id: DEFAULT_NETEASE_PLAYLIST_ID, shuffle: false } })
-        const rows = data.data
+        const rows = await fetchPublicPlaylist(DEFAULT_NETEASE_PLAYLIST_ID, false)
         if (rows.length > 0) {
-          this.playlistTracks = rows.map((r) => ({
-            id: r.id,
-            title: r.name,
-            artist: r.artist,
-            cover: r.cover,
-          }))
+          this.playlistTracks = rows.map((r: SongMeta) => this.metaToTrack(r))
           this.queue = this.playlistTracks.slice()
           this.currentIndex = 0
           this.source = 'playlist'
           this.playlistLoaded = true
           this.loadError = ''
-          await this.loadCurrentUrl()
+          await this.loadSong(this.currentIndex)
           return
         }
         this.loadError = '歌单暂无曲目'
@@ -235,7 +233,52 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
       this.queue = arr
       this.currentIndex = 0
       this.source = 'playlist'
-      await this.loadCurrentUrl()
+      await this.loadSong(this.currentIndex)
+    },
+
+    cyclePlayMode() {
+      const order: PlayMode[] = ['sequence', 'loop_one', 'shuffle']
+      this.playMode = order[(order.indexOf(this.playMode) + 1) % order.length]
+      this.persistPlayerPref()
+    },
+
+    setVolume(v: number) {
+      this.volume = Math.max(0, Math.min(1, v))
+      this.persistPlayerPref()
+    },
+
+    persistPlayerPref() {
+      try {
+        localStorage.setItem(
+          PREF_KEY,
+          JSON.stringify({
+            volume: this.volume,
+            playMode: this.playMode,
+          }),
+        )
+      } catch {
+        // ignore
+      }
+    },
+
+    hydratePlayerPref() {
+      try {
+        const raw = localStorage.getItem(PREF_KEY)
+        if (!raw) return
+        const obj = JSON.parse(raw) as { volume?: number; playMode?: PlayMode }
+        if (typeof obj.volume === 'number') this.volume = Math.max(0, Math.min(1, obj.volume))
+        if (obj.playMode && ['sequence', 'loop_one', 'shuffle'].includes(obj.playMode)) this.playMode = obj.playMode
+      } catch {
+        // ignore
+      }
+    },
+
+    async initPlayer() {
+      this.hydratePlayerPref()
+      await this.refreshNeteaseStatus()
+      if (!this.playlistLoaded || this.playlistTracks.length === 0) {
+        await this.loadDefaultPlaylist()
+      }
     },
   },
 })

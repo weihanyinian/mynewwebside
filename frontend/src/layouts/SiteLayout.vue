@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -75,13 +75,13 @@ function toggleLocale() {
   locale.value = locale.value === 'zh' ? 'en' : 'zh'
 }
 
-const mobileNavOpen = ref(false)
-watch(
-  () => route.fullPath,
-  () => {
-    mobileNavOpen.value = false
-  },
-)
+const mobileTabs = computed(() => [
+  { key: 'home', label: locale.value === 'zh' ? '首页' : 'Home', active: route.path === '/', go: () => router.push('/') },
+  { key: 'blog', label: t('nav.blog'), active: isRoutePrefix('/blog') || isRoutePrefix('/article'), go: () => router.push('/blog') },
+  { key: 'tools', label: t('nav.tools'), active: isRoutePrefix('/tools'), go: () => router.push('/tools') },
+  { key: 'msg', label: t('nav.message'), active: route.path === '/message', go: () => router.push('/message') },
+  { key: 'me', label: isLoggedIn.value ? t('nav.logout') : t('nav.login'), active: route.path === '/login', go: () => (isLoggedIn.value ? logout() : router.push('/login')) },
+])
 
 </script>
 
@@ -126,21 +126,7 @@ watch(
             </a>
           </div>
         </div>
-        <button
-          type="button"
-          class="nav-burger"
-          :aria-expanded="mobileNavOpen"
-          aria-controls="site-layout-nav-links"
-          :aria-label="locale === 'zh' ? '打开导航菜单' : 'Open menu'"
-          @click="mobileNavOpen = !mobileNavOpen"
-        >
-          <span></span><span></span><span></span>
-        </button>
-        <div
-          id="site-layout-nav-links"
-          class="links site-nav-links"
-          :class="{ 'is-open': mobileNavOpen }"
-        >
+        <div id="site-layout-nav-links" class="links site-nav-links">
           <!-- 【全站统一】顶栏：玻璃态 pill + 摸鱼粉强调 -->
           <a
             href="#"
@@ -234,6 +220,19 @@ watch(
       <GlassBreadcrumb />
       <slot />
     </main>
+
+    <nav class="mobile-tabbar" aria-label="mobile navigation">
+      <button
+        v-for="tab in mobileTabs"
+        :key="tab.key"
+        type="button"
+        class="mobile-tabbar__item"
+        :class="{ 'mobile-tabbar__item--active': tab.active }"
+        @click="tab.go()"
+      >
+        {{ tab.label }}
+      </button>
+    </nav>
 
     <SiteGlassFooter />
     <SiteBackToTop />
@@ -392,6 +391,68 @@ watch(
   max-width: min(1320px, 100%);
   padding-left: 20px;
   padding-right: 20px;
+}
+
+.mobile-tabbar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .site-main {
+    padding-bottom: calc(74px + env(safe-area-inset-bottom));
+  }
+
+  .nav-social,
+  .site-nav-links {
+    display: none !important;
+  }
+
+  .mobile-tabbar {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    z-index: 1400;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  }
+
+  .mobile-tabbar__item {
+    min-height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text-color, #0f172a);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .mobile-tabbar__item--active {
+    background: linear-gradient(135deg, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.62);
+  }
+
+  :root[data-theme='dark'] .mobile-tabbar {
+    background: rgba(15, 23, 42, 0.76);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.48);
+  }
+
+  :root[data-theme='dark'] .mobile-tabbar__item {
+    background: rgba(30, 41, 59, 0.72);
+    border-color: rgba(148, 163, 184, 0.24);
+    color: rgba(226, 232, 240, 0.96);
+  }
 }
 </style>
 

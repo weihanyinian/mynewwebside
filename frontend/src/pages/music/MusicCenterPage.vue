@@ -16,7 +16,7 @@ import {
   fetchPlaylistTracks,
   type SongMeta,
   type PlaylistItem,
-} from '../../api/neteaseMusic'
+} from '../../api/musicApi'
 
 const { t } = useI18n()
 const userStore = useUserStore()
@@ -168,7 +168,7 @@ onMounted(async () => {
         </p>
         <form v-else class="music-form" @submit.prevent="onLogin">
           <label class="music-label">{{ t('pages.musicPhone') }}</label>
-          <input v-model="phone" type="tel" class="music-input" autocomplete="username" required />
+          <input v-model="phone" type="tel" inputmode="numeric" class="music-input" autocomplete="tel-national" required />
           <label class="music-label">{{ t('pages.musicPassword') }}</label>
           <input v-model="password" type="password" class="music-input" autocomplete="current-password" required />
           <button type="submit" class="music-submit" :disabled="loginBusy">
@@ -201,7 +201,7 @@ onMounted(async () => {
         <div v-else-if="tab === 'playlists'" class="music-list">
           <div v-for="p in playlists" :key="p.id" class="music-pl">
             <div class="music-pl-row" @click="loadPlaylistTracks(p.id)">
-              <img v-if="p.coverUrl" class="music-pl-cover" :src="p.coverUrl" alt="" />
+              <img v-if="p.coverUrl" class="music-pl-cover" :src="p.coverUrl" alt="" loading="lazy" decoding="async" />
               <div class="music-pl-meta">
                 <span class="music-pl-name">{{ p.name }}</span>
                 <span class="music-pl-count">{{ p.trackCount }} {{ t('pages.musicTracks') }}</span>

@@ -26,6 +26,7 @@ const ToolsHubPage = () => import('../pages/tools/ToolsHubPage.vue')
 const ToolReactionPage = () => import('../pages/tools/ToolReactionPage.vue')
 const ToolCpsPage = () => import('../pages/tools/ToolCpsPage.vue')
 const ToolPomodoroPage = () => import('../pages/tools/ToolPomodoroPage.vue')
+const ToolSchultePage = () => import('../pages/tools/ToolSchultePage.vue')
 const LoginPage = () => import('../pages/auth/LoginPage.vue')
 const RegisterPage = () => import('../pages/auth/RegisterPage.vue')
 const AdminArticlesPage = () => import('../pages/admin/AdminArticlesPage.vue')
@@ -84,6 +85,7 @@ export const router = createRouter({
     { path: '/tools/reaction', component: ToolReactionPage },
     { path: '/tools/cps', component: ToolCpsPage },
     { path: '/tools/pomodoro', component: ToolPomodoroPage },
+    { path: '/tools/schulte', component: ToolSchultePage },
     {
       path: '/tools/oj',
       component: OjView,

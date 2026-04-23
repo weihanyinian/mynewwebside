@@ -18,6 +18,16 @@ public class NeteaseProxyProperties {
    */
   private String defaultPlaylistId = "489057279";
 
+  /**
+   * 默认音质码率（单位 bps），常见值：128000/192000/320000/999000（需账号与版权支持）。
+   */
+  private int defaultBr = 320000;
+
+  /**
+   * 上游失败时的重试次数（不含首次）。
+   */
+  private int retryCount = 1;
+
   public String getBaseUrl() {
     return baseUrl;
   }
@@ -32,5 +42,21 @@ public class NeteaseProxyProperties {
 
   public void setDefaultPlaylistId(String defaultPlaylistId) {
     this.defaultPlaylistId = defaultPlaylistId != null ? defaultPlaylistId.trim() : "489057279";
+  }
+
+  public int getDefaultBr() {
+    return defaultBr;
+  }
+
+  public void setDefaultBr(int defaultBr) {
+    this.defaultBr = Math.max(64000, defaultBr);
+  }
+
+  public int getRetryCount() {
+    return retryCount;
+  }
+
+  public void setRetryCount(int retryCount) {
+    this.retryCount = Math.max(0, retryCount);
   }
 }

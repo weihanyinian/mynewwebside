@@ -4,3 +4,6 @@
  */
 export const DEFAULT_NETEASE_PLAYLIST_ID =
   (import.meta.env.VITE_DEFAULT_NETEASE_PLAYLIST_ID as string | undefined)?.trim() || '489057279'
+
+/** 默认音质码率，需与后端 netease.proxy.default-br 协同。 */
+export const DEFAULT_NETEASE_BR = Number(import.meta.env.VITE_DEFAULT_NETEASE_BR || 320000)

@@ -8,7 +8,7 @@ const seedWorks: HomeWorkItem[] = [
     detail: '覆盖数据构建、训练与推理部署流程，可作为 LLM 工程化落地的实践参考。',
     link: '#works',
     tag: 'LLM / GLM4',
-    cover: '/avatar.png',
+    cover: '/avatar.webp',
   },
   {
     title: 'Transformer 机器翻译',
@@ -16,7 +16,7 @@ const seedWorks: HomeWorkItem[] = [
     detail: '从编码器—解码器到多头注意力，适合巩固序列建模与并行训练要点。',
     link: '#works',
     tag: 'Deep Learning',
-    cover: '/avatar.png',
+    cover: '/avatar.webp',
   },
   {
     title: 'MyWebSide Blog',
@@ -24,7 +24,7 @@ const seedWorks: HomeWorkItem[] = [
     detail: '博客、留言墙、工具栏与 OJ 一体化；代码开源，欢迎交流与共建。',
     link: 'https://github.com/weihanyinian/mynewwebside',
     tag: 'Full Stack',
-    cover: '/avatar.png',
+    cover: '/avatar.webp',
   },
   {
     title: '在线判题 OJ',
@@ -32,7 +32,7 @@ const seedWorks: HomeWorkItem[] = [
     detail: '登录后可提交代码、查看评测状态与历史提交记录。',
     link: '/tools/oj',
     tag: 'OJ / Sandbox',
-    cover: '/avatar.png',
+    cover: '/avatar.webp',
   },
 ]
 

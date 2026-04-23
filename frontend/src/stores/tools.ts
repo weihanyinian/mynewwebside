@@ -13,9 +13,11 @@ const RECENT_KEY = 'tools_recent'
 const RECENT_LIMIT = 6
 
 const toolsSeed: ToolCardItem[] = [
+  { id: 'moyu', path: '/moyu', icon: 'moyu', titleKey: 'tools.moyu', descKey: 'toolsHub.cardMoyuDesc' },
   { id: 'reaction', path: '/tools/reaction', icon: 'reaction', titleKey: 'tools.reaction', descKey: 'toolsHub.cardReactionDesc' },
   { id: 'cps', path: '/tools/cps', icon: 'cps', titleKey: 'tools.cps', descKey: 'toolsHub.cardCpsDesc' },
   { id: 'pomodoro', path: '/tools/pomodoro', icon: 'pomodoro', titleKey: 'tools.pomodoro', descKey: 'toolsHub.cardPomodoroDesc' },
+  { id: 'schulte', path: '/tools/schulte', icon: 'schulte', titleKey: 'tools.schulte', descKey: 'toolsHub.cardSchulteDesc' },
   { id: 'mbti', path: '/tools/mbti', icon: 'mbti', titleKey: 'toolsHub.cardMbtiTitle', descKey: 'toolsHub.cardMbtiDesc' },
   { id: 'oj', path: '/tools/oj', icon: 'code', titleKey: 'toolsHub.cardOjTitle', descKey: 'toolsHub.cardOjDesc' },
 ]

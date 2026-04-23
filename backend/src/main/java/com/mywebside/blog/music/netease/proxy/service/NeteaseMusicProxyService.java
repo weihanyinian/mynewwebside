@@ -2,6 +2,7 @@ package com.mywebside.blog.music.netease.proxy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.PlaylistItemDto;
@@ -16,14 +17,20 @@ import org.springframework.web.client.RestClientException;
 public class NeteaseMusicProxyService {
 
   private final NeteaseBinaryifyClient client;
+  private final NeteaseProxyProperties properties;
 
-  public NeteaseMusicProxyService(NeteaseBinaryifyClient client) {
+  public NeteaseMusicProxyService(NeteaseBinaryifyClient client, NeteaseProxyProperties properties) {
     this.client = client;
+    this.properties = properties;
   }
 
   public SongUrlDto songUrl(long songId, String cookieHeaderOrNull) {
+    return songUrl(songId, properties.getDefaultBr(), cookieHeaderOrNull);
+  }
+
+  public SongUrlDto songUrl(long songId, int br, String cookieHeaderOrNull) {
     try {
-      JsonNode root = client.songUrl(songId, cookieHeaderOrNull);
+      JsonNode root = client.songUrl(songId, br, cookieHeaderOrNull);
       return parseSongUrl(root);
     } catch (RestClientException e) {
       return new SongUrlDto(null, false, "UPSTREAM", "播放服务暂时不可用");
@@ -108,7 +115,7 @@ public class NeteaseMusicProxyService {
   public List<SongMetaDto> parseSongDetail(JsonNode root) {
     int code = root.path("code").asInt(-1);
     if (code != 200) {
-      return List.of();
+      throw new BusinessException(502, root.path("msg").asText("歌曲详情服务暂时不可用"));
     }
     return parsePlaylistSongs(root);
   }

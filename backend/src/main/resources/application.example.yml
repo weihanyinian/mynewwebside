@@ -90,8 +90,15 @@ oj:
 # 网易云第三方 Binaryify 类 API（歌单 / 登录 / 播放链接）；可自建部署
 netease:
   proxy:
+    # 推荐指向你本地/容器启动的 @neteasecloudmusicapienhanced/api 服务
+    # 本机示例: http://127.0.0.1:3000
+    # Docker示例: http://127.0.0.1:3000
     base-url: ${NETEASE_PROXY_BASE_URL:https://netease-cloud-music-api-five-roan-58.vercel.app}
     default-playlist-id: ${NETEASE_DEFAULT_PLAYLIST_ID:489057279}
+    # 默认音质码率（bps）：128000 / 192000 / 320000 / 999000
+    default-br: ${NETEASE_DEFAULT_BR:320000}
+    # 上游失败重试次数（不含首次）
+    retry-count: ${NETEASE_PROXY_RETRY_COUNT:1}
   music:
     open:
       enabled: false

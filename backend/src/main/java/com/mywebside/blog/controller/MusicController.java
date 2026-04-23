@@ -76,8 +76,9 @@ public class MusicController {
    * 未携带网易云登录态时获取播放链接（VIP / 版权受限曲目可能无法播放）。
    */
   @GetMapping("/song/url")
-  public ApiResponse<SongUrlDto> publicSongUrl(@RequestParam long id) {
-    return ApiResponse.ok(neteaseMusicProxyService.songUrl(id, null));
+  public ApiResponse<SongUrlDto> publicSongUrl(@RequestParam long id, @RequestParam(required = false) Integer br) {
+    int quality = br != null ? Math.max(64000, br) : neteaseProxyProperties.getDefaultBr();
+    return ApiResponse.ok(neteaseMusicProxyService.songUrl(id, quality, null));
   }
 
   @GetMapping("/lyric")

@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -22,8 +23,10 @@ public class NeteaseBinaryifyClient {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final RestClient restClient;
+  private final NeteaseProxyProperties properties;
 
   public NeteaseBinaryifyClient(NeteaseProxyProperties properties) {
+    this.properties = properties;
     String base = properties.getBaseUrl();
     if (base == null || base.isBlank()) {
       throw new IllegalStateException("netease.proxy.base-url 未配置");
@@ -40,10 +43,10 @@ public class NeteaseBinaryifyClient {
     return getJson(uri, null);
   }
 
-  public JsonNode songUrl(long songId, String cookieHeaderOrNull) throws RestClientException {
+  public JsonNode songUrl(long songId, int br, String cookieHeaderOrNull) throws RestClientException {
     URI uri = UriComponentsBuilder.fromUriString("/song/url")
         .queryParam("id", songId)
-        .queryParam("br", 320000)
+        .queryParam("br", br)
         .build(true)
         .toUri();
     return getJson(uri, cookieHeaderOrNull);
@@ -103,26 +106,37 @@ public class NeteaseBinaryifyClient {
   }
 
   private JsonNode getJson(URI relativeUri, String cookieHeaderOrNull) {
-    try {
-      String body = restClient.get()
-          .uri(relativeUri)
-          .headers(h -> {
-            if (cookieHeaderOrNull != null && !cookieHeaderOrNull.isBlank()) {
-              h.add(HttpHeaders.COOKIE, cookieHeaderOrNull);
-            }
-          })
-          .retrieve()
-          .body(String.class);
-      if (body == null || body.isBlank()) {
-        return MAPPER.createObjectNode();
+    int maxAttempt = Math.max(1, properties.getRetryCount() + 1);
+    RestClientException last = null;
+    for (int attempt = 1; attempt <= maxAttempt; attempt++) {
+      try {
+        String body = restClient.get()
+            .uri(relativeUri)
+            .headers(h -> {
+              if (cookieHeaderOrNull != null && !cookieHeaderOrNull.isBlank()) {
+                h.add(HttpHeaders.COOKIE, cookieHeaderOrNull);
+              }
+            })
+            .retrieve()
+            .body(String.class);
+        if (body == null || body.isBlank()) {
+          return MAPPER.createObjectNode();
+        }
+        return MAPPER.readTree(body);
+      } catch (ResourceAccessException e) {
+        last = e;
+        log.warn("网易云代理连接失败(第{}次): {}", attempt, e.getMessage());
+      } catch (RestClientException e) {
+        last = e;
+        log.warn("网易云代理请求失败(第{}次): {}", attempt, e.getMessage());
+      } catch (Exception e) {
+        log.warn("网易云代理响应解析失败", e);
+        throw new RestClientException("parse failed", e);
       }
-      return MAPPER.readTree(body);
-    } catch (RestClientException e) {
-      log.warn("网易云代理请求失败: {}", e.getMessage());
-      throw e;
-    } catch (Exception e) {
-      log.warn("网易云代理响应解析失败", e);
-      throw new RestClientException("parse failed", e);
     }
+    if (last != null) {
+      throw last;
+    }
+    throw new RestClientException("request failed");
   }
 }

@@ -59,7 +59,7 @@ async function onSubmit() {
         @submit.prevent="onSubmit"
       >
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" autocomplete="username" placeholder="用户名" />
+          <el-input v-model="form.username" type="text" inputmode="text" autocapitalize="off" autocomplete="username" placeholder="用户名" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input

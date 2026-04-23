@@ -5,6 +5,7 @@ import com.mywebside.blog.common.ApiResponse;
 import com.mywebside.blog.common.BusinessException;
 import com.mywebside.blog.common.IpRateLimiter;
 import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
+import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseLoginRequest;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseStatusDto;
@@ -29,23 +30,26 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 
 @RestController
-@RequestMapping("/api/music/netease")
+@RequestMapping({"/api/music", "/api/music/netease"})
 public class NeteaseMusicUserController {
 
   private final NeteaseSessionService sessionService;
   private final NeteaseMusicProxyService proxyService;
   private final NeteaseBinaryifyClient binaryifyClient;
+  private final NeteaseProxyProperties proxyProperties;
   private final IpRateLimiter neteaseLoginLimiter;
 
   public NeteaseMusicUserController(
       NeteaseSessionService sessionService,
       NeteaseMusicProxyService proxyService,
       NeteaseBinaryifyClient binaryifyClient,
+      NeteaseProxyProperties proxyProperties,
       @Qualifier("neteaseLoginLimiter") IpRateLimiter neteaseLoginLimiter
   ) {
     this.sessionService = sessionService;
     this.proxyService = proxyService;
     this.binaryifyClient = binaryifyClient;
+    this.proxyProperties = proxyProperties;
     this.neteaseLoginLimiter = neteaseLoginLimiter;
   }
 
@@ -132,9 +136,14 @@ public class NeteaseMusicUserController {
   }
 
   @GetMapping("/song/url")
-  public ApiResponse<SongUrlDto> songUrl(Authentication auth, @RequestParam long id) {
+  public ApiResponse<SongUrlDto> songUrl(
+      Authentication auth,
+      @RequestParam long id,
+      @RequestParam(required = false) Integer br
+  ) {
     String cookie = sessionService.requireCookie(auth.getName());
-    return ApiResponse.ok(proxyService.songUrl(id, cookie));
+    int quality = br != null ? Math.max(64000, br) : proxyProperties.getDefaultBr();
+    return ApiResponse.ok(proxyService.songUrl(id, quality, cookie));
   }
 
   @GetMapping("/lyric")

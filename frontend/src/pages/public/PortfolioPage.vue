@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -45,24 +45,11 @@ function toggleLocale() {
   locale.value = locale.value === 'zh' ? 'en' : 'zh'
 }
 
-function closeNavMobile() {
-  mobileNavOpen.value = false
-}
-
 const works = computed(() => worksStore.filteredWorks)
 const workCategories = computed(() => worksStore.categories)
 const selectedWorkCategory = computed(() => worksStore.selectedCategory)
 const visitBadge = computed(
   () => `访问 ${visitStore.homeVisits} 次 · 今日 ${visitStore.todayVisits} 次`,
-)
-
-const mobileNavOpen = ref(false)
-
-watch(
-  () => route.fullPath,
-  () => {
-    mobileNavOpen.value = false
-  },
 )
 
 /** 当前高亮的 section id（由滚动监听驱动，点击时也同步更新） */
@@ -75,8 +62,15 @@ const { heroParallaxY, isNavScrolled, pointerX, pointerY } = useHeroMotion()
 
 function scrollTo(id: string) {
   scrollToSection(id, 92)
-  mobileNavOpen.value = false
 }
+
+const mobileTabs = computed(() => [
+  { key: 'about', label: t('nav.about'), active: isHashActive('#about'), go: () => scrollTo('about') },
+  { key: 'works', label: t('nav.works'), active: isHashActive('#works'), go: () => scrollTo('works') },
+  { key: 'blog', label: t('nav.blog'), active: isHashActive('#blog'), go: () => scrollTo('blog') },
+  { key: 'tools', label: t('nav.tools'), active: isHashActive('#tools'), go: () => scrollTo('tools') },
+  { key: 'msg', label: t('nav.message'), active: isHashActive('#message'), go: () => scrollTo('message') },
+])
 
 function onWorkClick(link: string) {
   if (link.startsWith('#') && link.length > 1) {
@@ -176,21 +170,7 @@ onMounted(() => {
             </a>
           </div>
         </div>
-        <button
-          type="button"
-          class="nav-burger"
-          :aria-expanded="mobileNavOpen"
-          aria-controls="portfolio-nav-links"
-          :aria-label="locale === 'zh' ? '打开导航菜单' : 'Open menu'"
-          @click="mobileNavOpen = !mobileNavOpen"
-        >
-          <span></span><span></span><span></span>
-        </button>
-        <div
-          id="portfolio-nav-links"
-          class="links site-nav-links"
-          :class="{ 'is-open': mobileNavOpen }"
-        >
+        <div id="portfolio-nav-links" class="links site-nav-links">
           <a
             href="#about"
             class="site-pill site-pill--nav site-pill--keep-mobile"
@@ -231,7 +211,7 @@ onMounted(() => {
             href="#"
             class="site-pill site-pill--nav lang-toggle site-pill--keep-mobile"
             :title="t('home.langToggle')"
-            @click.prevent="toggleLocale(); closeNavMobile()"
+            @click.prevent="toggleLocale()"
           >
             {{ locale === 'zh' ? 'EN' : '中' }}
           </a>
@@ -239,7 +219,7 @@ onMounted(() => {
             href="#"
             class="nav-social-link nav-theme-icon"
             :title="t('home.themeToggle')"
-            @click.prevent="themeStore.toggleTheme(); closeNavMobile()"
+            @click.prevent="themeStore.toggleTheme()"
           >
             {{ !isDarkMode ? '🌙' : '☀️' }}
           </a>
@@ -295,7 +275,10 @@ onMounted(() => {
       <div class="glass-card about-card">
         <h2>{{ t('home.aboutTitle') }}</h2>
         <div class="about-content">
-          <img src="/avatar.png" alt="维寒一念" class="about-img" loading="lazy" decoding="async" />
+          <picture class="about-img-wrap">
+            <source srcset="/avatar.webp" type="image/webp" />
+            <img src="/avatar.png" alt="维寒一念" class="about-img" loading="lazy" decoding="async" />
+          </picture>
           <div class="about-text">
             <p>{{ t('home.aboutText1') }}</p>
             <br />
@@ -334,7 +317,10 @@ onMounted(() => {
       <div class="glass-card contact-card">
         <h2>{{ t('home.contactTitle') }}</h2>
         <p>{{ t('home.contactText') }}</p>
-        <img src="../../assets/images/contact-miku.jpg" alt="contact miku" class="contact-img" loading="lazy" decoding="async" />
+        <picture class="contact-img-wrap">
+          <source srcset="../../assets/images/contact-miku.webp" type="image/webp" />
+          <img src="../../assets/images/contact-miku.jpg" alt="contact miku" class="contact-img" loading="lazy" decoding="async" />
+        </picture>
         <div class="contact-links">
           <a href="https://github.com/weihanyinian" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="mailto:1012308753@qq.com">Email</a>
@@ -347,6 +333,19 @@ onMounted(() => {
 
     <!-- 工具栏入口（拆分为独立组件） -->
     <ToolsSection />
+
+    <nav class="mobile-tabbar" aria-label="home mobile sections">
+      <button
+        v-for="tab in mobileTabs"
+        :key="tab.key"
+        type="button"
+        class="mobile-tabbar__item"
+        :class="{ 'mobile-tabbar__item--active': tab.active }"
+        @click="tab.go()"
+      >
+        {{ tab.label }}
+      </button>
+    </nav>
 
     <SiteGlassFooter />
     <SiteBackToTop />
@@ -366,6 +365,12 @@ onMounted(() => {
   overflow-x: hidden;
   transition: background 0.5s ease, color 0.5s ease;
   position: relative;
+}
+
+@media (max-width: 900px) {
+  .portfolio-container {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
 }
 
 .portfolio-bg-scrim {
@@ -939,6 +944,64 @@ h2 {
   font-size: 0.8rem;
 }
 
+.mobile-tabbar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .nav-social,
+  .site-nav-links {
+    display: none !important;
+  }
+
+  .mobile-tabbar {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    z-index: 1400;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  }
+
+  .mobile-tabbar__item {
+    min-height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.5);
+    color: #0f172a;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .mobile-tabbar__item--active {
+    background: linear-gradient(135deg, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.62);
+  }
+
+  .dark-theme .mobile-tabbar {
+    background: rgba(15, 23, 42, 0.76);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.48);
+  }
+
+  .dark-theme .mobile-tabbar__item {
+    background: rgba(30, 41, 59, 0.72);
+    border-color: rgba(148, 163, 184, 0.24);
+    color: rgba(226, 232, 240, 0.96);
+  }
+}
+
 /* General Sections */
 .section {
   max-width: 1080px;
@@ -973,6 +1036,10 @@ h2 {
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   object-fit: cover;
   aspect-ratio: 16/10;
+}
+.about-img-wrap {
+  width: 45%;
+  display: block;
 }
 .dark-theme .about-img {
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
@@ -1201,6 +1268,12 @@ h2 {
   display: block;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
+.contact-img-wrap {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 30px auto;
+  display: block;
+}
 .dark-theme .contact-img { box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
 .contact-links { display: flex; justify-content: center; gap: 20px; }
 .contact-links a {
@@ -1237,6 +1310,7 @@ h2 {
   .works-grid { grid-template-columns: 1fr; }
   .hero-actions { flex-direction: column; }
   .about-content { flex-direction: column; text-align: center; }
+  .about-img-wrap { width: 100%; }
   .about-img { width: 100%; aspect-ratio: 4/3; }
   .contact-img { height: auto; aspect-ratio: 16/9; }
 }

@@ -64,10 +64,10 @@ async function onSubmit() {
         @submit.prevent="onSubmit"
       >
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" autocomplete="username" placeholder="3～64 字符" />
+          <el-input v-model="form.username" type="text" inputmode="text" autocapitalize="off" autocomplete="username" placeholder="3～64 字符" />
         </el-form-item>
         <el-form-item label="昵称" prop="nickname">
-          <el-input v-model="form.nickname" autocomplete="nickname" placeholder="显示名称" />
+          <el-input v-model="form.nickname" type="text" inputmode="text" autocapitalize="off" autocomplete="nickname" placeholder="显示名称" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input

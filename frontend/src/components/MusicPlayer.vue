@@ -31,13 +31,8 @@ const isExpanded = ref(false)
 const isPlaying = ref(false)
 const isSeeking = ref(false)
 const isLoading = computed(() => urlLoading.value)
-const volume = ref(0.65)
 const currentTime = ref(0)
 const duration = ref(0)
-
-/** 顺序 / 单曲循环 / 随机 */
-type PlayMode = 'sequence' | 'loop_one' | 'shuffle'
-const playMode = ref<PlayMode>('shuffle')
 const FAV_KEY = 'weihan_mp_favorites_v2'
 const favorites = ref<string[]>([])
 
@@ -63,13 +58,13 @@ const isFavorite = computed(
   () => !!(currentTrack.value && favorites.value.includes(String(currentTrack.value.id))),
 )
 const modeLabel = computed(() =>
-  playMode.value === 'loop_one' ? '🔂' : playMode.value === 'shuffle' ? '🔀' : '🔁',
+  music.playMode === 'loop_one' ? '🔂' : music.playMode === 'shuffle' ? '🔀' : '🔁',
 )
 
 const progressFillStr = computed(() =>
   duration.value > 0 ? `${(currentTime.value / duration.value) * 100}%` : '0%',
 )
-const volumeFillStr = computed(() => `${volume.value * 100}%`)
+const volumeFillStr = computed(() => `${music.volume * 100}%`)
 
 // ---------- 音源切换 ----------
 function toggleSource() {
@@ -188,29 +183,28 @@ function toggleFavorite() {
 }
 
 function cyclePlayMode() {
-  const order: PlayMode[] = ['sequence', 'loop_one', 'shuffle']
-  playMode.value = order[(order.indexOf(playMode.value) + 1) % order.length]
+  music.cyclePlayMode()
 }
 
 async function playPrev() {
   if (music.source === 'random') return
   await music.playPrev({
-    shuffle: playMode.value === 'shuffle',
+    shuffle: music.playMode === 'shuffle',
   })
 }
 
 async function playNext() {
-  if (playMode.value === 'loop_one') {
+  if (music.playMode === 'loop_one') {
     await music.playNext({ loopOne: true })
     return
   }
   await music.playNext({
-    shuffle: playMode.value === 'shuffle',
+    shuffle: music.playMode === 'shuffle',
   })
 }
 
 function onEnded() {
-  if (playMode.value === 'loop_one') {
+  if (music.playMode === 'loop_one') {
     const el = audioRef.value
     if (el) {
       el.currentTime = 0
@@ -243,11 +237,11 @@ function onPause() {
 
 function applyVolume() {
   const el = audioRef.value
-  if (el) el.volume = volume.value
+  if (el) el.volume = music.volume
 }
 
 function onVolumeInput(e: Event) {
-  volume.value = Number((e.target as HTMLInputElement).value)
+  music.setVolume(Number((e.target as HTMLInputElement).value))
   applyVolume()
 }
 
@@ -267,6 +261,11 @@ function onSeekEnd() {
   isSeeking.value = false
 }
 
+function onAudioError() {
+  music.loadError = '音频加载失败，已自动尝试下一首'
+  void playNext()
+}
+
 let rafId = 0
 function tick() {
   if (!isSeeking.value && audioRef.value && isPlaying.value) {
@@ -277,10 +276,11 @@ function tick() {
 
 onMounted(() => {
   loadFavorites()
+  music.hydratePlayerPref()
   applyVolume()
   rafId = requestAnimationFrame(tick)
   userStore.hydrateFromStorage()
-  void music.refreshNeteaseStatus()
+  void music.initPlayer()
 })
 
 onUnmounted(() => {
@@ -395,7 +395,7 @@ onUnmounted(() => {
             min="0"
             max="1"
             step="0.01"
-            :value="volume"
+            :value="music.volume"
             @input="onVolumeInput"
           />
         </div>
@@ -411,7 +411,7 @@ onUnmounted(() => {
       @loadedmetadata="onLoadedMetadata"
       @play="onPlay"
       @pause="onPause"
-      @error="onEnded"
+      @error="onAudioError"
     />
   </div>
 </template>
