@@ -17,7 +17,12 @@ const emit = defineEmits<{
 
 <template>
   <section class="section" id="works">
-    <h2>{{ title }}</h2>
+    <div class="works-head">
+      <h2 class="section-title-pill">{{ title }}</h2>
+      <RouterLink class="works-entry site-pill site-pill--secondary" to="/works-showcase">
+        进入作品详情页
+      </RouterLink>
+    </div>
     <div class="works-filters">
       <button
         v-for="category in categories"
@@ -62,6 +67,47 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
+.works-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.25rem;
+}
+
+.section-title-pill {
+  width: fit-content;
+  max-width: min(92vw, 560px);
+  margin: 0 auto 1.15rem;
+  padding: 0.48rem 1.05rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--primary-color, #4a90e2) 34%, rgba(255, 255, 255, 0.7));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.16));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: color-mix(in srgb, var(--primary-color, #4a90e2) 62%, #1e293b 38%);
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+  text-shadow: 0 1px 10px rgba(74, 144, 226, 0.16);
+  box-shadow: 0 8px 26px rgba(74, 144, 226, 0.1);
+}
+.works-entry {
+  min-height: 40px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 0.45rem 0.95rem;
+  text-decoration: none;
+}
+:root[data-theme='dark'] .section-title-pill {
+  border-color: rgba(167, 139, 250, 0.42);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.42));
+  color: #ddd6fe;
+  text-shadow: 0 1px 14px rgba(167, 139, 250, 0.22);
+}
+
 .section {
   max-width: 1080px;
   margin: 0 auto;
@@ -115,6 +161,9 @@ const emit = defineEmits<{
   overflow: hidden;
   cursor: pointer;
   outline: none;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 12px 34px rgba(51, 65, 85, 0.08);
 }
 .work-card__media {
   position: relative;
@@ -191,6 +240,7 @@ const emit = defineEmits<{
   display: flex;
   flex-direction: column;
   flex: 1;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.2));
 }
 .work-tag {
   font-size: 0.8rem;
@@ -219,5 +269,43 @@ const emit = defineEmits<{
   font-weight: 700;
   font-size: 0.92rem;
   color: var(--primary-color, #4a90e2);
+}
+
+:root[data-theme='dark'] .works-filter-chip {
+  border-color: rgba(196, 181, 253, 0.35);
+  background: rgba(30, 41, 59, 0.52);
+  color: rgba(241, 245, 249, 0.92);
+}
+
+:root[data-theme='dark'] .works-filter-chip:hover {
+  border-color: rgba(167, 139, 250, 0.75);
+}
+
+:root[data-theme='dark'] .work-tag {
+  background: rgba(167, 139, 250, 0.2);
+  color: #ddd6fe;
+}
+
+:root[data-theme='dark'] .work-card {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: rgba(15, 23, 42, 0.5);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
+}
+
+:root[data-theme='dark'] .work-card__body {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.52), rgba(15, 23, 42, 0.42));
+}
+
+:root[data-theme='dark'] .work-card h3 {
+  color: #f8fafc;
+  text-shadow: 0 1px 10px rgba(167, 139, 250, 0.22);
+}
+
+:root[data-theme='dark'] .work-card__excerpt {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+:root[data-theme='dark'] .work-link {
+  color: #93c5fd;
 }
 </style>

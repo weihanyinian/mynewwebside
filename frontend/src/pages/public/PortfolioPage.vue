@@ -318,8 +318,8 @@ onMounted(() => {
     <!-- Blog & open source -->
     <section class="section" id="blog">
       <div class="glass-card home-hub-card">
-        <h2>{{ t('home.sectionBlogTitle') }}</h2>
-        <p class="home-hub-lead">{{ t('home.sectionBlogLead') }}</p>
+        <h2 class="section-title-pill">{{ t('home.sectionBlogTitle') }}</h2>
+        <p class="home-hub-lead section-lead-pill">{{ t('home.sectionBlogLead') }}</p>
         <div class="home-hub-actions">
           <a :href="githubRepo" class="site-pill site-pill--lg site-pill--secondary" target="_blank" rel="noopener noreferrer">{{ t('home.sectionBlogRepo') }}</a>
           <button type="button" class="site-pill site-pill--lg site-pill--active" @click="router.push('/blog')">
@@ -708,6 +708,49 @@ h2 {
   text-align: center;
   max-width: 720px;
   margin: 0 auto;
+}
+.section-title-pill {
+  width: fit-content;
+  max-width: min(92vw, 560px);
+  margin: 0 auto 0.95rem;
+  padding: 0.48rem 1.05rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--primary-color, #4a90e2) 34%, rgba(255, 255, 255, 0.7));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.16));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: color-mix(in srgb, var(--primary-color, #4a90e2) 62%, #1e293b 38%);
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+  text-shadow: 0 1px 10px rgba(74, 144, 226, 0.16);
+  box-shadow: 0 8px 26px rgba(74, 144, 226, 0.1);
+}
+.section-lead-pill {
+  width: fit-content;
+  max-width: min(92vw, 700px);
+  margin: 0 auto 1.25rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.13));
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.08);
+  color: color-mix(in srgb, var(--text-color, #0f172a) 80%, var(--primary-color, #4a90e2) 20%);
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
+}
+:root[data-theme='dark'] .section-title-pill {
+  border-color: rgba(167, 139, 250, 0.42);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.42));
+  color: #f1f5f9;
+  text-shadow: 0 1px 14px rgba(167, 139, 250, 0.22);
+}
+:root[data-theme='dark'] .section-lead-pill {
+  border-color: rgba(148, 163, 184, 0.28);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.45), rgba(15, 23, 42, 0.35));
+  color: rgba(226, 232, 240, 0.94);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
 }
 .home-hub-lead {
   margin: 0 0 1.25rem;

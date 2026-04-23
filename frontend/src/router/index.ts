@@ -46,6 +46,7 @@ const GameGuessNumber = () => import('../pages/moyu/GameGuessNumber.vue')
 const GameMemoryCard = () => import('../pages/moyu/GameMemoryCard.vue')
 const GameSnakeball = () => import('../pages/moyu/GameSnakeball.vue')
 const MemoriesPage = () => import('../pages/public/MemoriesPage.vue')
+const WorksShowcasePage = () => import('../pages/public/WorksShowcasePage.vue')
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -71,6 +72,7 @@ export const router = createRouter({
     { path: '/friends', redirect: '/' },
     { path: '/search', redirect: '/blog' },
     { path: '/albums', component: AlbumsPage },
+    { path: '/works-showcase', component: WorksShowcasePage },
     { path: '/snippets', redirect: '/tools' },
     { path: '/stats', component: StatsPage },
     { path: '/music', component: MusicCenterPage, meta: { requiresAuth: true } },
