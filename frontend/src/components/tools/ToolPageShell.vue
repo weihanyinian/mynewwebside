@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import ToolBackBar from './ToolBackBar.vue'
+
+defineProps<{
+  /** 宽版布局（嵌入大屏 Canvas 游戏等） */
+  wide?: boolean
+}>()
 </script>
 
 <template>
-  <div class="tools-widget-page">
+  <div class="tools-widget-page" :class="{ 'tools-widget-page--wide': wide }">
     <ToolBackBar />
     <div class="glass-tool-sheet">
       <slot />
@@ -16,6 +21,10 @@ import ToolBackBar from './ToolBackBar.vue'
   max-width: min(640px, 100%);
   margin: 0 auto;
   padding-bottom: 2rem;
+}
+
+.tools-widget-page--wide {
+  max-width: min(960px, 100%);
 }
 
 .glass-tool-sheet {
