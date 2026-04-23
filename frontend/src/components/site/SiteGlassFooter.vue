@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -8,6 +8,30 @@ const icpNo = computed(() => import.meta.env.VITE_PUBLIC_ICP_NO || '桂ICP备202
 const icpUrl = computed(() => import.meta.env.VITE_PUBLIC_ICP_URL || 'https://beian.miit.gov.cn/')
 const psb = computed(() => import.meta.env.VITE_PUBLIC_PSB_NO || '')
 const psbUrl = computed(() => import.meta.env.VITE_PUBLIC_PSB_URL || '#')
+
+const loveStart = new Date(2025, 5, 18, 23, 0, 0)
+const now = ref(Date.now())
+let timer: ReturnType<typeof setInterval> | null = null
+
+const loveDuration = computed(() => {
+  const diffMs = Math.max(0, now.value - loveStart.getTime())
+  const totalSec = Math.floor(diffMs / 1000)
+  const days = Math.floor(totalSec / 86400)
+  const hours = Math.floor((totalSec % 86400) / 3600)
+  const minutes = Math.floor((totalSec % 3600) / 60)
+  const seconds = totalSec % 60
+  return `${days} 天 ${hours} 小时 ${minutes} 分 ${seconds} 秒`
+})
+
+onMounted(() => {
+  timer = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 </script>
 
 <template>
@@ -39,6 +63,10 @@ const psbUrl = computed(() => import.meta.env.VITE_PUBLIC_PSB_URL || '#')
     <div class="site-rich-footer__copy">
       <span class="footer-glow-dot" aria-hidden="true" />
       <p>© 2026 {{ t('footer.copyName') }}</p>
+    </div>
+    <div class="site-rich-footer__love-timer">
+      <p class="love-timer__title">恋爱计时器（从 2025-06-18 23:00 开始）</p>
+      <p class="love-timer__value">我们已经在一起 {{ loveDuration }} ❤️</p>
     </div>
   </footer>
 </template>
@@ -146,6 +174,46 @@ const psbUrl = computed(() => import.meta.env.VITE_PUBLIC_PSB_URL || '#')
   font-size: 0.85rem;
   font-weight: 600;
   opacity: 0.88;
+}
+
+.site-rich-footer__love-timer {
+  margin: 14px auto 0;
+  max-width: 920px;
+  text-align: center;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(255, 255, 255, 0.14);
+  padding: 10px 12px;
+  box-shadow: 0 8px 24px rgba(74, 144, 226, 0.12);
+}
+
+.love-timer__title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--primary-color, #4a90e2) 62%, var(--text-color, #0f172a) 38%);
+}
+
+.love-timer__value {
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--text-color, #0f172a) 86%, var(--secondary-color, #8b7fd8) 14%);
+}
+
+:root[data-theme='dark'] .site-rich-footer__love-timer {
+  border-color: rgba(148, 163, 184, 0.32);
+  background: rgba(15, 23, 42, 0.55);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.42);
+}
+
+:root[data-theme='dark'] .love-timer__title {
+  color: #c4b5fd;
+}
+
+:root[data-theme='dark'] .love-timer__value {
+  color: rgba(241, 245, 249, 0.95);
 }
 
 .footer-glow-dot {

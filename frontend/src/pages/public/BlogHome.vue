@@ -42,9 +42,6 @@ const tags = ref<Tag[]>([])
 const items = ref<ArticleListItem[]>([])
 const visibleCards = ref<number[]>([])
 
-const hasGuardianBadge = ref(localStorage.getItem('guardianBadgeUnlocked') === 'true')
-const clueCount = ref(Number(localStorage.getItem('blogClueCount') || '0'))
-
 /**
  * 左侧二级导航（与顶栏区分：不含首页/OJ；回主页用顶栏 Logo / 面包屑）
  */
@@ -121,15 +118,6 @@ function backToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-function collectClue() {
-  clueCount.value += 1
-  localStorage.setItem('blogClueCount', String(clueCount.value))
-  if (clueCount.value >= 3) {
-    hasGuardianBadge.value = true
-    localStorage.setItem('guardianBadgeUnlocked', 'true')
-  }
-}
-
 function handlePageChange(p: number) {
   page.value = p - 1
   syncToRoute()
@@ -202,7 +190,6 @@ onUnmounted(() => {
               class="blog-avatar"
               width="72"
               height="72"
-              @click="collectClue"
             />
             <div class="blog-profile__text">
               <h2 class="blog-profile__name">{{ t('home.name') }}</h2>
@@ -222,13 +209,6 @@ onUnmounted(() => {
               {{ item.label }}
             </button>
           </nav>
-
-          <div class="blog-clue glass-surface glass-surface--inset">
-            <p class="blog-clue__title">{{ locale === 'zh' ? '14酱解密碎片' : '14-chan clues' }}</p>
-            <p class="blog-clue__stat">{{ locale === 'zh' ? '已收集' : 'Collected' }}：{{ clueCount }} / 3</p>
-            <p v-if="hasGuardianBadge" class="blog-badge">{{ locale === 'zh' ? '14酱守护者' : 'Guardian' }}</p>
-            <p class="blog-clue__tip">{{ locale === 'zh' ? '点头像可收集碎片（彩蛋）' : 'Tap avatar for a clue.' }}</p>
-          </div>
         </div>
       </aside>
 
@@ -508,39 +488,6 @@ onUnmounted(() => {
 }
 
 /* 侧栏导航视觉由全局 styles/site-ui.css 的 .site-pill* 统一提供 */
-
-.blog-clue {
-  padding: 0.75rem 1rem;
-  font-size: 0.8125rem;
-}
-
-.blog-clue__title {
-  margin: 0 0 0.35rem;
-  font-weight: 700;
-  color: var(--on-glass);
-}
-
-.blog-clue__stat {
-  margin: 0;
-  color: var(--on-glass-muted);
-}
-
-.blog-clue__tip {
-  margin: 0.5rem 0 0;
-  font-size: 0.75rem;
-  color: var(--on-glass-muted);
-}
-
-.blog-badge {
-  display: inline-flex;
-  margin: 0.5rem 0 0;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #fff;
-  background: linear-gradient(135deg, #4a90e2, #50e3c2);
-}
 
 /* 移动端：侧栏改为栅格内联展示（与桌面同为「侧栏 + 主栏」顺序），无需抽屉/关闭钮 */
 @media (max-width: 1023px) {
