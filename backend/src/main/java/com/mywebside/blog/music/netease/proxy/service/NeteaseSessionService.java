@@ -3,31 +3,40 @@ package com.mywebside.blog.music.netease.proxy.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mywebside.blog.common.BusinessException;
 import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
+import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import com.mywebside.blog.music.netease.proxy.crypto.NeteaseSessionCrypto;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseStatusDto;
 import com.mywebside.blog.music.netease.proxy.persistence.NeteaseUserSessionEntity;
 import com.mywebside.blog.music.netease.proxy.persistence.NeteaseUserSessionRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 
 @Service
 public class NeteaseSessionService {
 
+  private static final Logger log = LoggerFactory.getLogger(NeteaseSessionService.class);
+
   private final NeteaseUserSessionRepository repository;
   private final NeteaseSessionCrypto crypto;
   private final NeteaseBinaryifyClient client;
+  private final NeteaseProxyProperties proxyProperties;
 
   public NeteaseSessionService(
       NeteaseUserSessionRepository repository,
       NeteaseSessionCrypto crypto,
-      NeteaseBinaryifyClient client
+      NeteaseBinaryifyClient client,
+      NeteaseProxyProperties proxyProperties
   ) {
     this.repository = repository;
     this.crypto = crypto;
     this.client = client;
+    this.proxyProperties = proxyProperties;
   }
 
   public NeteaseStatusDto status(String siteUsername) {
@@ -45,13 +54,17 @@ public class NeteaseSessionService {
     try {
       root = client.loginCellphone(phone, password);
     } catch (RestClientException ex) {
-      throw new BusinessException(502, "网易云登录服务暂时不可用");
+      log.warn("网易云登录上游异常: {}", ex.toString());
+      throw new BusinessException(502, describeLoginProxyFailure(ex));
     }
     int code = root.path("code").asInt(-1);
     if (code != 200) {
       String msg = root.path("msg").asText("");
       if (msg.isBlank()) {
-        msg = root.path("message").asText("手机号或密码错误");
+        msg = root.path("message").asText("");
+      }
+      if (msg.isBlank()) {
+        msg = "登录失败（上游 code=" + code + "）";
       }
       throw new BusinessException(400, msg);
     }
@@ -98,5 +111,20 @@ public class NeteaseSessionService {
       throw new BusinessException(400, "网易云账号信息不完整，请重新绑定");
     }
     return uid;
+  }
+
+  private String describeLoginProxyFailure(RestClientException ex) {
+    if (ex instanceof ResourceAccessException) {
+      return "无法连接网易云第三方 API（当前 netease.proxy.base-url="
+          + proxyProperties.getBaseUrl()
+          + "）。请确认已启动 NeteaseCloudMusicApi（如 Docker：binaryify/netease_cloud_music_api 映射 3000 端口），"
+          + "且后端能访问该地址；若 Spring Boot 在容器内而 API 在宿主机，请改用 host.docker.internal 等，勿仅用 127.0.0.1。";
+    }
+    String msg = ex.getMessage() == null ? "" : ex.getMessage();
+    if (msg.contains("parse failed")) {
+      return "网易云 API 返回内容无法解析为 JSON，请确认 base-url 指向 NeteaseCloudMusicApi 根地址（当前："
+          + proxyProperties.getBaseUrl() + "）。";
+    }
+    return "网易云登录请求失败（" + msg + "）。请确认第三方 API 可用且与播放接口使用同一 base-url。";
   }
 }

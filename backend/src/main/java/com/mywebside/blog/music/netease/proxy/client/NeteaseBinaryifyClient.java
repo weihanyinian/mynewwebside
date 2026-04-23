@@ -3,10 +3,12 @@ package com.mywebside.blog.music.netease.proxy.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
+import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.ResourceAccessException;
@@ -33,13 +35,50 @@ public class NeteaseBinaryifyClient {
     this.restClient = RestClient.builder().baseUrl(base.endsWith("/") ? base.substring(0, base.length() - 1) : base).build();
   }
 
+  /**
+   * 登录接口部分上游在业务失败时仍返回 HTTP 4xx/5xx，但响应体为 JSON（含 code/msg）。
+   * {@link RestClient} 默认 {@code retrieve()} 遇非 2xx 会直接抛异常，导致无法解析正文。
+   * 此处用 {@code exchange} 始终读取 body，与 Node 版 API 行为对齐。
+   */
   public JsonNode loginCellphone(String phone, String password) throws RestClientException {
-    String uri = UriComponentsBuilder.fromUriString("/login/cellphone")
+    String relativeUri = UriComponentsBuilder.fromUriString("/login/cellphone")
         .queryParam("phone", phone)
         .queryParam("password", password)
         .build(true)
         .toUriString();
-    return getJson(uri, null);
+    int maxAttempt = Math.max(1, properties.getRetryCount() + 1);
+    RestClientException last = null;
+    for (int attempt = 1; attempt <= maxAttempt; attempt++) {
+      try {
+        String body = restClient.get()
+            .uri(relativeUri)
+            .headers(h -> {
+              h.set(HttpHeaders.ACCEPT_ENCODING, "identity");
+            })
+            .exchange((request, response) -> {
+              try (response) {
+                return StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
+              }
+            });
+        if (body == null || body.isBlank()) {
+          return MAPPER.createObjectNode();
+        }
+        return MAPPER.readTree(body);
+      } catch (ResourceAccessException e) {
+        last = e;
+        log.warn("网易云登录代理连接失败(第{}次): {}", attempt, e.getMessage());
+      } catch (RestClientException e) {
+        last = e;
+        log.warn("网易云登录代理请求失败(第{}次): {}", attempt, e.getMessage());
+      } catch (Exception e) {
+        log.warn("网易云登录代理响应解析失败", e);
+        throw new RestClientException("parse failed", e);
+      }
+    }
+    if (last != null) {
+      throw last;
+    }
+    throw new RestClientException("request failed");
   }
 
   public JsonNode songUrl(long songId, int br, String cookieHeaderOrNull) throws RestClientException {

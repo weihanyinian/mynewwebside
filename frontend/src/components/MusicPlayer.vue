@@ -7,6 +7,7 @@ import { storeToRefs } from 'pinia'
 import { useMusicPlayerStore } from '../stores/musicPlayer'
 import { useUserStore } from '../stores/user'
 import { useThemeStore } from '../stores/theme'
+import { neteaseLogin, neteaseLogout } from '../api/musicApi'
 import { activeBilingualLrcIndex, parseBilingualLrc, type BilingualLrcLine } from '../utils/lrc'
 
 const PLAYER_Z_INDEX = 1100
@@ -65,6 +66,15 @@ const progressFillStr = computed(() =>
   duration.value > 0 ? `${(currentTime.value / duration.value) * 100}%` : '0%',
 )
 const volumeFillStr = computed(() => `${music.volume * 100}%`)
+const authPanelOpen = ref(false)
+const neteasePhone = ref('')
+const neteasePassword = ref('')
+const neteaseLoginLoading = ref(false)
+const neteaseAuthMsg = ref('')
+const neteaseAuthErr = ref('')
+const neteaseLabel = computed(() =>
+  music.neteaseBound ? `🎵 ${music.neteaseNickname || '已绑定'}` : '🎵 网易云登录',
+)
 
 // ---------- 音源切换 ----------
 function toggleSource() {
@@ -73,6 +83,53 @@ function toggleSource() {
   } else {
     music.source = 'random'
     music.playlistLoaded = false
+  }
+}
+
+function toggleAuthPanel() {
+  authPanelOpen.value = !authPanelOpen.value
+  neteaseAuthErr.value = ''
+  neteaseAuthMsg.value = ''
+}
+
+async function submitNeteaseLogin() {
+  if (!userStore.isLoggedIn) {
+    neteaseAuthErr.value = '请先登录本站账号，再绑定网易云账号'
+    return
+  }
+  if (!neteasePhone.value.trim() || !neteasePassword.value.trim()) {
+    neteaseAuthErr.value = '请输入手机号和密码'
+    return
+  }
+  neteaseLoginLoading.value = true
+  neteaseAuthErr.value = ''
+  neteaseAuthMsg.value = ''
+  try {
+    await neteaseLogin(neteasePhone.value.trim(), neteasePassword.value.trim())
+    await music.refreshNeteaseStatus()
+    neteaseAuthMsg.value = music.neteaseNickname
+      ? `绑定成功：${music.neteaseNickname}`
+      : '绑定成功'
+    neteasePassword.value = ''
+  } catch (e: unknown) {
+    neteaseAuthErr.value = e instanceof Error ? e.message : '绑定失败，请稍后重试'
+  } finally {
+    neteaseLoginLoading.value = false
+  }
+}
+
+async function submitNeteaseLogout() {
+  neteaseLoginLoading.value = true
+  neteaseAuthErr.value = ''
+  neteaseAuthMsg.value = ''
+  try {
+    await neteaseLogout()
+    await music.refreshNeteaseStatus()
+    neteaseAuthMsg.value = '已解绑网易云账号'
+  } catch (e: unknown) {
+    neteaseAuthErr.value = e instanceof Error ? e.message : '解绑失败，请稍后重试'
+  } finally {
+    neteaseLoginLoading.value = false
   }
 }
 
@@ -356,11 +413,59 @@ onUnmounted(() => {
         </div>
 
         <div class="mp-extra">
+          <button type="button" class="mp-mini" title="网易云账号" @click="toggleAuthPanel">{{ neteaseLabel }}</button>
           <button type="button" class="mp-mini" title="切换音源" @click="toggleSource">{{ sourceLabel }}</button>
           <button type="button" class="mp-mini" title="播放模式" @click="cyclePlayMode">{{ modeLabel }}</button>
           <button type="button" class="mp-mini" title="收藏当前" @click="toggleFavorite">
             {{ isFavorite ? '❤' : '♡' }}
           </button>
+        </div>
+
+        <div v-if="authPanelOpen" class="mp-auth-box">
+          <p class="mp-auth-box__hint">
+            {{ userStore.isLoggedIn ? '绑定后可播放更多资源' : '请先登录本站账号后再绑定网易云账号' }}
+          </p>
+          <div class="mp-auth-box__row">
+            <input
+              v-model.trim="neteasePhone"
+              type="tel"
+              inputmode="numeric"
+              autocomplete="tel-national"
+              class="mp-auth-box__input"
+              placeholder="网易云手机号"
+              :disabled="neteaseLoginLoading || music.neteaseBound"
+            />
+            <input
+              v-model="neteasePassword"
+              type="password"
+              class="mp-auth-box__input"
+              placeholder="网易云密码"
+              :disabled="neteaseLoginLoading || music.neteaseBound"
+              @keydown.enter.prevent="submitNeteaseLogin"
+            />
+          </div>
+          <div class="mp-auth-box__actions">
+            <button
+              v-if="!music.neteaseBound"
+              type="button"
+              class="mp-mini"
+              :disabled="neteaseLoginLoading || !userStore.isLoggedIn"
+              @click="submitNeteaseLogin"
+            >
+              {{ neteaseLoginLoading ? '绑定中…' : '绑定并登录' }}
+            </button>
+            <button
+              v-else
+              type="button"
+              class="mp-mini"
+              :disabled="neteaseLoginLoading"
+              @click="submitNeteaseLogout"
+            >
+              {{ neteaseLoginLoading ? '处理中…' : '解绑账号' }}
+            </button>
+          </div>
+          <p v-if="neteaseAuthErr" class="mp-auth-box__err">{{ neteaseAuthErr }}</p>
+          <p v-else-if="neteaseAuthMsg" class="mp-auth-box__ok">{{ neteaseAuthMsg }}</p>
         </div>
 
         <div class="mp-controls">
@@ -587,8 +692,11 @@ onUnmounted(() => {
 
 .mp-lyric__line {
   margin: 0.2rem 0;
-  opacity: 0.55;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 0.78;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.2rem 0.35rem;
+  border-radius: 8px;
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .mp-lyric__primary,
@@ -598,13 +706,29 @@ onUnmounted(() => {
 
 .mp-lyric__secondary {
   font-size: 0.74rem;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .mp-lyric__line--on {
   opacity: 1;
   font-weight: 700;
   transform: scale(1.02);
+  color: #f7fcff;
+  background: linear-gradient(135deg, rgba(102, 217, 255, 0.26), rgba(252, 162, 229, 0.2));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16), 0 8px 18px rgba(102, 217, 255, 0.2);
+}
+
+.mp-lyric__line--on .mp-lyric__secondary {
+  color: #d7f5ff;
+  opacity: 1;
+}
+
+:root[data-theme='light'] .mp-lyric__line {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme='light'] .mp-lyric__secondary {
+  color: rgba(240, 248, 255, 0.98);
 }
 
 .mp-lyric__empty {
@@ -632,6 +756,98 @@ onUnmounted(() => {
 }
 .mp-mini:hover {
   transform: scale(1.05);
+}
+
+.mp-auth-box {
+  margin: 0 0 10px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(10, 18, 30, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mp-auth-box__hint {
+  margin: 0 0 8px;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mp-auth-box__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mp-auth-box__input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f1f32;
+  font: inherit;
+  font-size: 0.84rem;
+  line-height: 1.2;
+}
+
+.mp-auth-box__input::placeholder {
+  color: rgba(15, 31, 50, 0.52);
+}
+
+.mp-auth-box__input:focus {
+  outline: none;
+  border-color: rgba(102, 217, 255, 0.95);
+  box-shadow: 0 0 0 2px rgba(102, 217, 255, 0.25);
+}
+
+.mp-auth-box__input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.mp-auth-box__actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.mp-auth-box__err,
+.mp-auth-box__ok {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.mp-auth-box__err {
+  color: #ffb5b5;
+}
+
+.mp-auth-box__ok {
+  color: #b9f7d8;
+}
+
+:root[data-theme='dark'] .mp-auth-box {
+  background: rgba(8, 12, 20, 0.42);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme='dark'] .mp-auth-box__input {
+  background: rgba(18, 26, 38, 0.92);
+  color: #edf7ff;
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+:root[data-theme='dark'] .mp-auth-box__input::placeholder {
+  color: rgba(237, 247, 255, 0.58);
+}
+
+@media (max-width: 520px) {
+  .mp-auth-box__row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .mp-controls {

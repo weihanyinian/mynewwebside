@@ -45,15 +45,31 @@ export function parseBilingualLrc(primaryRaw: string, secondaryRaw: string): Bil
   const secondary = parseLrc(secondaryRaw)
   if (!primary.length && !secondary.length) return []
 
-  const byTime = new Map<string, BilingualLrcLine>()
-  for (const p of primary) {
-    const key = p.time.toFixed(3)
-    byTime.set(key, { time: p.time, primary: p.text })
+  const merged: BilingualLrcLine[] = primary.map((p) => ({
+    time: p.time,
+    primary: p.text,
+  }))
+  const usedPrimary = new Set<number>()
+  const PAIR_TOLERANCE_SEC = 0.45
+
+  function findNearestPrimaryIndex(targetTime: number): number {
+    let bestIdx = -1
+    let bestDiff = Number.POSITIVE_INFINITY
+    for (let i = 0; i < merged.length; i++) {
+      if (usedPrimary.has(i) || merged[i].secondary) continue
+      const diff = Math.abs(merged[i].time - targetTime)
+      if (diff < bestDiff) {
+        bestDiff = diff
+        bestIdx = i
+      }
+    }
+    return bestDiff <= PAIR_TOLERANCE_SEC ? bestIdx : -1
   }
+
   for (const s of secondary) {
-    const key = s.time.toFixed(3)
-    const prev = byTime.get(key)
-    if (prev) {
+    const idx = findNearestPrimaryIndex(s.time)
+    if (idx >= 0) {
+      const prev = merged[idx]
       const p = prev.primary
       const aHasCjk = hasCjk(p)
       const bHasCjk = hasCjk(s.text)
@@ -64,11 +80,12 @@ export function parseBilingualLrc(primaryRaw: string, secondaryRaw: string): Bil
       } else {
         prev.secondary = s.text
       }
+      usedPrimary.add(idx)
     } else {
-      byTime.set(key, { time: s.time, primary: s.text })
+      merged.push({ time: s.time, primary: s.text })
     }
   }
-  return [...byTime.values()].sort((a, b) => a.time - b.time)
+  return merged.sort((a, b) => a.time - b.time)
 }
 
 export function activeBilingualLrcIndex(lines: BilingualLrcLine[], currentSec: number): number {
