@@ -16,8 +16,6 @@ const toolsSeed: ToolCardItem[] = [
   { id: 'reaction', path: '/tools/reaction', icon: 'reaction', titleKey: 'tools.reaction', descKey: 'toolsHub.cardReactionDesc' },
   { id: 'cps', path: '/tools/cps', icon: 'cps', titleKey: 'tools.cps', descKey: 'toolsHub.cardCpsDesc' },
   { id: 'pomodoro', path: '/tools/pomodoro', icon: 'pomodoro', titleKey: 'tools.pomodoro', descKey: 'toolsHub.cardPomodoroDesc' },
-  { id: 'password', path: '/tools/password', icon: 'lock', titleKey: 'tools.password', descKey: 'toolsHub.cardPasswordDesc' },
-  { id: 'base64', path: '/tools/base64', icon: 'b64', titleKey: 'tools.base64', descKey: 'toolsHub.cardBase64Desc' },
   { id: 'mbti', path: '/tools/mbti', icon: 'mbti', titleKey: 'toolsHub.cardMbtiTitle', descKey: 'toolsHub.cardMbtiDesc' },
   { id: 'oj', path: '/tools/oj', icon: 'code', titleKey: 'toolsHub.cardOjTitle', descKey: 'toolsHub.cardOjDesc' },
 ]

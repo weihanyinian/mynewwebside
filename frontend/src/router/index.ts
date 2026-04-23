@@ -26,8 +26,6 @@ const ToolsHubPage = () => import('../pages/tools/ToolsHubPage.vue')
 const ToolReactionPage = () => import('../pages/tools/ToolReactionPage.vue')
 const ToolCpsPage = () => import('../pages/tools/ToolCpsPage.vue')
 const ToolPomodoroPage = () => import('../pages/tools/ToolPomodoroPage.vue')
-const ToolPasswordPage = () => import('../pages/tools/ToolPasswordPage.vue')
-const ToolBase64Page = () => import('../pages/tools/ToolBase64Page.vue')
 const LoginPage = () => import('../pages/auth/LoginPage.vue')
 const RegisterPage = () => import('../pages/auth/RegisterPage.vue')
 const AdminArticlesPage = () => import('../pages/admin/AdminArticlesPage.vue')
@@ -86,8 +84,6 @@ export const router = createRouter({
     { path: '/tools/reaction', component: ToolReactionPage },
     { path: '/tools/cps', component: ToolCpsPage },
     { path: '/tools/pomodoro', component: ToolPomodoroPage },
-    { path: '/tools/password', component: ToolPasswordPage },
-    { path: '/tools/base64', component: ToolBase64Page },
     {
       path: '/tools/oj',
       component: OjView,
