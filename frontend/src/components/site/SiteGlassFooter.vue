@@ -65,7 +65,6 @@ onUnmounted(() => {
       <p>© 2026 {{ t('footer.copyName') }}</p>
     </div>
     <div class="site-rich-footer__love-timer">
-      <p class="love-timer__title">恋爱计时器（从 2025-06-18 23:00 开始）</p>
       <p class="love-timer__value">我们已经在一起 {{ loveDuration }} ❤️</p>
     </div>
   </footer>
@@ -187,15 +186,8 @@ onUnmounted(() => {
   box-shadow: 0 8px 24px rgba(74, 144, 226, 0.12);
 }
 
-.love-timer__title {
-  margin: 0;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--primary-color, #4a90e2) 62%, var(--text-color, #0f172a) 38%);
-}
-
 .love-timer__value {
-  margin: 0.35rem 0 0;
+  margin: 0;
   font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -206,10 +198,6 @@ onUnmounted(() => {
   border-color: rgba(148, 163, 184, 0.32);
   background: rgba(15, 23, 42, 0.55);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.42);
-}
-
-:root[data-theme='dark'] .love-timer__title {
-  color: #c4b5fd;
 }
 
 :root[data-theme='dark'] .love-timer__value {
