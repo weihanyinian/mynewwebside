@@ -3,7 +3,6 @@ package com.mywebside.blog.music.netease.proxy.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
-import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -35,77 +34,77 @@ public class NeteaseBinaryifyClient {
   }
 
   public JsonNode loginCellphone(String phone, String password) throws RestClientException {
-    URI uri = UriComponentsBuilder.fromUriString("/login/cellphone")
+    String uri = UriComponentsBuilder.fromUriString("/login/cellphone")
         .queryParam("phone", phone)
         .queryParam("password", password)
         .build(true)
-        .toUri();
+        .toUriString();
     return getJson(uri, null);
   }
 
   public JsonNode songUrl(long songId, int br, String cookieHeaderOrNull) throws RestClientException {
-    URI uri = UriComponentsBuilder.fromUriString("/song/url")
+    String uri = UriComponentsBuilder.fromUriString("/song/url")
         .queryParam("id", songId)
         .queryParam("br", br)
         .build(true)
-        .toUri();
+        .toUriString();
     return getJson(uri, cookieHeaderOrNull);
   }
 
   public JsonNode lyric(long songId) throws RestClientException {
-    URI uri = UriComponentsBuilder.fromUriString("/lyric")
+    String uri = UriComponentsBuilder.fromUriString("/lyric")
         .queryParam("id", songId)
         .build(true)
-        .toUri();
+        .toUriString();
     return getJson(uri, null);
   }
 
   public JsonNode userPlaylist(long uid, int offset, int limit, String cookieHeader) throws RestClientException {
-    URI uri = UriComponentsBuilder.fromUriString("/user/playlist")
+    String uri = UriComponentsBuilder.fromUriString("/user/playlist")
         .queryParam("uid", uid)
         .queryParam("offset", offset)
         .queryParam("limit", limit)
         .build(true)
-        .toUri();
+        .toUriString();
     return getJson(uri, cookieHeader);
   }
 
   public JsonNode likelist(long uid, String cookieHeader) throws RestClientException {
-    URI uri = UriComponentsBuilder.fromUriString("/likelist")
+    String uri = UriComponentsBuilder.fromUriString("/likelist")
         .queryParam("uid", uid)
         .build(true)
-        .toUri();
+        .toUriString();
     return getJson(uri, cookieHeader);
   }
 
   public JsonNode userRecord(long uid, int type, int limit, String cookieHeader) throws RestClientException {
-    URI uri = UriComponentsBuilder.fromUriString("/user/record")
+    String uri = UriComponentsBuilder.fromUriString("/user/record")
         .queryParam("uid", uid)
         .queryParam("type", type)
         .queryParam("limit", limit)
         .build(true)
-        .toUri();
+        .toUriString();
     return getJson(uri, cookieHeader);
   }
 
   public JsonNode songDetail(String idsCommaSeparated) throws RestClientException {
-    URI uri = UriComponentsBuilder.fromUriString("/song/detail")
+    String uri = UriComponentsBuilder.fromUriString("/song/detail")
         .queryParam("ids", idsCommaSeparated)
         .build(true)
-        .toUri();
+        .toUriString();
     return getJson(uri, null);
   }
 
   public JsonNode playlistTrackAll(long playlistId, int limit, String cookieHeaderOrNull) throws RestClientException {
-    URI uri = UriComponentsBuilder.fromUriString("/playlist/track/all")
+    String uri = UriComponentsBuilder.fromUriString("/playlist/track/all")
         .queryParam("id", playlistId)
         .queryParam("limit", limit)
         .build(true)
-        .toUri();
+        .toUriString();
     return getJson(uri, cookieHeaderOrNull);
   }
 
-  private JsonNode getJson(URI relativeUri, String cookieHeaderOrNull) {
+  private JsonNode getJson(String relativeUri, String cookieHeaderOrNull) {
     int maxAttempt = Math.max(1, properties.getRetryCount() + 1);
     RestClientException last = null;
     for (int attempt = 1; attempt <= maxAttempt; attempt++) {
@@ -113,6 +112,8 @@ public class NeteaseBinaryifyClient {
         String body = restClient.get()
             .uri(relativeUri)
             .headers(h -> {
+            // 某些上游会返回压缩流，JDK 客户端对该场景下字符串解码不稳定，强制返回明文 JSON
+            h.set(HttpHeaders.ACCEPT_ENCODING, "identity");
               if (cookieHeaderOrNull != null && !cookieHeaderOrNull.isBlank()) {
                 h.add(HttpHeaders.COOKIE, cookieHeaderOrNull);
               }
