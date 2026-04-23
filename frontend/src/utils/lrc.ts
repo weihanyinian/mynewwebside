@@ -2,6 +2,10 @@
 export type LrcLine = { time: number; text: string }
 export type BilingualLrcLine = { time: number; primary: string; secondary?: string }
 
+function hasCjk(text: string): boolean {
+  return /[\u3400-\u9fff]/.test(text)
+}
+
 export function parseLrc(raw: string): LrcLine[] {
   if (!raw || !raw.trim()) return []
   const lines: LrcLine[] = []
@@ -50,7 +54,16 @@ export function parseBilingualLrc(primaryRaw: string, secondaryRaw: string): Bil
     const key = s.time.toFixed(3)
     const prev = byTime.get(key)
     if (prev) {
-      prev.secondary = s.text
+      const p = prev.primary
+      const aHasCjk = hasCjk(p)
+      const bHasCjk = hasCjk(s.text)
+      // 外语曲目经常出现主/副歌词源反转：优先把“非中文行”放在主行，中文放副行。
+      if (aHasCjk && !bHasCjk) {
+        prev.primary = s.text
+        prev.secondary = p
+      } else {
+        prev.secondary = s.text
+      }
     } else {
       byTime.set(key, { time: s.time, primary: s.text })
     }
