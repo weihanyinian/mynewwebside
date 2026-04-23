@@ -27,6 +27,7 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     urlLoading: false,
     loadError: '',
     lyricLrc: '',
+    lyricTLrc: '',
     /** 默认使用本站配置的网易云歌单（见 config/music.ts），避免依赖第三方随机接口 */
     source: 'playlist' as PlaySource,
     playlistLoaded: false,
@@ -70,16 +71,17 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
       const t = this.currentTrack
       if (!t || !t.id) {
         this.lyricLrc = ''
+        this.lyricTLrc = ''
         return
       }
       try {
         const useAuth = !!getToken() && this.neteaseBound
         const data = await fetchSongLyric(t.id, useAuth)
-        const main = data.lrc || ''
-        const sub = data.tlyric || ''
-        this.lyricLrc = main || sub ? [main, sub].filter(Boolean).join('\n') : ''
+        this.lyricLrc = data.lrc || ''
+        this.lyricTLrc = data.tlyric || ''
       } catch {
         this.lyricLrc = ''
+        this.lyricTLrc = ''
       }
     },
 

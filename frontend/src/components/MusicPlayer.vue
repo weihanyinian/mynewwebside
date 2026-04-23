@@ -7,7 +7,7 @@ import { storeToRefs } from 'pinia'
 import { useMusicPlayerStore } from '../stores/musicPlayer'
 import { useUserStore } from '../stores/user'
 import { useThemeStore } from '../stores/theme'
-import { activeLrcIndex, parseLrc, type LrcLine } from '../utils/lrc'
+import { activeBilingualLrcIndex, parseBilingualLrc, type BilingualLrcLine } from '../utils/lrc'
 
 const PLAYER_Z_INDEX = 1100
 const OFFSET_LEFT = '24px'
@@ -37,8 +37,8 @@ const FAV_KEY = 'weihan_mp_favorites_v2'
 const favorites = ref<string[]>([])
 
 const lyricBoxRef = ref<HTMLElement | null>(null)
-const lrcLines = computed<LrcLine[]>(() => parseLrc(music.lyricLrc || ''))
-const activeLine = computed(() => activeLrcIndex(lrcLines.value, currentTime.value))
+const lrcLines = computed<BilingualLrcLine[]>(() => parseBilingualLrc(music.lyricLrc || '', music.lyricTLrc || ''))
+const activeLine = computed(() => activeBilingualLrcIndex(lrcLines.value, currentTime.value))
 
 const isDarkMode = computed(() => themeStore.isDarkMode)
 
@@ -348,7 +348,8 @@ onUnmounted(() => {
               class="mp-lyric__line"
               :class="{ 'mp-lyric__line--on': idx === activeLine }"
             >
-              {{ line.text }}
+              <span class="mp-lyric__primary">{{ line.primary }}</span>
+              <span v-if="line.secondary" class="mp-lyric__secondary">{{ line.secondary }}</span>
             </p>
           </template>
           <p v-else class="mp-lyric__empty">暂无歌词</p>
@@ -588,6 +589,16 @@ onUnmounted(() => {
   margin: 0.2rem 0;
   opacity: 0.55;
   transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.mp-lyric__primary,
+.mp-lyric__secondary {
+  display: block;
+}
+
+.mp-lyric__secondary {
+  font-size: 0.74rem;
+  opacity: 0.9;
 }
 
 .mp-lyric__line--on {

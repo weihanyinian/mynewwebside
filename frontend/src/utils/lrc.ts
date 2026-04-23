@@ -1,5 +1,6 @@
 /** 解析网易云 LRC（[mm:ss.xx] 文本）为带时间轴的行 */
 export type LrcLine = { time: number; text: string }
+export type BilingualLrcLine = { time: number; primary: string; secondary?: string }
 
 export function parseLrc(raw: string): LrcLine[] {
   if (!raw || !raw.trim()) return []
@@ -19,6 +20,45 @@ export function parseLrc(raw: string): LrcLine[] {
 }
 
 export function activeLrcIndex(lines: LrcLine[], currentSec: number): number {
+  if (lines.length === 0) return -1
+  let lo = 0
+  let hi = lines.length - 1
+  let best = -1
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1
+    if (lines[mid].time <= currentSec) {
+      best = mid
+      lo = mid + 1
+    } else {
+      hi = mid - 1
+    }
+  }
+  return best
+}
+
+export function parseBilingualLrc(primaryRaw: string, secondaryRaw: string): BilingualLrcLine[] {
+  const primary = parseLrc(primaryRaw)
+  const secondary = parseLrc(secondaryRaw)
+  if (!primary.length && !secondary.length) return []
+
+  const byTime = new Map<string, BilingualLrcLine>()
+  for (const p of primary) {
+    const key = p.time.toFixed(3)
+    byTime.set(key, { time: p.time, primary: p.text })
+  }
+  for (const s of secondary) {
+    const key = s.time.toFixed(3)
+    const prev = byTime.get(key)
+    if (prev) {
+      prev.secondary = s.text
+    } else {
+      byTime.set(key, { time: s.time, primary: s.text })
+    }
+  }
+  return [...byTime.values()].sort((a, b) => a.time - b.time)
+}
+
+export function activeBilingualLrcIndex(lines: BilingualLrcLine[], currentSec: number): number {
   if (lines.length === 0) return -1
   let lo = 0
   let hi = lines.length - 1
