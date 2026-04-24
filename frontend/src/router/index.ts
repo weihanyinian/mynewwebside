@@ -35,8 +35,10 @@ const AdminCategoriesPage = () => import('../pages/admin/AdminCategoriesPage.vue
 const AdminTagsPage = () => import('../pages/admin/AdminTagsPage.vue')
 const AdminWallPage = () => import('../pages/admin/AdminWallPage.vue')
 const AdminUsersPage = () => import('../pages/admin/AdminUsersPage.vue')
+const AdminCommentsPage = () => import('../pages/admin/AdminCommentsPage.vue')
 const AdminOjProblemsPage = () => import('../pages/admin/AdminOjProblemsPage.vue')
 const AdminOjSubmissionsPage = () => import('../pages/admin/AdminOjSubmissionsPage.vue')
+const AdminPortfolioWorksPage = () => import('../pages/admin/AdminPortfolioWorksPage.vue')
 const AlbumsPage = () => import('../pages/public/AlbumsPage.vue')
 const StatsPage = () => import('../pages/public/StatsPage.vue')
 const MusicCenterPage = () => import('../pages/music/MusicCenterPage.vue')
@@ -114,7 +116,9 @@ export const router = createRouter({
     { path: '/admin/editor/:id', component: AdminEditorPage, meta: { requiresAdmin: true } },
     { path: '/admin/categories', component: AdminCategoriesPage, meta: { requiresAdmin: true } },
     { path: '/admin/tags', component: AdminTagsPage, meta: { requiresAdmin: true } },
+    { path: '/admin/comments', component: AdminCommentsPage, meta: { requiresAdmin: true } },
     { path: '/admin/messages', component: AdminWallPage, meta: { requiresAdmin: true } },
+    { path: '/admin/works', component: AdminPortfolioWorksPage, meta: { requiresAdmin: true } },
     { path: '/admin/users', component: AdminUsersPage, meta: { requiresAdmin: true } },
     { path: '/admin/oj/problems', component: AdminOjProblemsPage, meta: { requiresAdmin: true } },
     { path: '/admin/oj/submissions', component: AdminOjSubmissionsPage, meta: { requiresAdmin: true } },

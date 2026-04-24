@@ -19,6 +19,13 @@ export type ArticleDetail = ArticleListItem & {
   contentMd: string
 }
 
+export type CommentDto = {
+  id: number
+  author: string
+  content: string
+  createTime: string
+}
+
 export type PageResponse<T> = {
   items: T[]
   total: number
@@ -37,6 +44,15 @@ export type LoginResult = {
   username: string
   nickname: string
   admin: boolean
+}
+
+export type AdminCommentListItem = {
+  id: number
+  articleId: number
+  articleTitle: string
+  author: string
+  content: string
+  createTime: string
 }
 
 export async function login(username: string, password: string) {
@@ -136,6 +152,25 @@ export async function adminUpdateTag(id: number, name: string) {
 
 export async function adminDeleteTag(id: number) {
   await http.delete<ApiResponse<void>>(`/api/admin/tags/${id}`)
+}
+
+export async function adminPageComments(params: {
+  keyword?: string
+  articleId?: number
+  page?: number
+  size?: number
+}) {
+  const resp = await http.get<ApiResponse<PageResponse<AdminCommentListItem>>>('/api/admin/comments', { params })
+  return resp.data.data
+}
+
+export async function adminUpdateComment(id: number, payload: { author: string; content: string }) {
+  const resp = await http.put<ApiResponse<CommentDto>>(`/api/admin/comments/${id}`, payload)
+  return resp.data.data
+}
+
+export async function adminDeleteComment(id: number) {
+  await http.delete<ApiResponse<void>>(`/api/admin/comments/${id}`)
 }
 
 /** 后端「每日一句」；失败返回 null（前端回退内置列表）。 */

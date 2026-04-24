@@ -7,13 +7,13 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # 复制 package.json
-COPY package*.json ./
+COPY frontend/package*.json ./
 
 # 安装依赖
 RUN npm ci --prefer-offline
 
 # 复制源代码
-COPY . .
+COPY frontend/ ./
 
 # 构建生产版本
 RUN npm run build
@@ -30,7 +30,7 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # 复制 Nginx 配置
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

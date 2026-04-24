@@ -3,6 +3,7 @@ export const HOME_SECTION_IDS = ['about', 'works', 'blog', 'contact', 'message',
 export type HomeSectionId = (typeof HOME_SECTION_IDS)[number]
 
 export type HomeWorkItem = {
+  id?: number
   title: string
   desc: string
   detail: string

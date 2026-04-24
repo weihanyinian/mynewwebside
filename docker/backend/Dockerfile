@@ -7,11 +7,11 @@ FROM maven:3.9-eclipse-temurin-17-alpine AS builder
 WORKDIR /app
 
 # 复制 pom.xml 并下载依赖（利用 Docker 缓存层）
-COPY pom.xml .
+COPY backend/pom.xml .
 RUN mvn dependency:go-offline -B
 
 # 复制源代码并构建
-COPY src ./src
+COPY backend/src ./src
 RUN mvn package -DskipTests -B
 
 # =============================================
@@ -21,7 +21,8 @@ FROM eclipse-temurin:17-jre-alpine
 
 # 安全：非 root 运行
 RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+    adduser -u 1001 -S appuser -G appgroup && \
+    apk add --no-cache curl
 
 WORKDIR /app
 

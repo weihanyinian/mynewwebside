@@ -28,6 +28,16 @@ public class NeteaseProxyProperties {
    */
   private int retryCount = 1;
 
+  /**
+   * 当主代理（例如 localhost:3000）不可达时，是否自动回退到公共代理。
+   */
+  private boolean localFallbackEnabled = true;
+
+  /**
+   * 本地代理不可达时使用的回退地址。
+   */
+  private String fallbackBaseUrl = "https://netease-cloud-music-api-five-roan-58.vercel.app";
+
   public String getBaseUrl() {
     return baseUrl;
   }
@@ -58,5 +68,21 @@ public class NeteaseProxyProperties {
 
   public void setRetryCount(int retryCount) {
     this.retryCount = Math.max(0, retryCount);
+  }
+
+  public boolean isLocalFallbackEnabled() {
+    return localFallbackEnabled;
+  }
+
+  public void setLocalFallbackEnabled(boolean localFallbackEnabled) {
+    this.localFallbackEnabled = localFallbackEnabled;
+  }
+
+  public String getFallbackBaseUrl() {
+    return fallbackBaseUrl;
+  }
+
+  public void setFallbackBaseUrl(String fallbackBaseUrl) {
+    this.fallbackBaseUrl = fallbackBaseUrl != null ? fallbackBaseUrl.trim() : "";
   }
 }

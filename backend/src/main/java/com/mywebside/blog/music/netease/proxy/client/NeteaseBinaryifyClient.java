@@ -24,15 +24,24 @@ public class NeteaseBinaryifyClient {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final RestClient restClient;
+  private final RestClient fallbackRestClient;
+  private final String primaryBaseUrl;
   private final NeteaseProxyProperties properties;
 
   public NeteaseBinaryifyClient(NeteaseProxyProperties properties) {
     this.properties = properties;
-    String base = properties.getBaseUrl();
-    if (base == null || base.isBlank()) {
+    String base = normalizeBaseUrl(properties.getBaseUrl());
+    if (base.isBlank()) {
       throw new IllegalStateException("netease.proxy.base-url 未配置");
     }
-    this.restClient = RestClient.builder().baseUrl(base.endsWith("/") ? base.substring(0, base.length() - 1) : base).build();
+    this.primaryBaseUrl = base;
+    this.restClient = RestClient.builder().baseUrl(base).build();
+    String fallbackBase = normalizeBaseUrl(properties.getFallbackBaseUrl());
+    if (!fallbackBase.isBlank() && !fallbackBase.equalsIgnoreCase(base)) {
+      this.fallbackRestClient = RestClient.builder().baseUrl(fallbackBase).build();
+    } else {
+      this.fallbackRestClient = null;
+    }
   }
 
   /**
@@ -67,6 +76,10 @@ public class NeteaseBinaryifyClient {
       } catch (ResourceAccessException e) {
         last = e;
         log.warn("网易云登录代理连接失败(第{}次): {}", attempt, e.getMessage());
+        JsonNode fallback = tryFallbackLogin(relativeUri);
+        if (fallback != null) {
+          return fallback;
+        }
       } catch (RestClientException e) {
         last = e;
         log.warn("网易云登录代理请求失败(第{}次): {}", attempt, e.getMessage());
@@ -148,17 +161,7 @@ public class NeteaseBinaryifyClient {
     RestClientException last = null;
     for (int attempt = 1; attempt <= maxAttempt; attempt++) {
       try {
-        String body = restClient.get()
-            .uri(relativeUri)
-            .headers(h -> {
-            // 某些上游会返回压缩流，JDK 客户端对该场景下字符串解码不稳定，强制返回明文 JSON
-            h.set(HttpHeaders.ACCEPT_ENCODING, "identity");
-              if (cookieHeaderOrNull != null && !cookieHeaderOrNull.isBlank()) {
-                h.add(HttpHeaders.COOKIE, cookieHeaderOrNull);
-              }
-            })
-            .retrieve()
-            .body(String.class);
+        String body = doGetJson(restClient, relativeUri, cookieHeaderOrNull);
         if (body == null || body.isBlank()) {
           return MAPPER.createObjectNode();
         }
@@ -166,6 +169,10 @@ public class NeteaseBinaryifyClient {
       } catch (ResourceAccessException e) {
         last = e;
         log.warn("网易云代理连接失败(第{}次): {}", attempt, e.getMessage());
+        JsonNode fallback = tryFallbackGetJson(relativeUri, cookieHeaderOrNull);
+        if (fallback != null) {
+          return fallback;
+        }
       } catch (RestClientException e) {
         last = e;
         log.warn("网易云代理请求失败(第{}次): {}", attempt, e.getMessage());
@@ -178,5 +185,83 @@ public class NeteaseBinaryifyClient {
       throw last;
     }
     throw new RestClientException("request failed");
+  }
+
+  private String doGetJson(RestClient client, String relativeUri, String cookieHeaderOrNull) {
+    return client.get()
+        .uri(relativeUri)
+        .headers(h -> {
+          // 某些上游会返回压缩流，JDK 客户端对该场景下字符串解码不稳定，强制返回明文 JSON
+          h.set(HttpHeaders.ACCEPT_ENCODING, "identity");
+          if (cookieHeaderOrNull != null && !cookieHeaderOrNull.isBlank()) {
+            h.add(HttpHeaders.COOKIE, cookieHeaderOrNull);
+          }
+        })
+        .retrieve()
+        .body(String.class);
+  }
+
+  private JsonNode tryFallbackGetJson(String relativeUri, String cookieHeaderOrNull) {
+    if (!canUseFallback()) {
+      return null;
+    }
+    try {
+      String body = doGetJson(fallbackRestClient, relativeUri, cookieHeaderOrNull);
+      if (body == null || body.isBlank()) {
+        return MAPPER.createObjectNode();
+      }
+      log.warn("网易云主代理不可达，已回退到备用代理: {}", relativeUri);
+      return MAPPER.readTree(body);
+    } catch (Exception ex) {
+      log.warn("网易云备用代理请求失败: {}", ex.getMessage());
+      return null;
+    }
+  }
+
+  private JsonNode tryFallbackLogin(String relativeUri) {
+    if (!canUseFallback()) {
+      return null;
+    }
+    try {
+      String body = fallbackRestClient.get()
+          .uri(relativeUri)
+          .headers(h -> h.set(HttpHeaders.ACCEPT_ENCODING, "identity"))
+          .exchange((request, response) -> {
+            try (response) {
+              return StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
+            }
+          });
+      if (body == null || body.isBlank()) {
+        return MAPPER.createObjectNode();
+      }
+      log.warn("网易云主代理不可达，登录请求已回退到备用代理");
+      return MAPPER.readTree(body);
+    } catch (Exception ex) {
+      log.warn("网易云登录备用代理请求失败: {}", ex.getMessage());
+      return null;
+    }
+  }
+
+  private boolean canUseFallback() {
+    return properties.isLocalFallbackEnabled() && isLocalBaseUrl(primaryBaseUrl) && fallbackRestClient != null;
+  }
+
+  private static boolean isLocalBaseUrl(String baseUrl) {
+    if (baseUrl == null) {
+      return false;
+    }
+    String u = baseUrl.toLowerCase();
+    return u.contains("127.0.0.1") || u.contains("localhost");
+  }
+
+  private static String normalizeBaseUrl(String raw) {
+    if (raw == null) {
+      return "";
+    }
+    String base = raw.trim();
+    if (base.endsWith("/")) {
+      return base.substring(0, base.length() - 1);
+    }
+    return base;
   }
 }

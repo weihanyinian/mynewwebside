@@ -2,13 +2,14 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useThemeStore } from '../../stores/theme'
 import { getPublicArticle, type ArticleDetail } from '../../api/blog'
 import MarkdownView from '../../components/MarkdownView.vue'
-import BackToHomeButton from '../../components/BackToHomeButton.vue'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const themeStore = useThemeStore()
 
 const loading = ref(false)
 const article = ref<ArticleDetail | null>(null)
@@ -23,13 +24,12 @@ const toc = ref<TocItem[]>([])
 const activeTocId = ref<string>('')
 const tocOpen = ref(false)
 const showBackTop = ref(false)
+const isDarkMode = computed(() => themeStore.isDarkMode)
 
 const navItems = computed(() => [
-  { name: t('breadcrumb.home'), path: '/' },
   { name: t('nav.blog'), path: '/blog' },
   { name: t('nav.works'), path: '/#works' },
-  { name: t('nav.message'), path: '/message' },
-  { name: t('nav.moyu'), path: '/moyu' }
+  { name: t('nav.message'), path: '/message' }
 ])
 
 const readTime = computed(() => {
@@ -135,7 +135,10 @@ watch(
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-[#1a1c25] to-[#111318] text-slate-200 font-sans selection:bg-purple-500/30 selection:text-white relative overflow-x-hidden">
+  <div
+    class="article-page min-h-screen font-sans selection:bg-purple-500/30 selection:text-white relative overflow-x-hidden"
+    :class="isDarkMode ? 'article-page--dark text-slate-200' : 'article-page--light text-slate-800'"
+  >
     <div class="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-blue-500/10 blur-[120px] pointer-events-none"></div>
     <div class="fixed bottom-[-10%] right-[20%] w-[50vw] h-[50vw] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none"></div>
 
@@ -178,7 +181,6 @@ watch(
       <main class="flex-1 p-6 lg:p-12 xl:p-16 min-h-screen relative pb-44">
         <div class="flex items-center justify-between gap-4 mb-8 flex-wrap">
           <div class="flex items-center gap-2 flex-wrap">
-            <BackToHomeButton variant="on-dark" />
             <button type="button" class="site-pill site-pill--on-dark site-pill--active inline-flex items-center gap-2" @click="go('/blog')">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
               返回博客
@@ -324,4 +326,25 @@ watch(
     </transition>
   </div>
 </template>
+
+<style scoped>
+.article-page--dark {
+  background: linear-gradient(135deg, #1a1c25 0%, #111318 100%);
+}
+
+.article-page--light {
+  background: linear-gradient(135deg, #f2f7ff 0%, #e8f2ff 45%, #edf5ff 100%);
+}
+
+.article-page--light :deep(.site-pill--on-dark) {
+  color: #1f2937;
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(148, 163, 184, 0.48);
+}
+
+.article-page--light :deep(.site-pill--on-dark.site-pill--active) {
+  color: #fff;
+  border-color: transparent;
+}
+</style>
 

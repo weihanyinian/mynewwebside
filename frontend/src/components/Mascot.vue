@@ -160,7 +160,7 @@ function onDrag(e: MouseEvent | TouchEvent) {
   if (hasDragged) {
     e.preventDefault()
     position.value.x = startPos.x + dx
-    position.value.y = startPos.y - dy
+    position.value.y = startPos.y + dy
   }
 }
 
@@ -193,10 +193,13 @@ declare global {
 
 onMounted(async () => {
   // 手机端抬高初始位置，避免与底部 tabbar 重叠
-  if (window.innerWidth <= 900) {
-    position.value = { x: 12, y: 112 }
-  } else {
-    position.value = { x: 20, y: 20 }
+  const mobile = window.innerWidth <= 900
+  const avatarWidth = mobile ? 120 : 250
+  const rightGap = mobile ? 12 : 20
+  const topGap = mobile ? 78 : 84
+  position.value = {
+    x: Math.max(12, window.innerWidth - avatarWidth - rightGap),
+    y: topGap,
   }
 
   await nextTick()
@@ -303,7 +306,7 @@ onBeforeUnmount(() => {
   <div
     class="mascot-container"
     :class="{ 'is-minimized': isMinimized }"
-    :style="{ left: position.x + 'px', bottom: position.y + 'px' }"
+    :style="{ left: position.x + 'px', top: position.y + 'px' }"
   >
     <!-- 气泡固定在看板娘上方；mode=out-in + key 保证换句时淡入淡出 -->
     <transition name="bubble-fade" mode="out-in">

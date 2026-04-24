@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { HomeWorkItem } from '../types/home'
+import { fetchPortfolioWorks } from '../api/portfolioApi'
 
 const seedWorks: HomeWorkItem[] = [
   {
@@ -40,6 +41,9 @@ export const useWorksStore = defineStore('works', {
   state: () => ({
     selectedCategory: 'all',
     works: seedWorks as HomeWorkItem[],
+    loading: false,
+    loadedFromBackend: false,
+    loadError: '',
   }),
   getters: {
     categories: (s) => ['all', ...Array.from(new Set(s.works.map((w) => w.tag.split('/')[0].trim())))],
@@ -49,6 +53,32 @@ export const useWorksStore = defineStore('works', {
         : s.works.filter((w) => w.tag.toLowerCase().includes(s.selectedCategory.toLowerCase())),
   },
   actions: {
+    async fetchWorksFromBackend(force = false) {
+      if (this.loading) return
+      if (!force && this.loadedFromBackend && this.works.length > 0) return
+      this.loading = true
+      this.loadError = ''
+      try {
+        const rows = await fetchPortfolioWorks()
+        if (rows.length > 0) {
+          this.works = rows
+          this.loadedFromBackend = true
+          if (
+            this.selectedCategory !== 'all'
+            && !this.categories.some((c) => c.toLowerCase() === this.selectedCategory.toLowerCase())
+          ) {
+            this.selectedCategory = 'all'
+          }
+        } else if (force) {
+          this.works = []
+          this.loadedFromBackend = true
+        }
+      } catch (e: unknown) {
+        this.loadError = e instanceof Error ? e.message : '作品数据加载失败'
+      } finally {
+        this.loading = false
+      }
+    },
     setCategory(category: string) {
       this.selectedCategory = category
     },

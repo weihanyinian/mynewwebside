@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
  *   <li>{@code tags} — 标签列表（低频变更）</li>
  *   <li>{@code categories} — 分类列表（低频变更）</li>
  *   <li>{@code friends} — 友链列表（低频变更）</li>
+ *   <li>{@code portfolioWorks} — 作品列表（低频变更）</li>
  * </ul>
  */
 @Configuration
@@ -23,7 +24,7 @@ public class CacheConfig {
 
   @Bean
   public CacheManager cacheManager() {
-    CaffeineCacheManager cm = new CaffeineCacheManager("tags", "categories", "friends");
+    CaffeineCacheManager cm = new CaffeineCacheManager("tags", "categories", "friends", "portfolioWorks");
     cm.setCaffeine(Caffeine.newBuilder()
         .expireAfterWrite(10, TimeUnit.MINUTES)
         .maximumSize(200));

@@ -75,11 +75,12 @@ async function send() {
 <style scoped>
 .avatar-shell {
   position: fixed;
-  left: 16px;
-  bottom: 86px;
+  right: 16px;
+  top: 84px;
   z-index: 1200;
   display: flex;
-  align-items: flex-end;
+  flex-direction: row-reverse;
+  align-items: flex-start;
   gap: 10px;
 }
 
@@ -193,8 +194,8 @@ async function send() {
 
 @media (max-width: 768px) {
   .avatar-shell {
-    left: 10px;
-    bottom: 78px;
+    right: 10px;
+    top: 78px;
   }
   .avatar-badge {
     width: 50px;

@@ -101,6 +101,7 @@ function onSiteLogoClick() {
 
 onMounted(() => {
   visitStore.initHomeVisit()
+  void worksStore.fetchWorksFromBackend()
   if (route.hash) {
     const id = route.hash.replace(/^#/, '')
     scrollToSection(id, 92)
@@ -263,8 +264,8 @@ onMounted(() => {
       :subtitle="'全栈开发 | 二次元爱好者 | 分享与记录'"
       :stats-badge="visitBadge"
       :parallax-y="heroParallaxY"
-      @explore="scrollTo('works')"
-      @read-blog="scrollTo('blog')"
+      @explore="router.push('/works-showcase')"
+      @read-blog="router.push('/blog')"
     />
 
     <!-- Hitokoto Quote -->
@@ -767,7 +768,8 @@ h2 {
   color: rgba(15, 23, 42, 0.9);
 }
 .dark-theme .home-hub-lead {
-  color: rgba(226, 232, 240, 0.9);
+  color: rgba(241, 245, 249, 0.98);
+  text-shadow: 0 1px 8px rgba(15, 23, 42, 0.55);
 }
 .home-hub-actions {
   display: flex;

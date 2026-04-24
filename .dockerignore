@@ -1,0 +1,17 @@
+*
+!.dockerignore
+!backend/**
+!frontend/**
+!docker/backend/Dockerfile
+!docker/frontend/Dockerfile
+!docker/frontend/nginx.conf
+
+# prune heavy/unneeded artifacts from included directories
+backend/target
+backend/.mvn
+backend/**/node_modules
+backend/.npm_cache
+frontend/node_modules
+frontend/dist
+frontend/.vite
+frontend/.npm_cache

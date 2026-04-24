@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWorksStore } from '../../stores/works'
 
@@ -7,6 +7,10 @@ const router = useRouter()
 const worksStore = useWorksStore()
 
 const works = computed(() => worksStore.works)
+
+onMounted(() => {
+  void worksStore.fetchWorksFromBackend()
+})
 
 function openLink(link: string) {
   if (link.startsWith('/')) {
@@ -30,6 +34,9 @@ function openLink(link: string) {
     </header>
 
     <section class="works-showcase__grid">
+      <p v-if="worksStore.loadError" class="works-showcase__hint works-showcase__hint--error">
+        {{ worksStore.loadError }}
+      </p>
       <article v-for="(work, idx) in works" :key="`${work.title}-${idx}`" class="showcase-card glass-panel">
         <img :src="work.cover" :alt="work.title" class="showcase-card__cover" loading="lazy" decoding="async" />
         <div class="showcase-card__body">
@@ -87,6 +94,17 @@ function openLink(link: string) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 18px;
+}
+
+.works-showcase__hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  text-align: center;
+  font-size: 0.92rem;
+}
+
+.works-showcase__hint--error {
+  color: #ef4444;
 }
 
 .showcase-card {

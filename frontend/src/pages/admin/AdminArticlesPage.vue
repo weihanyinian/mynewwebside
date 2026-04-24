@@ -39,6 +39,11 @@ async function onDelete(id: number) {
   await load()
 }
 
+function onPageChange(p: number) {
+  page.value = p - 1
+  void load()
+}
+
 onMounted(load)
 </script>
 
@@ -48,7 +53,11 @@ onMounted(load)
       <template #header>
         <div class="head">
           <div class="head__title">文章管理</div>
-          <el-button type="primary" @click="router.push('/admin/editor')">发布文章</el-button>
+          <div class="head__actions">
+            <el-button @click="router.push('/admin/comments')">评论管理</el-button>
+            <el-button @click="router.push('/admin/works')">作品管理</el-button>
+            <el-button type="primary" @click="router.push('/admin/editor')">发布文章</el-button>
+          </div>
         </div>
       </template>
 
@@ -105,7 +114,7 @@ onMounted(load)
           :current-page="page + 1"
           :page-size="size"
           :total="total"
-          @current-change="(p: number) => { page = p - 1; load() }"
+          @current-change="onPageChange"
         />
       </div>
     </el-card>
@@ -121,9 +130,15 @@ onMounted(load)
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 .head__title {
   font-weight: 900;
+}
+.head__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .filters {
   display: flex;
