@@ -9,7 +9,6 @@ const games = [
   { path: '/moyu/tetris', name: '俄罗斯方块', icon: '🧱', desc: '经典下落，触摸键 + 滑动' },
   { path: '/moyu/snake', name: '贪吃蛇', icon: '🐍', desc: '滑动 / 虚拟方向键，可调速度' },
   { path: '/moyu/minesweeper', name: '扫雷', icon: '💣', desc: '多难度 · 长按插旗 · 计时' },
-  { path: '/moyu/trex', name: '恐龙跑酷', icon: '🦖', desc: '点击跳跃，节奏更适合手机' },
   { path: '/moyu/flappy', name: 'Flappy Bird', icon: '🐦', desc: '点按飞行，深色高对比' },
   { path: '/moyu/breakout', name: '打砖块', icon: '🏏', desc: '滑动挡板 + 左右键' },
   { path: '/moyu/gomoku', name: '五子棋', icon: '⚫', desc: '大屏棋盘 · 触摸落子' },
@@ -31,7 +30,7 @@ function go(path: string) {
     <div class="header">
       <h1 class="title">维寒一念 · 摸鱼中心</h1>
       <p class="subtitle">
-        11 款经典小游戏，纯静态页面嵌入为主；最高分本地保存；随站点主题切换。
+        10 款经典小游戏，纯静态页面嵌入为主；最高分本地保存；随站点主题切换。
       </p>
     </div>
 

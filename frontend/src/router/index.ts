@@ -14,7 +14,6 @@ const Game2048 = () => import('../pages/moyu/Game2048.vue')
 const GameTetris = () => import('../pages/moyu/GameTetris.vue')
 const GameSnake = () => import('../pages/moyu/GameSnake.vue')
 const GameMinesweeper = () => import('../pages/moyu/GameMinesweeper.vue')
-const GameTrex = () => import('../pages/moyu/GameTrex.vue')
 const GameFlappy = () => import('../pages/moyu/GameFlappy.vue')
 const GameBreakout = () => import('../pages/moyu/GameBreakout.vue')
 const GameGomoku = () => import('../pages/moyu/GameGomoku.vue')
@@ -63,7 +62,7 @@ export const router = createRouter({
     { path: '/moyu/tetris', component: GameTetris },
     { path: '/moyu/snake', component: GameSnake },
     { path: '/moyu/minesweeper', component: GameMinesweeper },
-    { path: '/moyu/trex', component: GameTrex },
+    { path: '/moyu/trex', redirect: '/moyu' },
     { path: '/moyu/flappy', component: GameFlappy },
     { path: '/moyu/breakout', component: GameBreakout },
     { path: '/moyu/gomoku', component: GameGomoku },
