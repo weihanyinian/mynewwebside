@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
+import MoyuBackToHubButton from '../../components/moyu/MoyuBackToHubButton.vue'
 
 // ─── 游戏状态 ────────────────────────────────────────────────────────────────
 type Difficulty = 'easy' | 'normal' | 'hard'
@@ -72,10 +70,7 @@ function onKey(e: KeyboardEvent) {
     <div class="orb orb-2"></div>
 
     <div class="back-btn">
-      <button type="button" class="site-pill site-pill--active" @click="router.push('/moyu')">
-        <span aria-hidden="true">←</span>
-        <span>摸鱼中心</span>
-      </button>
+      <MoyuBackToHubButton />
     </div>
 
     <div class="header">

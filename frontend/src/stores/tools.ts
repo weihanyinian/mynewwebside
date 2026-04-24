@@ -19,7 +19,7 @@ const toolsSeed: ToolCardItem[] = [
   { id: 'pomodoro', path: '/tools/pomodoro', icon: 'pomodoro', titleKey: 'tools.pomodoro', descKey: 'toolsHub.cardPomodoroDesc' },
   { id: 'schulte', path: '/tools/schulte', icon: 'schulte', titleKey: 'tools.schulte', descKey: 'toolsHub.cardSchulteDesc' },
   { id: 'mbti', path: '/tools/mbti', icon: 'mbti', titleKey: 'toolsHub.cardMbtiTitle', descKey: 'toolsHub.cardMbtiDesc' },
-  { id: 'oj', path: '/tools/oj', icon: 'code', titleKey: 'toolsHub.cardOjTitle', descKey: 'toolsHub.cardOjDesc' },
+  { id: 'oj', path: '/tools/oj', icon: 'oj', titleKey: 'toolsHub.cardOjTitle', descKey: 'toolsHub.cardOjDesc' },
 ]
 
 export const useToolsStore = defineStore('tools', {

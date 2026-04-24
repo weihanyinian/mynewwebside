@@ -3,8 +3,8 @@
  * 摸鱼游戏统一外壳：安全区、毛玻璃、返回、标题、顶栏统计、加载态
  */
 import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
 import { useThemeStore } from '../../stores/theme'
+import MoyuBackToHubButton from './MoyuBackToHubButton.vue'
 
 defineProps<{
   title: string
@@ -14,13 +14,8 @@ defineProps<{
   loading?: boolean
 }>()
 
-const router = useRouter()
 const themeStore = useThemeStore()
 const { isDarkMode } = storeToRefs(themeStore)
-
-function back() {
-  router.push('/moyu')
-}
 </script>
 
 <template>
@@ -28,7 +23,7 @@ function back() {
     <div class="moyu-game-shell glass-surface">
       <header class="moyu-game-shell__bar">
         <div class="moyu-game-shell__row1">
-          <button type="button" class="moyu-game-shell__back site-pill" @click="back">← 返回摸鱼中心</button>
+          <MoyuBackToHubButton class="moyu-game-shell__back" compact />
           <h1 class="moyu-game-shell__title">{{ title }}</h1>
         </div>
         <div v-if="highText" class="moyu-game-shell__hi">{{ highText }}</div>
@@ -88,8 +83,6 @@ function back() {
 
 .moyu-game-shell__back {
   flex-shrink: 0;
-  min-height: 44px;
-  padding: 10px 14px;
   touch-action: manipulation;
 }
 
@@ -112,6 +105,7 @@ function back() {
   opacity: 0.9;
   line-height: 1.4;
   word-break: break-word;
+  text-align: center;
 }
 
 .moyu-game-shell__loading {
@@ -148,6 +142,10 @@ function back() {
   border-radius: 16px;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 </style>

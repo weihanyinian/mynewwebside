@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
-import BackToBlogButton from '../../components/BackToBlogButton.vue'
+import MoyuBackToHubButton from '../../components/moyu/MoyuBackToHubButton.vue'
 
 // ─── 牌组配置 ────────────────────────────────────────────────────────────────
 const EMOJIS_ALL = ['🌸','🎸','🦊','🐉','🍭','🎯','🌊','🦋','🍓','🎃','🌈','⭐','🎹','🎨','🚀','🦄','🍀','🎵']
@@ -91,7 +91,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
 
-    <div class="back-btn"><BackToBlogButton /></div>
+    <div class="back-btn"><MoyuBackToHubButton /></div>
     <div class="header">
       <div class="header-icon">🃏</div>
       <h1 class="title">记忆翻牌</h1>

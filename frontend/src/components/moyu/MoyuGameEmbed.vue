@@ -5,8 +5,8 @@
  */
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
 import MoyuGameShell from './MoyuGameShell.vue'
+import MoyuBackToHubButton from './MoyuBackToHubButton.vue'
 import { useThemeStore } from '../../stores/theme'
 import { getMoyuHighScore } from '../../utils/moyuScore'
 
@@ -15,7 +15,6 @@ const props = defineProps<{
   title: string
 }>()
 
-const router = useRouter()
 const themeStore = useThemeStore()
 const { isDarkMode } = storeToRefs(themeStore)
 
@@ -53,10 +52,6 @@ function restart() {
   loading.value = true
 }
 
-function backHub() {
-  router.push('/moyu')
-}
-
 onMounted(() => window.addEventListener('message', onMessage))
 onUnmounted(() => window.removeEventListener('message', onMessage))
 
@@ -77,7 +72,7 @@ onUnmounted(() => window.removeEventListener('message', onMessage))
           <p class="embed__modal-title">游戏结束</p>
           <div class="embed__modal-actions">
             <button type="button" class="embed__btn embed__btn--primary" @click="restart">再来一局</button>
-            <button type="button" class="embed__btn" @click="backHub">返回摸鱼中心</button>
+            <MoyuBackToHubButton block />
           </div>
         </div>
       </div>
@@ -89,14 +84,19 @@ onUnmounted(() => window.removeEventListener('message', onMessage))
 .embed {
   position: relative;
   width: 100%;
+  max-width: 100%;
   min-height: min(560px, calc(100dvh - 200px));
   border-radius: 16px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .embed__iframe {
   width: 100%;
+  max-width: 100%;
   min-height: min(520px, calc(100dvh - 210px));
   border: none;
   display: block;

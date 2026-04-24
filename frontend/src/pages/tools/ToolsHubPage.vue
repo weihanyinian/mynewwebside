@@ -28,7 +28,9 @@ const cards = computed(() =>
                 ? '🧠'
                 : card.icon === 'schulte'
                   ? '🔢'
-                : '⌨️',
+                  : card.icon === 'oj'
+                    ? '⌨️'
+                : '💻',
     titleKey: card.titleKey,
     descKey: card.descKey,
     to: card.path,
