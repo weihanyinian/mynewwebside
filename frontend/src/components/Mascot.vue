@@ -192,6 +192,13 @@ declare global {
 }
 
 onMounted(async () => {
+  // 手机端抬高初始位置，避免与底部 tabbar 重叠
+  if (window.innerWidth <= 900) {
+    position.value = { x: 12, y: 112 }
+  } else {
+    position.value = { x: 20, y: 20 }
+  }
+
   await nextTick()
 
   let checkCount = 0

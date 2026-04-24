@@ -12,7 +12,7 @@ import { activeBilingualLrcIndex, parseBilingualLrc, type BilingualLrcLine } fro
 
 const PLAYER_Z_INDEX = 1100
 const OFFSET_LEFT = '24px'
-const OFFSET_BOTTOM = '20px'
+const OFFSET_TOP = '84px'
 
 const GLASS = {
   bg: 'rgba(255, 255, 255, 0.2)',
@@ -352,7 +352,7 @@ onUnmounted(() => {
     :style="{
       zIndex: PLAYER_Z_INDEX,
       left: OFFSET_LEFT,
-      bottom: OFFSET_BOTTOM,
+      top: OFFSET_TOP,
     }"
   >
     <button
@@ -527,7 +527,7 @@ onUnmounted(() => {
   position: fixed;
   display: flex;
   flex-direction: row;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 12px;
   pointer-events: none;
 }
@@ -977,8 +977,8 @@ onUnmounted(() => {
 @media (max-width: 480px) {
   .mp-root {
     left: 12px !important;
-    bottom: 16px !important;
-    flex-direction: column-reverse;
+    top: 78px !important;
+    flex-direction: row;
     align-items: flex-start;
   }
 
