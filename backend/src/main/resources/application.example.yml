@@ -99,6 +99,10 @@ netease:
     default-br: ${NETEASE_DEFAULT_BR:320000}
     # 上游失败重试次数（不含首次）
     retry-count: ${NETEASE_PROXY_RETRY_COUNT:1}
+
+ncm:
+  # @neteasecloudmusicapienhanced/api 地址
+  base-url: ${NCM_BASE_URL:http://127.0.0.1:3000}
   music:
     open:
       enabled: false
