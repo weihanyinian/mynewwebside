@@ -21,6 +21,32 @@ docker compose version
 
 ## 快速部署
 
+### 0. 本地打包（推荐，适合上传到服务器）
+
+如果你不想在服务器上编译前后端，可以在本地直接打好镜像包再上传：
+
+```powershell
+cd E:\mywebside\docker
+.\package-for-server.ps1 -Tag v1
+```
+
+脚本会在 `docker/dist` 下生成：
+- `mywebside-images-v1.tar`（前后端镜像）
+- `docker-compose.yml`
+- `.env.example`
+- `schema.sql`
+
+上传整个 `dist` 目录到服务器后执行：
+
+```bash
+cd /opt/mywebside
+docker load -i mywebside-images-v1.tar
+cp .env.example .env
+# 确保 IMAGE_TAG=v1（与本地打包的 -Tag 一致）
+sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=v1/' .env
+docker compose up -d
+```
+
 ### 1. 上传项目到服务器
 
 ```bash

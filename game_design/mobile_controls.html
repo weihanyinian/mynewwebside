@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>📱 操作适配方案 · 魔法割草</title>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a12;
+      --bg-secondary: #0f0f1a;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --text-primary: #f0f0f8;
+      --text-secondary: #8888aa;
+      --accent-fire: #ff4d2a;
+      --accent-ice: #00d4ff;
+      --accent-lightning: #bf5fff;
+      --accent-gold: #ffd700;
+      --font-display: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif;
+      --font-body: 'Noto Sans SC', -apple-system, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(99, 51, 255, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 51, 180, 0.08) 0%, transparent 50%);
+    }
+
+    header {
+      text-align: center;
+      padding: 48px 24px;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3rem);
+      background: linear-gradient(135deg, var(--accent-fire), var(--accent-ice), var(--accent-lightning));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .subtitle { color: var(--text-secondary); font-size: 1rem; }
+
+    main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+    .device-switcher {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .device-btn {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 12px 28px;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .device-btn:hover { border-color: var(--text-secondary); }
+
+    .device-btn.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+    }
+
+    .device-btn .icon { font-size: 1.3rem; }
+
+    /* 手机预览 */
+    .phone-frame {
+      display: none;
+      width: 320px;
+      height: 680px;
+      margin: 0 auto 48px;
+      background: #1a1a2e;
+      border-radius: 44px;
+      padding: 12px;
+      box-shadow: 0 0 0 2px #333, 0 0 0 4px #1a1a2e, 0 40px 80px rgba(0,0,0,0.6);
+    }
+
+    .phone-frame.show { display: block; }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #1e1e3a 0%, #0a0a1a 100%);
+      border-radius: 36px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #0a0a1a;
+      border-radius: 0 0 18px 18px;
+      z-index: 10;
+    }
+
+    .phone-hud-top {
+      position: absolute;
+      top: 36px;
+      left: 0;
+      right: 0;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 5;
+    }
+
+    .phone-stat-group { display: flex; flex-direction: column; gap: 4px; }
+
+    .phone-bar {
+      width: 100px;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .phone-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+    .phone-bar-fill.hp { background: linear-gradient(90deg, #ff4d4d, #ff6b6b); width: 75%; }
+    .phone-bar-fill.exp { background: linear-gradient(90deg, #ffd700, #ffed4a); width: 45%; }
+    .phone-level { font-size: 0.7rem; color: var(--accent-gold); font-weight: 700; }
+    .phone-wave { font-size: 0.75rem; color: var(--text-secondary); }
+    .phone-pause {
+      width: 28px;
+      height: 28px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .phone-game-area {
+      position: absolute;
+      top: 80px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .phone-game-placeholder {
+      width: 90%;
+      height: 85%;
+      background: radial-gradient(circle at 30% 40%, rgba(255,77,42,0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 60%, rgba(0,212,255,0.1) 0%, transparent 50%),
+                  rgba(255,255,255,0.02);
+      border: 1px dashed rgba(255,255,255,0.1);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .demo-enemies {
+      display: flex;
+      gap: 16px;
+      font-size: 2rem;
+      animation: float 2s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .demo-player {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-fire), var(--accent-gold));
+      border-radius: 50%;
+      box-shadow: 0 0 30px rgba(255, 77, 42, 0.5);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 77, 42, 0.4); }
+      50% { box-shadow: 0 0 40px rgba(255, 77, 42, 0.8); }
+    }
+
+    .phone-joystick-area {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 120px;
+      height: 120px;
+    }
+
+    .phone-joystick-base {
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .phone-joystick-thumb {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .phone-skill-buttons {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .phone-skill-btn {
+      width: 52px;
+      height: 52px;
+      background: var(--glass-bg);
+      border: 2px solid var(--glass-border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .phone-skill-btn .icon { font-size: 1.4rem; }
+    .phone-skill-btn .cd { font-size: 0.5rem; color: var(--text-secondary); margin-top: 2px; }
+    .phone-skill-btn.fire { border-color: rgba(255, 77, 42, 0.5); }
+    .phone-skill-btn.ice { border-color: rgba(0, 212, 255, 0.5); }
+    .phone-skill-btn.lightning { border-color: rgba(191, 95, 255, 0.5); }
+
+    /* PC预览 */
+    .pc-preview {
+      display: none;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+    }
+
+    .pc-preview.show { display: block; }
+
+    .pc-browser-bar {
+      background: rgba(0,0,0,0.3);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pc-browser-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .pc-browser-dot.red { background: #ff5f57; }
+    .pc-browser-dot.yellow { background: #ffbd2e; }
+    .pc-browser-dot.green { background: #28c840; }
+    .pc-browser-url { flex: 1; background: rgba(255,255,255,0.05); border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; color: var(--text-secondary); margin-left: 12px; }
+
+    .pc-screen {
+      aspect-ratio: 16/9;
+      background: linear-gradient(180deg, #12122a 0%, #0a0a18 100%);
+      position: relative;
+      min-height: 400px;
+    }
+
+    .pc-hud-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(0,0,0,0.5), transparent);
+    }
+
+    .pc-hud-left { display: flex; gap: 16px; align-items: center; }
+    .pc-bar-group { display: flex; flex-direction: column; gap: 4px; }
+    .pc-bar-label { font-size: 0.7rem; color: var(--text-secondary); }
+    .pc-bar { width: 180px; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; }
+    .pc-bar-fill { height: 100%; border-radius: 5px; }
+    .pc-bar-fill.hp { background: linear-gradient(90deg, #ff4d4d, #ff6b6b); width: 75%; }
+    .pc-bar-fill.exp { background: linear-gradient(90deg, #ffd700, #ffed4a); width: 45%; }
+    .pc-level-badge { background: linear-gradient(135deg, var(--accent-gold), #ff9500); color: #000; font-weight: 800; font-size: 0.9rem; padding: 6px 16px; border-radius: 20px; }
+    .pc-hud-center { font-size: 1rem; color: var(--accent-gold); font-weight: 600; }
+    .pc-hud-right { display: flex; gap: 12px; }
+    .pc-btn-small { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 16px; color: var(--text-secondary); font-size: 0.8rem; cursor: pointer; }
+    .pc-btn-small:hover { background: rgba(255,255,255,0.15); color: var(--text-primary); }
+
+    .pc-game-area {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pc-game-placeholder {
+      width: 95%;
+      height: 95%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,77,42,0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 70% 70%, rgba(0,212,255,0.08) 0%, transparent 40%),
+                  rgba(255,255,255,0.02);
+      border: 1px dashed rgba(255,255,255,0.08);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .pc-demo-enemies { display: flex; gap: 24px; font-size: 3rem; animation: float 2s ease-in-out infinite; }
+    .pc-demo-player { width: 50px; height: 50px; background: linear-gradient(135deg, var(--accent-fire), var(--accent-gold)); border-radius: 50%; box-shadow: 0 0 40px rgba(255, 77, 42, 0.5); animation: pulse 1.5s ease-in-out infinite; }
+    .pc-demo-text { color: var(--text-secondary); font-size: 0.9rem; }
+
+    .pc-skill-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: linear-gradient(0deg, rgba(0,0,0,0.6), transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 20px;
+    }
+
+    .pc-skill-slot {
+      width: 50px;
+      height: 50px;
+      background: var(--glass-bg);
+      border: 2px solid var(--glass-border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .pc-skill-slot:hover { border-color: var(--accent-gold); transform: translateY(-4px); }
+    .pc-skill-slot .icon { font-size: 1.4rem; }
+    .pc-skill-slot .key-hint { position: absolute; bottom: -8px; background: rgba(0,0,0,0.8); color: var(--text-secondary); font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; }
+    .pc-skill-slot .cd-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); height: 30%; border-radius: 0 0 8px 8px; }
+    .pc-skill-slot .level-badge { position: absolute; top: -6px; right: -6px; background: var(--accent-gold); color: #000; font-size: 0.6rem; font-weight: 800; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+    /* 功能说明 */
+    .features-section { margin-top: 48px; }
+    .features-title { font-family: var(--font-display); font-size: 1.5rem; text-align: center; margin-bottom: 32px; color: var(--accent-gold); }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .feature-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; transition: all 0.3s; }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(255, 215, 0, 0.3); }
+    .feature-icon { font-size: 2rem; margin-bottom: 12px; }
+    .feature-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+    /* 键盘说明 */
+    .keyboard-section { margin-top: 48px; display: none; }
+    .keyboard-section.show { display: block; }
+    .keyboard-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .key-cap { background: linear-gradient(180deg, #2a2a3e, #1a1a2e); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 16px; min-width: 48px; text-align: center; font-size: 0.85rem; box-shadow: 0 4px 0 #0a0a12; }
+    .key-group { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+    .key-label { font-size: 0.7rem; color: #555566; margin-top: 8px; }
+
+    footer { text-align: center; padding: 40px 24px; color: #555566; font-size: 0.8rem; }
+
+    @media (max-width: 768px) {
+      .pc-preview, .keyboard-section { display: none !important; }
+      .phone-frame { display: block !important; }
+    }
+
+    @media (min-width: 769px) {
+      .phone-frame { display: none !important; }
+      .pc-preview, .keyboard-section { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📱 双端适配方案</h1>
+    <p class="subtitle">PC 端 + 移动端统一的操作体验</p>
+  </header>
+
+  <main>
+    <div class="device-switcher">
+      <button class="device-btn active" onclick="showDevice('phone')">
+        <span class="icon">📱</span> 手机端预览
+      </button>
+      <button class="device-btn" onclick="showDevice('pc')">
+        <span class="icon">🖥️</span> PC端预览
+      </button>
+    </div>
+
+    <!-- 手机预览 -->
+    <div class="phone-frame show" id="phoneFrame">
+      <div class="phone-screen">
+        <div class="phone-notch"></div>
+        <div class="phone-hud-top">
+          <div class="phone-stat-group">
+            <div class="phone-bar"><div class="phone-bar-fill hp"></div></div>
+            <div class="phone-bar"><div class="phone-bar-fill exp"></div></div>
+            <div class="phone-level">Lv.23</div>
+          </div>
+          <div class="phone-wave">波次 5/15</div>
+          <div class="phone-pause">⏸</div>
+        </div>
+        <div class="phone-game-area">
+          <div class="phone-game-placeholder">
+            <div class="demo-enemies"><span>👾</span><span>👻</span><span>🦠</span></div>
+            <div class="demo-player"></div>
+          </div>
+        </div>
+        <div class="phone-joystick-area">
+          <div class="phone-joystick-base">
+            <div class="phone-joystick-thumb"></div>
+          </div>
+        </div>
+        <div class="phone-skill-buttons">
+          <div class="phone-skill-btn fire"><span class="icon">🌟</span><span class="cd">Q</span></div>
+          <div class="phone-skill-btn ice"><span class="icon">❄️</span><span class="cd">W</span></div>
+          <div class="phone-skill-btn lightning"><span class="icon">⚡</span><span class="cd">E</span></div>
+          <div class="phone-skill-btn"><span class="icon">🌀</span><span class="cd">R</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PC预览 -->
+    <div class="pc-preview" id="pcPreview">
+      <div class="pc-browser-bar">
+        <div class="pc-browser-dot red"></div>
+        <div class="pc-browser-dot yellow"></div>
+        <div class="pc-browser-dot green"></div>
+        <div class="pc-browser-url">your-website.com/game</div>
+      </div>
+      <div class="pc-screen">
+        <div class="pc-hud-top">
+          <div class="pc-hud-left">
+            <div class="pc-bar-group"><span class="pc-bar-label">HP</span><div class="pc-bar"><div class="pc-bar-fill hp"></div></div></div>
+            <div class="pc-bar-group"><span class="pc-bar-label">EXP</span><div class="pc-bar"><div class="pc-bar-fill exp"></div></div></div>
+            <div class="pc-level-badge">Lv.23</div>
+          </div>
+          <div class="pc-hud-center">波次 5/15 · 击杀 127</div>
+          <div class="pc-hud-right">
+            <button class="pc-btn-small">⚙️ 设置</button>
+            <button class="pc-btn-small">⏸ 暂停</button>
+          </div>
+        </div>
+        <div class="pc-game-area">
+          <div class="pc-game-placeholder">
+            <div class="pc-demo-enemies"><span>👾</span><span>👻</span><span>🦠</span><span>👹</span><span>👺</span></div>
+            <div class="pc-demo-player"></div>
+            <p class="pc-demo-text">← → 移动 · 鼠标瞄准 · Q W E R 释放技能</p>
+          </div>
+        </div>
+        <div class="pc-skill-bar">
+          <div class="pc-skill-slot"><span class="icon">🌟</span><span class="key-hint">Q</span><span class="cd-overlay"></span><span class="level-badge">3</span></div>
+          <div class="pc-skill-slot"><span class="icon">❄️</span><span class="key-hint">W</span><span class="cd-overlay"></span><span class="level-badge">2</span></div>
+          <div class="pc-skill-slot"><span class="icon">⚡</span><span class="key-hint">E</span><span class="level-badge">1</span></div>
+          <div class="pc-skill-slot"><span class="icon">🔥</span><span class="key-hint">R</span></div>
+          <div class="pc-skill-slot"><span class="icon">🌀</span><span class="key-hint">T</span></div>
+          <div class="pc-skill-slot"><span class="icon">💎</span><span class="key-hint">Y</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 功能说明 -->
+    <div class="features-section">
+      <h2 class="features-title">🎮 核心适配功能</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🕹️</div>
+          <div class="feature-name">虚拟摇杆</div>
+          <div class="feature-desc">手机端左侧区域拖动控制移动，点击区域外自动识别，不遮挡主游戏画面。支持8方向和360度自由移动。</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">👆</div>
+          <div class="feature-name">技能按钮</div>
+          <div class="feature-desc">右侧4个技能按钮，大尺寸64×64px防误触。长按显示技能详情。支持自定义按键布局。</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⌨️</div>
+          <div class="feature-name">键盘支持</div>
+          <div class="feature-desc">PC端WASD移动，Q/W/E/R/T/Y释放技能。数字键1-6快速切换技能，空格键暂停。</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🖱️</div>
+          <div class="feature-name">鼠标操作</div>
+          <div class="feature-desc">鼠标点击地面移动，点击敌人选中目标。滚轮缩放视角，鼠标侧键快捷操作。</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📐</div>
+          <div class="feature-name">自动攻击</div>
+          <div class="feature-desc">所有技能自动触发，无需手动瞄准。玩家专注走位和策略选择，技能会追踪最近的敌人。</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-name">断线重连</div>
+          <div class="feature-desc">网络中断时自动暂停，本地继续游戏。恢复连接后自动同步存档，不丢进度。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 键盘布局 -->
+    <div class="keyboard-section show">
+      <h2 class="features-title" style="margin-top: 32px;">⌨️ PC端键位布局</h2>
+      <div class="keyboard-grid">
+        <div class="key-group">
+          <div style="display: flex; gap: 6px;"><div class="key-cap">W</div></div>
+          <div style="display: flex; gap: 6px;"><div class="key-cap">A</div><div class="key-cap">S</div><div class="key-cap">D</div></div>
+          <span class="key-label">移动</span>
+        </div>
+        <div class="key-group">
+          <div style="display: flex; gap: 6px;"><div class="key-cap">Q</div><div class="key-cap">W</div><div class="key-cap">E</div><div class="key-cap">R</div></div>
+          <span class="key-label">技能 1-4</span>
+        </div>
+        <div class="key-group">
+          <div style="display: flex; gap: 6px;"><div class="key-cap">T</div><div class="key-cap">Y</div></div>
+          <span class="key-label">技能 5-6</span>
+        </div>
+        <div class="key-group"><div class="key-cap">Space</div><span class="key-label">暂停</span></div>
+        <div class="key-group"><div class="key-cap">M</div><span class="key-label">静音</span></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>《魔法割草 · 无尽觉醒》双端适配方案 · GDD v2.0</p>
+  </footer>
+
+  <script>
+    function showDevice(device) {
+      document.querySelectorAll('.device-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelector('[onclick="showDevice(\'' + device + '\')"]').classList.add('active');
+      const phoneFrame = document.getElementById('phoneFrame');
+      const pcPreview = document.getElementById('pcPreview');
+      const keyboardSection = document.querySelector('.keyboard-section');
+      if (device === 'phone') {
+        phoneFrame.classList.add('show');
+        pcPreview.classList.remove('show');
+        keyboardSection.classList.remove('show');
+      } else {
+        phoneFrame.classList.remove('show');
+        pcPreview.classList.add('show');
+        keyboardSection.classList.add('show');
+      }
+    }
+  </script>
+
+</body>
+</html>

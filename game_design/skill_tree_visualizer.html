@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🌟 技能树 · 魔法割草</title>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a12;
+      --bg-secondary: #0f0f1a;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-highlight: rgba(255, 255, 255, 0.15);
+      --text-primary: #f0f0f8;
+      --text-secondary: #8888aa;
+      --text-muted: #555566;
+      --accent-fire: #ff4d2a;
+      --accent-ice: #00d4ff;
+      --accent-lightning: #bf5fff;
+      --accent-poison: #7fff00;
+      --accent-legendary: #ffd700;
+      --accent-rare: #9966ff;
+      --accent-epic: #ff66cc;
+      --font-display: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif;
+      --font-body: 'Noto Sans SC', -apple-system, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-primary);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(99, 51, 255, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 51, 180, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse 100% 80% at 50% 100%, rgba(0, 180, 255, 0.08) 0%, transparent 40%);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* 背景星星 */
+    .stars {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      width: 2px; height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 3s ease-in-out infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
+
+    /* 顶部导航 */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 18, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, var(--accent-fire), var(--accent-ice), var(--accent-lightning));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      font-size: 1.8rem;
+      -webkit-text-fill-color: initial;
+    }
+
+    .header-stats {
+      display: flex;
+      gap: 24px;
+      font-size: 0.85rem;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+    }
+
+    .stat-value {
+      color: var(--accent-legendary);
+      font-weight: 700;
+    }
+
+    /* 主内容区 */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* 英雄展示区 */
+    .hero-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 900px) {
+      .hero-section { grid-template-columns: 1fr; }
+    }
+
+    .hero-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 28px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--card-accent), transparent);
+      border-radius: 20px 20px 0 0;
+    }
+
+    .hero-card:hover {
+      border-color: var(--card-accent);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+                  0 0 40px color-mix(in srgb, var(--card-accent) 20%, transparent);
+    }
+
+    .hero-card.active {
+      border-color: var(--accent-legendary);
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+    }
+
+    .hero-card[data-type="mage"] { --card-accent: var(--accent-fire); }
+    .hero-card[data-type="swordsman"] { --card-accent: var(--accent-ice); }
+    .hero-card[data-type="summoner"] { --card-accent: var(--accent-lightning); }
+
+    .hero-avatar {
+      font-size: 4rem;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 0 20px color-mix(in srgb, var(--card-accent) 50%, transparent));
+    }
+
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--card-accent);
+      margin-bottom: 8px;
+    }
+
+    .hero-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 16px;
+    }
+
+    .hero-stat {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 8px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+
+    .hero-stat-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-stat-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* 章节切换 */
+    .section-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .section-tab {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 10px 20px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .section-tab:hover {
+      border-color: var(--text-secondary);
+      color: var(--text-primary);
+    }
+
+    .section-tab.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+      border-color: var(--tab-color, var(--accent-legendary));
+      color: var(--tab-color, var(--accent-legendary));
+      box-shadow: 0 0 20px color-mix(in srgb, var(--tab-color, var(--accent-legendary)) 20%, transparent);
+    }
+
+    .section-tab[data-tab="attack"] { --tab-color: var(--accent-fire); }
+    .section-tab[data-tab="defense"] { --tab-color: var(--accent-ice); }
+    .section-tab[data-tab="buff"] { --tab-color: var(--accent-lightning); }
+    .section-tab[data-tab="summon"] { --tab-color: var(--accent-poison); }
+    .section-tab[data-tab="special"] { --tab-color: var(--accent-legendary); }
+    .section-tab[data-tab="synergy"] { --tab-color: var(--accent-epic); }
+
+    /* 技能网格 */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 技能卡片 */
+    .skill-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skill-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.03) 100%);
+      pointer-events: none;
+    }
+
+    .skill-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      border-color: var(--skill-color, var(--accent-legendary));
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4),
+                  0 0 30px color-mix(in srgb, var(--skill-color, var(--accent-legendary)) 15%, transparent);
+    }
+
+    .skill-card:active {
+      transform: translateY(-2px) scale(0.98);
+    }
+
+    .skill-card[data-rarity="legendary"] { --skill-color: var(--accent-legendary); border-color: rgba(255, 215, 0, 0.3); }
+    .skill-card[data-rarity="epic"] { --skill-color: var(--accent-epic); border-color: rgba(255, 102, 204, 0.3); }
+    .skill-card[data-rarity="rare"] { --skill-color: var(--accent-rare); border-color: rgba(153, 102, 255, 0.3); }
+    .skill-card[data-rarity="common"] { --skill-color: var(--accent-ice); }
+
+    .skill-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .skill-icon-wrap {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--skill-color, #fff) 0%, rgba(255,255,255,0.1) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 4px 20px color-mix(in srgb, var(--skill-color, #fff) 30%, transparent);
+      position: relative;
+    }
+
+    .skill-icon-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border-radius: 12px;
+      background: rgba(10, 10, 18, 0.6);
+    }
+
+    .skill-icon {
+      position: relative;
+      z-index: 1;
+      font-size: 1.5rem;
+    }
+
+    .skill-id {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    .skill-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .skill-type {
+      font-size: 0.75rem;
+      color: var(--skill-color, var(--text-secondary));
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .skill-effect {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .skill-levels {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .skill-level {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skill-level::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, var(--skill-color, var(--accent-legendary)), color-mix(in srgb, var(--skill-color, var(--accent-legendary)) 60%, white));
+      border-radius: 3px;
+      transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .skill-level.unlocked::after {
+      width: 100%;
+    }
+
+    .skill-upgrade {
+      background: linear-gradient(135deg, var(--skill-color, var(--accent-legendary)), color-mix(in srgb, var(--skill-color, var(--accent-legendary)) 60%, #000));
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skill-upgrade::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .skill-upgrade:hover::before {
+      left: 100%;
+    }
+
+    .skill-upgrade:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 24px color-mix(in srgb, var(--skill-color, var(--accent-legendary)) 40%, transparent);
+    }
+
+    .skill-upgrade:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .skill-upgrade:disabled:hover::before {
+      left: -100%;
+    }
+
+    /* 协同效果展示 */
+    .synergy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+
+    .synergy-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .synergy-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--synergy-c1, #fff), var(--synergy-c2, #fff));
+    }
+
+    .synergy-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--synergy-c1, var(--accent-legendary));
+    }
+
+    .synergy-name {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .synergy-icons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .synergy-icons span {
+      font-size: 1.4rem;
+    }
+
+    .synergy-effect {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .synergy-bonus {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 215, 0, 0.05));
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      color: var(--accent-legendary);
+      font-weight: 600;
+    }
+
+    .synergy-skills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .synergy-skill-tag {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 技能详情弹窗 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      animation: fadeInOverlay 0.2s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal {
+      background: linear-gradient(145deg, #13131f, #0d0d18);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 520px;
+      width: 100%;
+      position: relative;
+      animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.9) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--text-primary);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .modal-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--skill-color, #fff) 0%, rgba(255,255,255,0.1) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      box-shadow: 0 8px 32px color-mix(in srgb, var(--skill-color, #fff) 30%, transparent);
+    }
+
+    .modal-title-group {
+      flex: 1;
+    }
+
+    .modal-skill-id {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: monospace;
+      margin-bottom: 4px;
+    }
+
+    .modal-skill-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .modal-skill-type {
+      font-size: 0.8rem;
+      color: var(--skill-color, var(--text-secondary));
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .modal-section {
+      margin-bottom: 20px;
+    }
+
+    .modal-section-title {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .modal-level {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .modal-level.current {
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.03));
+      border: 1px solid rgba(255, 215, 0, 0.2);
+    }
+
+    .modal-level-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .modal-level.current .modal-level-badge {
+      background: var(--accent-legendary);
+      color: #000;
+    }
+
+    .modal-level.locked .modal-level-badge {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .modal-level-text {
+      flex: 1;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .modal-level.current .modal-level-text {
+      color: var(--text-primary);
+    }
+
+    .modal-synergies {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-synergy-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+    }
+
+    .modal-synergy-icons {
+      font-size: 1.4rem;
+    }
+
+    .modal-synergy-text {
+      flex: 1;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .modal-synergy-bonus {
+      color: var(--accent-legendary);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    /* 底部信息栏 */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 32px 24px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    footer a {
+      color: var(--accent-ice);
+      text-decoration: none;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+      header {
+        padding: 0 16px;
+        height: 56px;
+      }
+
+      .logo { font-size: 1.2rem; }
+      .header-stats { gap: 12px; }
+      .stat-item span:first-child { display: none; }
+
+      main { padding: 16px; }
+
+      .hero-section { gap: 16px; }
+      .hero-card { padding: 20px; }
+      .hero-avatar { font-size: 3rem; }
+
+      .section-tabs { gap: 6px; }
+      .section-tab { padding: 8px 14px; font-size: 0.8rem; }
+
+      .skills-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .skill-card { padding: 16px; }
+      .skill-icon-wrap { width: 48px; height: 48px; font-size: 1.4rem; }
+
+      .synergy-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal { padding: 24px; margin: 16px; }
+    }
+
+    /* 升级动画 */
+    @keyframes upgradeFlash {
+      0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+      70% { box-shadow: 0 0 0 20px rgba(255, 215, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+    }
+
+    .skill-card.upgrading {
+      animation: upgradeFlash 0.6s ease-out;
+    }
+
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* 锁定状态 */
+    .skill-card.locked {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .skill-card.locked::after {
+      content: '🔒';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      opacity: 0.5;
+    }
+
+    /* Build推荐标签 */
+    .build-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .build-tag {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 背景星星 -->
+  <div class="stars" id="stars"></div>
+
+  <!-- 顶部导航 -->
+  <header>
+    <div class="logo">
+      <span class="logo-icon">🌟</span>
+      技能树 · 魔法割草
+    </div>
+    <div class="header-stats">
+      <div class="stat-item">
+        <span>等级</span>
+        <span class="stat-value" id="playerLevel">1</span>
+      </div>
+      <div class="stat-item">
+        <span>技能点</span>
+        <span class="stat-value" id="skillPoints">5</span>
+      </div>
+      <div class="stat-item">
+        <span>角色</span>
+        <span class="stat-value" id="currentChar">魔法少女</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容 -->
+  <main>
+
+    <!-- 角色选择 -->
+    <div class="hero-section">
+      <div class="hero-card active" data-type="mage" onclick="selectHero(this, 'mage')">
+        <div class="hero-avatar">🧙‍♀️</div>
+        <div class="hero-name">魔法少女</div>
+        <div class="hero-desc">远程法术爆发，暴击时释放魔法爆炸。适合喜欢华丽特效和火力覆盖的玩家。</div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-label">伤害</span>
+            <span class="hero-stat-value">★★★★★</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">生存</span>
+            <span class="hero-stat-value">★★★☆☆</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">范围</span>
+            <span class="hero-stat-value">★★★★★</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-card" data-type="swordsman" onclick="selectHero(this, 'swordsman')">
+        <div class="hero-avatar">⚔️</div>
+        <div class="hero-name">剑圣</div>
+        <div class="hero-desc">近战横扫斩杀，击杀10个敌人充能一次毁灭斩击。适合喜欢近身搏斗和爽感的玩家。</div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-label">伤害</span>
+            <span class="hero-stat-value">★★★★☆</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">生存</span>
+            <span class="hero-stat-value">★★★★☆</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">范围</span>
+            <span class="hero-stat-value">★★★☆☆</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-card" data-type="summoner" onclick="selectHero(this, 'summoner')">
+        <div class="hero-avatar">🧙‍♂️</div>
+        <div class="hero-name">召唤师</div>
+        <div class="hero-desc">召唤多个单位协助作战，场上每多1个召唤物，伤害+5%。适合喜欢策略组合的玩家。</div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-label">伤害</span>
+            <span class="hero-stat-value">★★★★☆</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">生存</span>
+            <span class="hero-stat-value">★★★☆☆</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-label">范围</span>
+            <span class="hero-stat-value">★★★★☆</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 章节切换 -->
+    <div class="section-tabs">
+      <button class="section-tab active" data-tab="attack" onclick="switchTab('attack')">🔥 攻击技能</button>
+      <button class="section-tab" data-tab="defense" onclick="switchTab('defense')">🛡️ 防御生存</button>
+      <button class="section-tab" data-tab="buff" onclick="switchTab('buff')">✨ 魔法增幅</button>
+      <button class="section-tab" data-tab="summon" onclick="switchTab('summon')">🌀 召唤辅助</button>
+      <button class="section-tab" data-tab="special" onclick="switchTab('special')">🎲 肉鸽特殊</button>
+      <button class="section-tab" data-tab="synergy" onclick="switchTab('synergy')">🔗 协同效果</button>
+    </div>
+
+    <!-- 技能网格 -->
+    <div id="skillsContainer" class="skills-grid"></div>
+
+    <!-- 协同效果 -->
+    <div id="synergyContainer" class="synergy-grid" style="display: none;"></div>
+
+  </main>
+
+  <!-- 底部 -->
+  <footer>
+    <p>《魔法割草 · 无尽觉醒》技能树预览 · GDD v2.0</p>
+    <p style="margin-top: 8px; opacity: 0.6;">60个技能 × 3级升级 · 5大类型 · 无限Build组合</p>
+  </footer>
+
+  <!-- 技能详情弹窗 -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" id="modalContent" onclick="event.stopPropagation()">
+      <!-- 动态内容 -->
+    </div>
+  </div>
+
+  <script>
+    // ========== 技能数据 ==========
+    const skillsData = {
+      attack: [
+        { id: 'A01', name: '魔法弹', icon: '🌟', rarity: 'common', desc: '8方向发射魔法弹，每发造成基础伤害', lv1: '8方向，每发10伤', lv2: '16方向，每发15伤', lv3: '穿透3个敌人，每发20伤', color: '#ff4d2a', synergies: ['A01+A02=闪电链增强', 'A01+C05=暴击率大幅提升'] },
+        { id: 'A02', name: '闪电链', icon: '⚡', rarity: 'common', desc: '随机跳跃攻击多个敌人', lv1: '跳3个敌人，每次15伤', lv2: '跳5个敌人', lv3: '每次跳跃触发减速50%', color: '#bf5fff', synergies: ['A01+A02=连锁闪电', 'A02+C04=雷神灌注范围提升'] },
+        { id: 'A03', name: '冰霜新星', icon: '🌊', rarity: 'common', desc: '圆形冻结爆炸，冻结所有命中敌人', lv1: '半径80，50伤，冻结1秒', lv2: '半径+50%，冻结3秒', lv3: '冻结持续4秒，爆碎溅射', color: '#00d4ff', synergies: ['A03+C02=绝对零度冻结翻倍', 'A03+A04=冰火交融爆炸'] },
+        { id: 'A04', name: '火焰阵', icon: '🔥', rarity: 'common', desc: '在地面留下持续燃烧的火焰区域', lv1: '持续5秒，30伤/秒', lv2: '持续时间×2', lv3: '敌人在火中减速30%', color: '#ff6b35', synergies: ['A04+C03=炎魔之力灼烧翻倍', 'A04+E09=永燃之焰永不熄灭'] },
+        { id: 'A05', name: '陨石落下', icon: '💥', rarity: 'rare', desc: '随机位置天降陨石，造成大范围伤害', lv1: '随机砸陨石，每次80伤', lv2: '数量×2', lv3: '触地爆炸溅射范围+50%', color: '#ff8c42', synergies: ['A05+C09=流星雨加持陨石+2', 'A05+D06=雷云辅助陨石'] },
+        { id: 'A06', name: '旋风斩', icon: '🗡️', rarity: 'common', desc: '玩家周围高速旋转斩击', lv1: '每转20伤，持续3秒', lv2: '速度×1.5', lv3: '击退效果，近身怪无法贴近', color: '#a8dadc', synergies: ['A06+B06=剑豪之道无限传送', 'A06+C08=机械增幅攻速翻倍'] },
+        { id: 'A07', name: '龙卷风', icon: '🌪️', rarity: 'rare', desc: '向前移动的龙卷风，持续卷席敌人', lv1: '持续3秒，40伤/秒', lv2: '持续时间+2秒', lv3: '吸入敌人，伤害×2', color: '#90be6d', synergies: ['A07+D12=水龙卷伤害爆炸', 'A07+C08=持续时间技能联动'] },
+        { id: 'A08', name: '死亡光线', icon: '☠️', rarity: 'rare', desc: '激光扫射，宽广伤害带', lv1: '宽度60，持续2秒，40伤/秒', lv2: '宽度×2', lv3: '持续燃烧，灼烧DOT叠加', color: '#9d4edd', synergies: ['A08+B04=电磁场减速光线', 'A08+E11=雷霆万钧连锁闪电'] },
+        { id: 'A09', name: '龙息', icon: '🐉', rarity: 'epic', desc: '前方锥形喷火，范围广伤害高', lv1: '角度45°，持续2秒，60伤/秒', lv2: '角度扩大到90°', lv3: '熔化敌人护甲50%', color: '#ff006e', synergies: ['A09+C03=炎魔龙息', 'A09+D10=凤凰龙息双重喷射'] },
+        { id: 'A10', name: '星尘爆', icon: '💫', rarity: 'common', desc: '随机散射星形弹，覆盖范围广', lv1: '12发×15伤', lv2: '数量×3', lv3: '追踪最近敌人', color: '#c77dff', synergies: ['A10+C05=星力汇聚暴击爆炸', 'A10+E12=虚空星尘爆炸'] },
+        { id: 'A11', name: '月牙斩', icon: '🌙', rarity: 'epic', desc: '发射月牙形斩击，穿透全场', lv1: '穿透全场，100伤', lv2: '穿透×2', lv3: '月牙折返一次', color: '#e0aaff', synergies: ['A11+C10=千里眼超远射程', 'A11+E03=时间扭曲月牙永续'] },
+        { id: 'A12', name: '制导导弹', icon: '🎯', rarity: 'rare', desc: '自动追踪目标的导弹攻击', lv1: '3发×50伤，追踪1目标', lv2: '同时追踪3目标', lv3: '爆炸溅射半径80', color: '#ff595e', synergies: ['A12+D06=雷云制导增强', 'A12+E11=雷霆导弹连锁'] },
+      ],
+      defense: [
+        { id: 'B01', name: '生命汲取', icon: '❤️', rarity: 'common', desc: '每次击杀回复生命值', lv1: '每次击杀回复1点血', lv2: '每次击杀回复3点', lv3: '击杀时闪红光+护盾回复', color: '#ff4d4d', synergies: ['B01+C10=钻石汲取源源不断', 'B01+E01=死神汲取无限叠加'] },
+        { id: 'B02', name: '魔力护盾', icon: '🔰', rarity: 'common', desc: '周期性恢复护盾，抵挡伤害', lv1: '每10秒恢复一层，挡1次', lv2: '护盾值+50%', lv3: '破盾时反弹伤害×2', color: '#00b4d8', synergies: ['B02+B03=生生不息护盾续航', 'B02+C11=水晶核心护盾加速'] },
+        { id: 'B03', name: '自然再生', icon: '🌿', rarity: 'common', desc: '持续自然回复生命值', lv1: '每秒回复0.5HP', lv2: '每秒回复1HP', lv3: '低血量(<30%)加速×3', color: '#52b788', synergies: ['B03+B02=生生不息', 'B03+C06=混沌再生加速'] },
+        { id: 'B04', name: '电磁场', icon: '⚡', rarity: 'common', desc: '周围敌人被减速', lv1: '减速20%', lv2: '减速40%', lv3: '减速敌人受伤+15%', color: '#7b2cbf', synergies: ['B04+A08=死亡光线减速增强', 'B04+D12=水龙卷冻结效果'] },
+        { id: 'B05', name: '残影', icon: '💨', rarity: 'rare', desc: '受伤时短暂无敌并反击', lv1: '无敌0.5秒', lv2: '无敌1秒', lv3: '无敌期间伤害×2', color: '#adb5bd', synergies: ['B05+A06=旋风残影斩', 'B05+E01=死神残影反伤叠加'] },
+        { id: 'B06', name: '传送步', icon: '🌀', rarity: 'rare', desc: '受到致命伤时传送到安全位置', lv1: 'CD30秒', lv2: 'CD缩短至15秒', lv3: '传送后原位爆炸', color: '#3a86ff', synergies: ['B06+A06=剑豪之道无限传送', 'B06+E03=时间扭曲安全传送'] },
+        { id: 'B07', name: '铁壁', icon: '🛡️', rarity: 'rare', desc: '限制单次受伤最大值', lv1: '单次伤害不超过HP的15%', lv2: '不超过10%', lv3: '超过5%时震开敌人', color: '#6c757d', synergies: ['B07+B10=钻石铁壁双重防护', 'B07+B09=荆棘铁壁反伤组合'] },
+        { id: 'B08', name: '烈焰护体', icon: '🔥', rarity: 'epic', desc: '接触即灼烧，受伤时释放火焰波', lv1: '10伤/秒灼烧', lv2: '20伤/秒灼烧', lv3: '受伤时释放火焰冲击波', color: '#ff9500', synergies: ['B08+A04=烈焰阵双重火焰', 'B08+C03=炎魔护体灼烧翻倍'] },
+        { id: 'B09', name: '冰晶结界', icon: '❄️', rarity: 'epic', desc: '周期性免疫控制效果', lv1: '3秒CD免疫一次控制', lv2: '冷却从10秒→5秒', lv3: '被冻结时自动震碎伤害周围', color: '#48cae4', synergies: ['B09+A03=冰晶霜爆', 'B09+C02=绝对零度结界'] },
+        { id: 'B10', name: '钻石之躯', icon: '💎', rarity: 'rare', desc: '大幅提升最大生命和护甲', lv1: 'HP+30%，护甲+20', lv2: 'HP+60%，护甲+40', lv3: 'HP<50%时受伤转化为护盾', color: '#00f5d4', synergies: ['B10+B07=钻石铁壁', 'B10+C01=过载钻石生命上限'] },
+        { id: 'B11', name: '神圣庇护', icon: '🌟', rarity: 'epic', desc: '概率完全闪避攻击', lv1: '20%闪避', lv2: '30%闪避', lv3: '闪避后下次必暴击', color: '#ffd60a', synergies: ['B11+A01=神圣魔法弹', 'B11+E03=时间庇护完美闪避'] },
+        { id: 'B12', name: '荆棘反击', icon: '⚔️', rarity: 'rare', desc: '受到伤害时反弹给攻击者', lv1: '反弹30%伤害', lv2: '反弹60%伤害', lv3: '反弹伤害带毒持续3秒', color: '#bc6c25', synergies: ['B12+B07=荆棘铁壁反伤双倍', 'B12+E01=死神荆棘真实反伤'] },
+      ],
+      buff: [
+        { id: 'C01', name: '法力过载', icon: '🔮', rarity: 'common', desc: '所有技能伤害提升', lv1: '所有技能伤害+20%', lv2: '+40%', lv3: '过载时技能附带光效爆炸', color: '#ff006e', synergies: ['C01+A01=过载魔法弹', 'C01+D01=过载魔法球卫星'] },
+        { id: 'C02', name: '绝对零度', icon: '❄️', rarity: 'epic', desc: '冰系技能的冻结效果大幅增强', lv1: '冻结时间×1.5', lv2: '×2', lv3: '冻结爆碎造成溅射伤害', color: '#48cae4', synergies: ['C02+A03=冰霜新星终极冻结', 'C02+B09=绝对零度冰晶结界'] },
+        { id: 'C03', name: '炎魔之力', icon: '🌋', rarity: 'epic', desc: '火系技能的灼烧效果大幅增强', lv1: '灼烧持续×2', lv2: '叠加上限+5层', lv3: '满层时触发大范围燃爆', color: '#ff6b35', synergies: ['C03+A04=炎魔火焰阵', 'C03+A09=炎魔龙息双重灼烧'] },
+        { id: 'C04', name: '雷神灌注', icon: '⚡', rarity: 'epic', desc: '闪电技能的范围和效果增强', lv1: '闪电范围+30%', lv2: '+60%', lv3: '雷击有几率麻痹2秒', color: '#bf5fff', synergies: ['C04+A02=雷神闪电链', 'C04+E11=雷霆万钧终极连锁'] },
+        { id: 'C05', name: '星力汇聚', icon: '🌌', rarity: 'common', desc: '暴击率和暴击伤害提升', lv1: '暴击率+10%，暴击伤+15%', lv2: '暴击率+20%', lv3: '暴击触发星光爆炸', color: '#c77dff', synergies: ['C05+A01=星爆魔法弹', 'C05+E08=星力元素风暴'] },
+        { id: 'C06', name: '混沌魔法', icon: '🎭', rarity: 'epic', desc: '每次攻击随机附加元素效果', lv1: '随机附加1个元素', lv2: '元素伤害+25%', lv3: '三元素同时触发超级爆炸', color: '#9d4edd', synergies: ['C06+E08=终极元素融合', 'C06+C01=混沌过载毁灭打击'] },
+        { id: 'C07', name: '毒雾弥漫', icon: '🐍', rarity: 'common', desc: '击杀敌人后留下毒雾', lv1: '毒雾持续5秒，20伤/秒', lv2: '毒雾持续×2', lv3: '毒雾消散时爆炸', color: '#7fff00', synergies: ['C07+D07=狼群毒雾', 'C07+E12=虚空毒雾腐蚀'] },
+        { id: 'C08', name: '机械增幅', icon: '⚙️', rarity: 'common', desc: '技能冷却速度加快', lv1: '攻速+15%（CD缩短）', lv2: '+30%', lv3: '超速触发双击', color: '#adb5bd', synergies: ['C08+A06=超速旋风斩', 'C08+D06=超速雷云劈击'] },
+        { id: 'C09', name: '流星雨加持', icon: '🌠', rarity: 'rare', desc: '陨石系技能的数量大幅增加', lv1: '陨石数量+2', lv2: '+5', lv3: '陨石爆炸伤害+50%', color: '#ff8c42', synergies: ['C09+A05=流星暴雨', 'C09+E11=流星雷霆万钧'] },
+        { id: 'C10', name: '千里眼', icon: '👁️', rarity: 'rare', desc: '技能射程大幅提升', lv1: '射程+25%', lv2: '+50%', lv3: '屏幕边缘也能命中', color: '#00b4d8', synergies: ['C10+A11=全屏月牙斩', 'C10+D06=全屏雷云'] },
+        { id: 'C11', name: '水晶核心', icon: '💎', rarity: 'epic', desc: '所有魔法技能CD大幅缩减', lv1: '所有魔法CD-10%', lv2: '-20%', lv3: '无CD时触发3秒全技能爆发', color: '#48cae4', synergies: ['C11+D01=无限魔法球', 'C11+E06=无限黑洞'] },
+        { id: 'C12', name: '花之诅咒', icon: '🌺', rarity: 'rare', desc: '被攻击的敌人被标记增伤', lv1: '标记受伤+15%', lv2: '+30%', lv3: '标记扩散到周围3个敌人', color: '#ff66cc', synergies: ['C12+A01=诅咒魔法弹', 'C12+E04=诅咒共鸣连锁'] },
+      ],
+      summon: [
+        { id: 'D01', name: '魔法球卫星', icon: '🔮', rarity: 'common', desc: '魔法球绕身旋转攻击敌人', lv1: '3球，每球10伤/秒', lv2: '5球', lv3: '魔法球爆炸后留下陷阱', color: '#c77dff', synergies: ['D01+C11=无限魔法球爆发', 'D01+E04=共鸣魔法球连锁'] },
+        { id: 'D02', name: '石像守卫', icon: '🗿', rarity: 'common', desc: '召唤石像定点攻击', lv1: '1石像，30伤/秒', lv2: '2石像', lv3: '石像死亡时爆炸', color: '#6c757d', synergies: ['D02+D03=双召唤物增伤', 'D02+E06=石像黑洞吸引'] },
+        { id: 'D03', name: '精灵分身', icon: '🧝', rarity: 'common', desc: '召唤分身复制玩家攻击', lv1: '1分身，30伤/秒', lv2: '伤害×1.5', lv3: '分身死亡时爆炸', color: '#90be6d', synergies: ['D03+D02=双召唤增伤', 'D03+C08=超速分身攻速'] },
+        { id: 'D04', name: '水之元素', icon: '🌊', rarity: 'rare', desc: '召唤水元素攻击并附带冰冻', lv1: '1水元素，20伤/秒+冰冻', lv2: '溅射冰冻', lv3: '水元素吸收50%伤害', color: '#00d4ff', synergies: ['D04+A03=水冰新星', 'D04+E08=水元素风暴'] },
+        { id: 'D05', name: '磁铁法球', icon: '🧲', rarity: 'common', desc: '自动吸取屏幕内经验宝石', lv1: '吸取范围正常', lv2: '范围×2', lv3: '吸取时加速+50%', color: '#ff595e', synergies: ['D05+E07=贪婪磁铁双倍经验', 'D05+C01=磁铁过载快速升级'] },
+        { id: 'D06', name: '雷云', icon: '⚡', rarity: 'common', desc: '头顶生成雷云定期劈击敌人', lv1: '每5秒劈一次，100伤', lv2: '劈击频率×2', lv3: '雷链连击周围3敌', color: '#ffd60a', synergies: ['D06+A05=雷云辅助陨石', 'D06+E03=雷云时间扭曲'] },
+        { id: 'D07', name: '狼群召唤', icon: '🐺', rarity: 'rare', desc: '召唤幽灵狼追击敌人', lv1: '2狼，40伤/秒', lv2: '3狼', lv3: '狼击杀后分裂2小狼', color: '#9d4edd', synergies: ['D07+C07=狼群毒雾', 'D07+D03=狼群分身协同'] },
+        { id: 'D08', name: '自然守护', icon: '🌿', rarity: 'rare', desc: '定期生成树人协助作战', lv1: '每10秒1树人，50伤/秒', lv2: '树人血量+100%', lv3: '树人攻击带毒', color: '#52b788', synergies: ['D08+D02=自然石像双守护', 'D08+C07=自然毒雾双重】 },
+        { id: 'D09', name: '亡灵大军', icon: '💀', rarity: 'epic', desc: '定期召唤骷髅战士群', lv1: '每20秒3骷髅，25伤/秒', lv2: '5骷髅', lv3: '骷髅死亡时自爆', color: '#495057', synergies: ['D09+E06=亡灵黑洞吸引', 'D09+B12=亡灵荆棘反伤'] },
+        { id: 'D10', name: '凤凰之翼', icon: '🔥', rarity: 'legendary', desc: '召唤凤凰环绕飞行攻击', lv1: '1凤凰，80伤/秒', lv2: '2凤凰', lv3: '主人受伤时凤凰冲刺', color: '#ff006e', synergies: ['D10+A09=凤凰龙息', 'D10+C03=凤凰炎魔之力'] },
+        { id: 'D11', name: '暗影刺客', icon: '🌙', rarity: 'epic', desc: '召唤暗影刺客瞬移攻击', lv1: '1刺客，60伤/秒', lv2: '2刺客', lv3: '刺客隐身普攻双倍伤害', color: '#3a0ca3', synergies: ['D11+A11=暗影月牙斩', 'D11+E03=暗影时间扭曲'] },
+        { id: 'D12', name: '水龙卷', icon: '🛶', rarity: 'rare', desc: '召唤水龙卷跟随攻击并减速', lv1: '1龙卷，40伤/秒+减速', lv2: '范围×2', lv3: '减速叠加到冻结', color: '#0096c7', synergies: ['D12+A07=水风双龙卷', 'D12+B04=水龙卷电磁场减速】 },
+      ],
+      special: [
+        { id: 'E01', name: '死神协议', icon: '💀', rarity: 'legendary', desc: '每次受伤永久增加伤害', lv1: '受伤+3%伤害（最高50次）', lv2: '+4%（最高60次）', lv3: '叠加上限到75次', color: '#1a1a2e', synergies: ['E01+B12=死神荆棘真实反伤', 'E01+B01=死神汲取无限叠加'] },
+        { id: 'E02', name: '彩虹混沌', icon: '🌈', rarity: 'legendary', desc: '周期性随机切换技能效果', lv1: '每10秒切换一次', lv2: '每7秒切换', lv3: '三技能同时共鸣触发混乱爆炸', color: '#ff66cc', synergies: ['E02+E01=混沌死神永续增强', 'E02+C06=终极混沌魔法'] },
+        { id: 'E03', name: '时间扭曲', icon: '⏳', rarity: 'legendary', desc: 'Boss战时放慢全场但玩家正常', lv1: 'Boss放慢50%', lv2: 'Boss+精英放慢', lv3: '放慢时玩家伤害+30%', color: '#00f5d4', synergies: ['E03+D06=时间雷云', 'E03+A11=时间月牙斩'] },
+        { id: 'E04', name: '技能共鸣', icon: '🔄', rarity: 'epic', desc: '两种技能同时触发时融合爆炸', lv1: '共鸣率30%', lv2: '共鸣率50%', lv3: '融合爆炸伤害×2', color: '#9d4edd', synergies: ['E04+C12=诅咒共鸣连锁', 'E04+D01=共鸣魔法球】 },
+        { id: 'E05', name: '贪婪诅咒', icon: '💰', rarity: 'epic', desc: '经验大幅提升但生命减半', lv1: '经验×2，HP-50%', lv2: '经验×3', lv3: 'HP恢复正常，经验×2', color: '#ffd700', synergies: ['E05+D05=贪婪磁铁双倍经验', 'E05+B10=贪婪钻石维持HP】 },
+        { id: 'E06', name: '黑洞', icon: '🌑', rarity: 'epic', desc: '周期性生成黑洞吸引并摧毁敌人', lv1: '每30秒黑洞，持续3秒', lv2: '黑洞持续4秒', lv3: '黑洞内敌人持续受伤', color: '#2d2d44', synergies: ['E06+E12=虚空黑洞吞噬', 'E06+D09=亡灵黑洞】 },
+        { id: 'E07', name: '蝴蝶效应', icon: '🦋', rarity: 'rare', desc: '屏幕外敌人被击杀时连锁反应', lv1: '连锁范围正常', lv2: '连锁范围×2', lv3: '连锁触发额外经验', color: '#e0aaff', synergies: ['E07+A05=蝴蝶陨石雨', 'E07+E11=蝴蝶雷霆万钧】 },
+        { id: 'E08', name: '元素融合', icon: '⚗️', rarity: 'epic', desc: '同时拥有火冰雷时伤害总加成', lv1: '火+冰+雷=伤害×1.5', lv2: '×2', lv3: '触发元素风暴', color: '#ff006e', synergies: ['E08+C06=终极混沌融合', 'E08+A03+A04+A02=三元素核心】 },
+        { id: 'E09', name: '永燃之焰', icon: '🔥', rarity: 'legendary', desc: '火焰伤害永久燃烧无法熄灭', lv1: '灼烧永不熄灭', lv2: '灼烧伤害×2', lv3: '灼烧叠加层数翻倍', color: '#ff4d2a', synergies: ['E09+A04=永燃火焰阵', 'E09+C03=永燃炎魔终极灼烧】 },
+        { id: 'E10', name: '极寒领域', icon: '❄️', rarity: 'legendary', desc: '冰系技能形成永久减速领域', lv1: '领域内敌人减速50%', lv2: '减速70%', lv3: '领域内敌人护甲归零', color: '#00d4ff', synergies: ['E10+A03=极寒新星', 'E10+C02=极寒绝对零度】 },
+        { id: 'E11', name: '雷霆万钧', icon: '⚡', rarity: 'legendary', desc: '每击杀10个敌人释放落雷', lv1: '落雷80伤', lv2: '落雷150伤', lv3: '落雷触发连锁闪电', color: '#bf5fff', synergies: ['E11+A08=雷霆光线连锁', 'E11+A05=雷霆陨石雨】 },
+        { id: 'E12', name: '虚空侵蚀', icon: '🌌', rarity: 'legendary', desc: '敌人死亡时产生虚空爆炸', lv1: '虚空爆炸溅射', lv2: '溅射范围×2', lv3: '虚空爆炸有几率召唤小虚空怪', color: '#3a0ca3', synergies: ['E12+E06=虚空黑洞终极', 'E12+A10=虚空星尘】 },
+      ]
+    };
+
+    // 协同效果数据
+    const synergiesData = [
+      {
+        name: '元素风暴', icon: ['🔥', '❄️', '⚡'],
+        colors: ['#ff4d2a', '#00d4ff', '#bf5fff'],
+        desc: '同时激活火、冰、雷三系技能时，触发元素风暴，场上所有敌人持续受到元素混合伤害，护甲归零，受到伤害+50%',
+        bonus: '伤害加成：×1.5 → ×2.0 → ×3.0（满级）',
+        skills: ['A04 火焰阵', 'A03 冰霜新星', 'A02 闪电链', 'C08 雷神灌注']
+      },
+      {
+        name: '剑豪之道', icon: ['🗡️', '🌀'],
+        colors: ['#a8dadc', '#3a86ff'],
+        desc: '旋风斩期间可以无限次传送步，无敌+输出双重保障，近身战斗的极致体验',
+        bonus: '传送步 CD：30秒 → 15秒 → 0秒（旋风斩期间）',
+        skills: ['A06 旋风斩', 'B06 传送步']
+      },
+      {
+        name: '召唤大师', icon: ['🧙', '🗿', '🧝'],
+        colors: ['#c77dff', '#6c757d', '#90be6d'],
+        desc: '场上存在4个以上召唤物时，所有召唤物伤害翻倍，召唤物流派的核心协同',
+        bonus: '召唤物伤害：+100%（4个以上时）',
+        skills: ['D01 魔法球卫星', 'D02 石像守卫', 'D03 精灵分身', 'D06 雷云']
+      },
+      {
+        name: '死神降临', icon: ['💀', '⚔️'],
+        colors: ['#1a1a2e', '#bc6c25'],
+        desc: '荆棘反伤转化为真实伤害，配合死神协议叠加，让受伤变成变强的途径',
+        bonus: '反伤类型：物理 → 真实（无视护甲）',
+        skills: ['B12 荆棘反击', 'E01 死神协议']
+      },
+      {
+        name: '混沌之主', icon: ['🌈', '💀', '🔮'],
+        colors: ['#ff66cc', '#9d4edd', '#c77dff'],
+        desc: '彩虹混沌切换时附带所有橙色技能效果，真正的混沌玩法，Build上限最高',
+        bonus: '切换效果：每次附带全部橙色词条',
+        skills: ['E02 彩虹混沌', 'E01 死神协议', 'E09 永燃之焰', 'E10 极寒领域']
+      },
+      {
+        name: '时间旅者', icon: ['⏳', '⚡'],
+        colors: ['#00f5d4', '#ffd60a'],
+        desc: '雷云劈击触发全场时间减速，配合时间扭曲技能，形成双重时间控制',
+        bonus: '减速效果：叠加（最大80%）',
+        skills: ['D06 雷云', 'E03 时间扭曲']
+      },
+      {
+        name: '虚空行者', icon: ['🌑', '🌌'],
+        colors: ['#2d2d44', '#3a0ca3'],
+        desc: '黑洞爆炸后自动生成新的黑洞，形成永续黑洞场，清屏能力最强',
+        bonus: '黑洞循环：爆炸 → 新黑洞（无限）',
+        skills: ['E06 黑洞', 'E12 虚空侵蚀']
+      },
+      {
+        name: '烈焰战神', icon: ['🔥', '🌋', '💀'],
+        colors: ['#ff4d2a', '#ff9500', '#ff006e'],
+        desc: '火焰阵永续存在，伤害随时间无限增长，纯粹的暴力美学',
+        bonus: '火焰阵：永续 + 伤害无限增长',
+        skills: ['A04 火焰阵', 'C03 炎魔之力', 'E09 永燃之焰']
+      }
+    ];
+
+    // ========== 状态管理 ==========
+    let currentTab = 'attack';
+    let currentHero = 'mage';
+    let skillLevels = {};  // { skillId: level (0-3) }
+    let playerLevel = 1;
+    let skillPoints = 5;
+
+    // 初始化技能等级（模拟数据）
+    function initSkillLevels() {
+      const initialSkills = ['A01', 'B01', 'C01', 'D01'];
+      initialSkills.forEach(id => skillLevels[id] = 1);
+    }
+
+    // ========== UI 渲染 ==========
+    function renderSkills(category) {
+      const container = document.getElementById('skillsContainer');
+      const skills = skillsData[category] || [];
+
+      container.innerHTML = skills.map(skill => {
+        const level = skillLevels[skill.id] || 0;
+        const locked = level === 0;
+
+        return `
+          <div class="skill-card ${locked ? 'locked' : ''}"
+               data-rarity="${skill.rarity}"
+               data-id="${skill.id}"
+               onclick="openModal('${skill.id}')">
+            <div class="skill-header">
+              <div class="skill-icon-wrap" style="--skill-color: ${skill.color}">
+                <span class="skill-icon">${skill.icon}</span>
+              </div>
+              <span class="skill-id">${skill.id}</span>
+            </div>
+            <div class="skill-name">${skill.name}</div>
+            <div class="skill-type" style="color: ${skill.color}">${skill.rarity.toUpperCase()}</div>
+            <div class="skill-effect">${skill.desc}</div>
+            <div class="skill-levels">
+              ${[1, 2, 3].map(lv => `<div class="skill-level ${lv <= level ? 'unlocked' : ''}" style="--skill-color: ${skill.color}"></div>`).join('')}
+            </div>
+            <button class="skill-upgrade"
+                    style="--skill-color: ${skill.color}"
+                    ${level >= 3 || skillPoints <= 0 ? 'disabled' : ''}
+                    onclick="event.stopPropagation(); upgradeSkill('${skill.id}')">
+              ${level >= 3 ? '已满级 ✓' : `升级 (1点) · Lv.${level} → Lv.${level + 1}`}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderSynergies() {
+      const container = document.getElementById('synergyContainer');
+
+      container.innerHTML = synergiesData.map(syn => `
+        <div class="synergy-card" style="--synergy-c1: ${syn.colors[0]}; --synergy-c2: ${syn.colors[1] || syn.colors[0]}">
+          <div class="synergy-name">
+            <div class="synergy-icons">${syn.icon.map(i => `<span>${i}</span>`).join('')}</div>
+            ${syn.name}
+          </div>
+          <div class="synergy-effect">${syn.desc}</div>
+          <div class="synergy-bonus">⚡ ${syn.bonus}</div>
+          <div class="synergy-skills">
+            ${syn.skills.map(s => `<span class="synergy-skill-tag">${s}</span>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ========== 交互函数 ==========
+    function switchTab(tab) {
+      currentTab = tab;
+
+      document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+      const skillsContainer = document.getElementById('skillsContainer');
+      const synergyContainer = document.getElementById('synergyContainer');
+
+      if (tab === 'synergy') {
+        skillsContainer.style.display = 'none';
+        synergyContainer.style.display = 'grid';
+        renderSynergies();
+      } else {
+        skillsContainer.style.display = 'grid';
+        synergyContainer.style.display = 'none';
+        renderSkills(tab);
+      }
+    }
+
+    function selectHero(element, hero) {
+      currentHero = hero;
+      document.querySelectorAll('.hero-card').forEach(c => c.classList.remove('active'));
+      element.classList.add('active');
+
+      const heroNames = { mage: '魔法少女', swordsman: '剑圣', summoner: '召唤师' };
+      document.getElementById('currentChar').textContent = heroNames[hero];
+    }
+
+    function upgradeSkill(skillId) {
+      const currentLevel = skillLevels[skillId] || 0;
+      if (currentLevel >= 3 || skillPoints <= 0) return;
+
+      skillLevels[skillId] = currentLevel + 1;
+      skillPoints--;
+
+      // 更新UI
+      document.getElementById('skillPoints').textContent = skillPoints;
+      renderSkills(currentTab);
+
+      // 播放动画
+      const card = document.querySelector(`[data-id="${skillId}"]`);
+      if (card) {
+        card.classList.add('upgrading');
+        setTimeout(() => card.classList.remove('upgrading'), 600);
+      }
+    }
+
+    function openModal(skillId) {
+      // 找到技能
+      let skill = null;
+      for (const category of Object.values(skillsData)) {
+        skill = category.find(s => s.id === skillId);
+        if (skill) break;
+      }
+      if (!skill) return;
+
+      const level = skillLevels[skillId] || 0;
+      const modal = document.getElementById('modalContent');
+
+      modal.innerHTML = `
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div class="modal-header">
+          <div class="modal-icon" style="--skill-color: ${skill.color}">
+            <span style="position: relative; z-index: 1; font-size: 2rem;">${skill.icon}</span>
+          </div>
+          <div class="modal-title-group">
+            <div class="modal-skill-id">${skill.id}</div>
+            <div class="modal-skill-name">${skill.name}</div>
+            <div class="modal-skill-type" style="color: ${skill.color}">${skill.rarity.toUpperCase()} · ${getCategoryName(skillId)}</div>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-section-title">升级效果</div>
+          <div class="modal-level ${level >= 1 ? 'current' : 'locked'}">
+            <div class="modal-level-badge">1</div>
+            <div class="modal-level-text">${skill.lv1}</div>
+          </div>
+          <div class="modal-level ${level >= 2 ? 'current' : 'locked'}">
+            <div class="modal-level-badge">2</div>
+            <div class="modal-level-text">${skill.lv2}</div>
+          </div>
+          <div class="modal-level ${level >= 3 ? 'current' : 'locked'}">
+            <div class="modal-level-badge">3</div>
+            <div class="modal-level-text">${skill.lv3}</div>
+          </div>
+        </div>
+
+        ${skill.synergies && skill.synergies.length > 0 ? `
+        <div class="modal-section">
+          <div class="modal-section-title">协同效果</div>
+          <div class="modal-synergies">
+            ${skill.synergies.map(syn => `
+              <div class="modal-synergy-item">
+                <span class="modal-synergy-text">${syn}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        <button class="skill-upgrade"
+                style="--skill-color: ${skill.color}; margin-top: 20px;"
+                ${level >= 3 || skillPoints <= 0 ? 'disabled' : ''}
+                onclick="upgradeSkillFromModal('${skillId}')">
+          ${level >= 3 ? '已满级 ✓' : `消耗1技能点升级 · Lv.${level} → Lv.${level + 1}`}
+        </button>
+      `;
+
+      document.getElementById('modalOverlay').classList.add('show');
+    }
+
+    function upgradeSkillFromModal(skillId) {
+      upgradeSkill(skillId);
+      openModal(skillId); // 刷新弹窗
+    }
+
+    function closeModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('modalOverlay').classList.remove('show');
+    }
+
+    function getCategoryName(skillId) {
+      const categories = {
+        'A': '攻击技能', 'B': '防御生存', 'C': '魔法增幅',
+        'D': '召唤辅助', 'E': '肉鸽特殊'
+      };
+      return categories[skillId[0]] || '未知';
+    }
+
+    // ========== 背景星星 ==========
+    function createStars() {
+      const container = document.getElementById('stars');
+      for (let i = 0; i < 80; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        star.style.animationDuration = (2 + Math.random() * 3) + 's';
+        container.appendChild(star);
+      }
+    }
+
+    // ========== 初始化 ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      createStars();
+      initSkillLevels();
+      renderSkills('attack');
+
+      // ESC关闭弹窗
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+      });
+    });
+  </script>
+</body>
+</html>
