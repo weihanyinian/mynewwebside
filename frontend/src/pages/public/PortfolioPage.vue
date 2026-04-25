@@ -73,8 +73,8 @@ const mobileTabs = computed(() => [
 ])
 
 function onWorkClick(link: string) {
-  if (link.startsWith('#') && link.length > 1) {
-    scrollTo(link.slice(1))
+  if (link.startsWith('/works/')) {
+    router.push(link)
     return
   }
   if (link.startsWith('/')) {
@@ -88,6 +88,10 @@ function onWorkClick(link: string) {
 
 function onWorkCardActivate(work: HomeWorkItem, e?: Event) {
   if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return
+  if (work.id) {
+    router.push(`/works/${work.id}`)
+    return
+  }
   onWorkClick(work.link)
 }
 
@@ -222,7 +226,7 @@ onMounted(() => {
             :title="t('home.themeToggle')"
             @click.prevent="themeStore.toggleTheme()"
           >
-            {{ !isDarkMode ? '🌙' : '☀️' }}
+            {{ !isDarkMode ? '夜' : '昼' }}
           </a>
           <a
             v-if="isAdminUser"
@@ -387,12 +391,11 @@ onMounted(() => {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.045;
+  opacity: 0.03;
   background:
     radial-gradient(circle at 20% 25%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px) 0 0 / 4px 4px,
     radial-gradient(circle at 80% 60%, rgba(91, 155, 216, 0.12) 0 1px, transparent 1px) 0 0 / 6px 6px;
   mix-blend-mode: soft-light;
-  animation: noiseDrift 14s linear infinite;
 }
 
 .portfolio-bg-scanline {
@@ -400,12 +403,8 @@ onMounted(() => {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.03;
-  background: repeating-linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.12) 0 1px,
-    transparent 1px 4px
-  );
+  opacity: 0.018;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 6px);
   mix-blend-mode: soft-light;
 }
 
@@ -414,8 +413,8 @@ onMounted(() => {
   pointer-events: none;
   z-index: -1;
   border-radius: 50%;
-  opacity: 0.045;
-  filter: blur(26px);
+  opacity: 0.03;
+  filter: blur(34px);
   transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .bg-neon-orb--a {
@@ -443,7 +442,7 @@ onMounted(() => {
   transform: translate3d(calc((var(--pointer-x, 50%) - 50%) * 0.1), calc((50% - var(--pointer-y, 50%)) * 0.14), 0);
 }
 .dark-theme .bg-neon-orb {
-  opacity: 0.05;
+  opacity: 0.035;
 }
 .dark-theme .portfolio-bg-scanline {
   opacity: 0.028;
@@ -746,13 +745,16 @@ h2 {
   background-clip: border-box;
   -webkit-background-clip: border-box;
 }
-:root[data-theme='dark'] .section-title-pill {
+.dark-theme .section-title-pill {
   border-color: rgba(167, 139, 250, 0.42);
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.42));
   color: #f1f5f9;
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
   text-shadow: 0 1px 14px rgba(167, 139, 250, 0.22);
 }
-:root[data-theme='dark'] .section-lead-pill {
+.dark-theme .section-lead-pill {
   border-color: rgba(148, 163, 184, 0.28);
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.45), rgba(15, 23, 42, 0.35));
   color: rgba(226, 232, 240, 0.94);
@@ -799,9 +801,7 @@ h2 {
   border: 1px solid color-mix(in srgb, #7dd3fc 40%, rgba(255, 255, 255, 0.5));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow:
-    0 16px 38px rgba(15, 23, 42, 0.1),
-    0 0 22px color-mix(in srgb, var(--primary-color) 18%, transparent);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
 }
 .dark-theme .hero-glass-card {
   background: rgba(15, 23, 42, 0.22);
@@ -829,7 +829,7 @@ h2 {
   inset: 0;
   pointer-events: none;
   z-index: -1;
-  opacity: 0.55;
+  opacity: 0.22;
 }
 .hero-title::before {
   transform: translate3d(-2px, -2px, 0);
@@ -871,10 +871,8 @@ h2 {
   -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
 }
 .hero-title:hover .hero-name-float {
-  animation:
-    hero-name-float 4.8s ease-in-out infinite,
-    hero-name-flow 1.8s linear infinite;
-  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--primary-color) 44%, transparent));
+  animation: hero-name-float 4.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--primary-color) 34%, transparent));
 }
 @keyframes hero-name-float {
   0%, 100% { transform: translateY(0); }
@@ -927,13 +925,13 @@ h2 {
 }
 .hero-actions--cta .site-pill:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 0 22px rgba(102, 217, 255, 0.45), 0 10px 28px rgba(74, 144, 226, 0.28);
+  box-shadow: 0 10px 24px rgba(98, 167, 234, 0.28);
 }
 .hero-actions--cta .site-pill--active:hover:not(:disabled)::before {
   transform: translateX(120%);
 }
 .hero-actions--cta .site-pill--active:hover:not(:disabled) {
-  box-shadow: 0 0 26px rgba(80, 227, 194, 0.5), 0 10px 32px rgba(74, 144, 226, 0.35);
+  box-shadow: 0 12px 30px rgba(98, 167, 234, 0.32);
 }
 .hero-actions--cta .site-pill--secondary:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--primary-color) 58%, #fff 42%);
@@ -1033,11 +1031,12 @@ h2 {
   text-align: left;
 }
 .about-img {
-  width: 45%;
+  width: 100%;
+  max-width: 420px;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   object-fit: cover;
-  aspect-ratio: 16/10;
+  aspect-ratio: 4/3;
 }
 .about-img-wrap {
   width: 45%;
@@ -1058,8 +1057,8 @@ h2 {
 /* Cards Hover：略提亮，不破坏通透 */
 .glass-card:hover {
   transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.14);
   border-color: color-mix(in srgb, var(--primary-color) 38%, rgba(255, 255, 255, 0.6));
 }
 .dark-theme .glass-card:hover {
@@ -1180,7 +1179,6 @@ h2 {
     0 0 0 1px rgba(255, 255, 255, 0.35),
     0 0 24px color-mix(in srgb, var(--primary-color) 35%, transparent);
   border-color: color-mix(in srgb, var(--primary-color) 44%, rgba(255, 255, 255, 0.56));
-  animation: neonBorderPulse 1.4s ease-in-out infinite;
 }
 .dark-theme .glass-card.work-card:hover,
 .dark-theme .glass-card.work-card:focus-visible {
@@ -1189,14 +1187,6 @@ h2 {
     0 0 0 1px rgba(255, 255, 255, 0.1),
     0 0 26px color-mix(in srgb, var(--secondary-color) 42%, transparent);
   border-color: color-mix(in srgb, var(--secondary-color) 56%, rgba(255, 255, 255, 0.2));
-}
-@keyframes neonBorderPulse {
-  0%, 100% {
-    border-color: color-mix(in srgb, var(--primary-color) 44%, rgba(255, 255, 255, 0.56));
-  }
-  50% {
-    border-color: color-mix(in srgb, var(--secondary-color) 52%, rgba(255, 255, 255, 0.56));
-  }
 }
 .work-card__body {
   padding: 22px 24px 24px;
