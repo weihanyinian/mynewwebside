@@ -5,15 +5,16 @@ import BackToHomeButton from '../../components/BackToHomeButton.vue'
 const router = useRouter()
 
 const games = [
-  { path: '/moyu/2048', name: '2048', icon: '🔢', desc: '合并数字，挑战 2048（支持撤销）' },
-  { path: '/moyu/tetris', name: '俄罗斯方块', icon: '🧱', desc: '经典下落，触摸键 + 滑动' },
-  { path: '/moyu/snake', name: '贪吃蛇', icon: '🐍', desc: '滑动 / 虚拟方向键，可调速度' },
-  { path: '/moyu/minesweeper', name: '扫雷', icon: '💣', desc: '多难度 · 长按插旗 · 计时' },
-  { path: '/moyu/breakout', name: '打砖块', icon: '🏏', desc: '滑动挡板 + 左右键' },
-  { path: '/moyu/gomoku', name: '五子棋', icon: '⚫', desc: '大屏棋盘 · 触摸落子' },
-  { path: '/moyu/guess', name: '猜数字', icon: '🎲', desc: '三档难度 · 冷热提示 · 最少次数挑战' },
-  { path: '/moyu/memory-card', name: '记忆翻牌', icon: '🃏', desc: '翻牌配对 · 记忆力挑战 · 计时排名' },
-  { path: '/moyu/snakeball', name: 'Snakeball', icon: '🟣', desc: '敏捷躲避 + 吃球成长，外部项目接入版' },
+  { path: '/moyu/2048', name: '2048', icon: '2048', desc: '合并数字，挑战 2048（支持撤销）' },
+  { path: '/moyu/doudizhu', name: '斗地主', icon: 'DDZ', desc: '完整叫地主与出牌流程，含电脑 AI' },
+  { path: '/moyu/tetris', name: '俄罗斯方块', icon: 'TET', desc: '经典下落，触摸键 + 滑动' },
+  { path: '/moyu/snake', name: '贪吃蛇', icon: 'SNK', desc: '滑动 / 虚拟方向键，可调速度' },
+  { path: '/moyu/minesweeper', name: '扫雷', icon: 'MIN', desc: '多难度 · 长按插旗 · 计时' },
+  { path: '/moyu/breakout', name: '打砖块', icon: 'BRK', desc: '滑动挡板 + 左右键' },
+  { path: '/moyu/gomoku', name: '五子棋', icon: 'GMK', desc: '大屏棋盘 · 触摸落子' },
+  { path: '/moyu/guess', name: '猜数字', icon: 'GUE', desc: '三档难度 · 冷热提示 · 最少次数挑战' },
+  { path: '/moyu/memory-card', name: '记忆翻牌', icon: 'MEM', desc: '翻牌配对 · 记忆力挑战 · 计时排名' },
+  { path: '/moyu/snakeball', name: 'Snakeball', icon: 'SBL', desc: '敏捷躲避 + 吃球成长，外部项目接入版' },
 ] as const
 
 function go(path: string) {
@@ -29,7 +30,7 @@ function go(path: string) {
     <div class="header">
       <h1 class="title">维寒一念 · 摸鱼中心</h1>
       <p class="subtitle">
-        9 款经典小游戏，纯静态页面嵌入为主；最高分本地保存；随站点主题切换。
+        10 款经典小游戏，纯静态页面与本地逻辑混合；最高分本地保存；随站点主题切换。
       </p>
     </div>
 
@@ -38,7 +39,7 @@ function go(path: string) {
         v-for="g in games"
         :key="g.path"
         type="button"
-        class="game-card glass-surface"
+        class="game-card panel-card"
         @click="go(g.path)"
       >
         <div class="game-icon" aria-hidden="true">{{ g.icon }}</div>
@@ -117,11 +118,11 @@ function go(path: string) {
   position: relative;
   overflow: hidden;
   text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--accent-cyan, var(--neon-accent-cyan)) 28%);
+  background: color-mix(in srgb, var(--surface-3, var(--glass-bg)) 82%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 28px rgba(102, 217, 255, 0.12);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
   color: inherit;
   font: inherit;
   touch-action: manipulation;
@@ -129,12 +130,14 @@ function go(path: string) {
 
 .game-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 36px rgba(102, 217, 255, 0.22);
-  border-color: var(--primary-color, #66d9ff);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.16);
+  border-color: var(--primary-color, #62a7ea);
 }
 
 .game-icon {
-  font-size: 2rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   margin-right: 12px;
   background: rgba(255, 255, 255, 0.12);
   width: 52px;
