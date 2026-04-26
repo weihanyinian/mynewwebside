@@ -5,9 +5,7 @@ type PortfolioWorkDto = {
   id: number
   title: string
   desc: string
-  detail: string
   tag: string
-  link: string
   cover: string
 }
 
@@ -17,14 +15,39 @@ export async function fetchPortfolioWorks(): Promise<HomeWorkItem[]> {
     id: item.id,
     title: item.title,
     desc: item.desc,
-    detail: item.detail,
+    detail: '',
     tag: item.tag,
-    link: item.link,
+    link: `/works/${item.id}`,
     cover: item.cover,
   }))
 }
 
+export type PortfolioWorkDetail = {
+  id: number
+  title: string
+  desc: string
+  detail: string
+  contentMd: string
+  tag: string
+  link: string
+  demoUrl?: string | null
+  repoUrl?: string | null
+  techStack?: string | null
+  cover: string
+}
+
+export async function fetchPortfolioWorkDetail(id: number): Promise<PortfolioWorkDetail> {
+  const { data } = await http.get<ApiResponse<PortfolioWorkDetail>>(`/api/public/portfolio/works/${id}`)
+  return data.data
+}
+
 export type PortfolioWorkAdmin = PortfolioWorkDto & {
+  detail: string
+  contentMd: string
+  link: string
+  demoUrl?: string | null
+  repoUrl?: string | null
+  techStack?: string | null
   enabled: boolean
   sortOrder: number
   createdAt: string
@@ -35,8 +58,12 @@ export type PortfolioWorkUpsertPayload = {
   title: string
   desc: string
   detail: string
+  contentMd: string
   tag: string
   link: string
+  demoUrl?: string
+  repoUrl?: string
+  techStack?: string
   cover: string
   enabled: boolean
   sortOrder: number

@@ -98,8 +98,9 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
       this.loadError = ''
       this.urlLoading = true
       const useAuth = !!getToken() && this.neteaseBound
+      const targetBr = useAuth ? DEFAULT_NETEASE_BR : 128000
       try {
-        const dto = await fetchSongUrl(t.id, DEFAULT_NETEASE_BR, useAuth)
+        const dto = await fetchSongUrl(t.id, targetBr, useAuth)
         if (dto.playable && dto.url) {
           this.resolvedUrl = dto.url
         } else {
@@ -130,7 +131,8 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
         this.currentIndex = nextIdx
         try {
           const useAuth = !!getToken() && this.neteaseBound
-          const dto = await fetchSongUrl(this.queue[nextIdx].id, DEFAULT_NETEASE_BR, useAuth)
+          const targetBr = useAuth ? DEFAULT_NETEASE_BR : 128000
+          const dto = await fetchSongUrl(this.queue[nextIdx].id, targetBr, useAuth)
           if (dto.playable && dto.url) {
             this.resolvedUrl = dto.url
             this.loadError = '检测到当前歌曲不可播放，已自动切到下一首'

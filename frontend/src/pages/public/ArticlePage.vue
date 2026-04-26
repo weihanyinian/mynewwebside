@@ -210,7 +210,7 @@ watch(
 
         <div v-else-if="article" class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-10">
           <article>
-            <header class="bg-white/[0.03] border border-white/10 rounded-3xl overflow-hidden backdrop-blur-lg">
+            <header class="article-shell article-shell--hero bg-white/[0.03] border border-white/10 rounded-3xl overflow-hidden backdrop-blur-lg">
               <div class="p-8 lg:p-10">
                 <h1 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-snug">{{ article.title }}</h1>
 
@@ -250,14 +250,14 @@ watch(
               </div>
             </header>
 
-            <section class="mt-10 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-lg p-8 lg:p-10">
+            <section class="article-shell article-shell--content mt-10 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-lg p-8 lg:p-10">
               <MarkdownView :content="article.contentMd" @toc="onToc" />
             </section>
           </article>
 
           <aside class="hidden xl:block">
             <div class="sticky top-10">
-              <div class="bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-lg p-6">
+              <div class="article-shell article-shell--toc bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-lg p-6">
                 <div class="flex items-center justify-between">
                   <div class="text-sm font-semibold text-white">目录</div>
                   <div class="text-xs text-slate-500">{{ toc.length }}</div>
@@ -345,6 +345,28 @@ watch(
 .article-page--light :deep(.site-pill--on-dark.site-pill--active) {
   color: #fff;
   border-color: transparent;
+}
+
+.article-shell {
+  background: color-mix(in srgb, var(--surface-2, rgba(255, 255, 255, 0.5)) 44%, transparent);
+  border-color: color-mix(in srgb, var(--glass-border, rgba(255, 255, 255, 0.4)) 70%, var(--accent-cyan, #7ee8ff) 30%);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+}
+
+.article-shell--hero {
+  border-radius: 28px;
+}
+
+.article-shell--content {
+  line-height: 1.85;
+}
+
+.article-shell--toc {
+  border-radius: 22px;
+}
+
+.article-page--light .article-shell {
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
 }
 </style>
 

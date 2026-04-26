@@ -74,8 +74,8 @@ onUnmounted(() => {
 .site-rich-footer {
   margin-top: auto;
   padding: 24px 16px 32px;
-  border-top: 1px solid var(--footer-border, rgba(255, 255, 255, 0.22));
-  background: var(--footer-bg, rgba(255, 255, 255, 0.22));
+  border-top: 1px solid var(--footer-border, rgba(255, 255, 255, 0.42));
+  background: var(--footer-bg, color-mix(in srgb, var(--surface-2, rgba(255, 255, 255, 0.5)) 76%, transparent));
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   color: var(--text-color);
@@ -180,8 +180,8 @@ onUnmounted(() => {
   max-width: 920px;
   text-align: center;
   border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 24%, rgba(148, 163, 184, 0.5));
+  background: color-mix(in srgb, var(--surface-3, rgba(255, 255, 255, 0.3)) 88%, transparent);
   padding: 10px 12px;
   box-shadow: 0 8px 24px rgba(74, 144, 226, 0.12);
 }

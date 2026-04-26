@@ -47,6 +47,11 @@ async function load() {
   }
 }
 
+function handlePageChange(p: number) {
+  page.value = p - 1
+  void load()
+}
+
 watch(
   () => route.query,
   () => {
@@ -67,7 +72,7 @@ onMounted(async () => {
 
 <template>
   <div class="home">
-    <div class="card home-filters">
+    <div class="panel-card home-filters">
       <div class="home-filters__row">
         <el-input v-model="keyword" placeholder="搜索文章（标题/内容）..." clearable @keyup.enter="syncToRoute">
           <template #prefix>
@@ -80,12 +85,12 @@ onMounted(async () => {
         <el-select v-model="tagId" clearable placeholder="选择标签" @change="syncToRoute">
           <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.id" />
         </el-select>
-        <button class="filter-btn" @click="syncToRoute">搜索</button>
+        <button class="site-pill site-pill--primary-cta filter-btn" @click="syncToRoute">搜索</button>
       </div>
     </div>
 
     <div class="home-list" v-loading="loading">
-      <div v-for="a in items" :key="a.id" class="card post" @click="router.push(`/article/${a.id}`)">
+      <div v-for="a in items" :key="a.id" class="content-card post" @click="router.push(`/article/${a.id}`)">
         <div class="post__cover">
           <!-- Placeholder cover using gradient since we don't have actual covers -->
           <div class="cover-placeholder"></div>
@@ -95,11 +100,11 @@ onMounted(async () => {
           <div class="post__summary muted">{{ a.summary }}</div>
           <div class="post__meta muted">
             <span v-if="a.category" class="meta-item category-meta">分类：{{ a.category.name }}</span>
-            <span v-if="a.publishedAt" class="meta-item">📅 {{ new Date(a.publishedAt).toLocaleString() }}</span>
-            <span class="meta-item">👁️ {{ a.views }} 次围观</span>
+            <span v-if="a.publishedAt" class="meta-item">{{ new Date(a.publishedAt).toLocaleString() }}</span>
+            <span class="meta-item">{{ a.views }} 次围观</span>
           </div>
           <div class="post__tags">
-            <span v-for="t in a.tags" :key="t.id" class="anime-tag" @click.stop="router.push({ path: '/blog', query: { tagId: t.id } })">
+            <span v-for="t in a.tags" :key="t.id" class="site-pill site-pill--chip anime-tag" @click.stop="router.push({ path: '/blog', query: { tagId: t.id } })">
               #{{ t.name }}
             </span>
           </div>
@@ -111,7 +116,7 @@ onMounted(async () => {
           <!-- Anime style empty state SVG -->
           <svg viewBox="0 0 200 200" width="160" height="160" xmlns="http://www.w3.org/2000/svg">
             <path fill="rgba(74, 144, 226, 0.2)" d="M42.7,-73.4C56.6,-66.1,70.1,-55.8,78.8,-42.1C87.5,-28.4,91.3,-14.2,90.4,-0.5C89.5,13.2,83.8,26.4,75.1,38.1C66.4,49.8,54.7,60.1,41.4,66.6C28.1,73.1,14,75.9,-0.6,76.9C-15.2,78,-30.4,77.3,-43.3,70.5C-56.2,63.7,-66.8,50.8,-73.8,36.5C-80.8,22.2,-84.2,6.5,-81.4,-8.2C-78.6,-22.9,-69.6,-36.6,-57.6,-45.5C-45.6,-54.4,-30.6,-58.5,-17.1,-63.4C-3.6,-68.3,8.8,-74.3,21.5,-76C34.2,-77.7,46.9,-75.1,42.7,-73.4Z" transform="translate(100 100)" />
-            <text x="100" y="100" font-size="40" text-anchor="middle" dominant-baseline="central" fill="rgba(74, 144, 226, 0.5)">🍃</text>
+            <text x="100" y="100" font-size="22" text-anchor="middle" dominant-baseline="central" fill="rgba(74, 144, 226, 0.6)">NO POST</text>
           </svg>
         </div>
         <p class="empty-text">这里还没有任何文章...</p>
@@ -124,7 +129,7 @@ onMounted(async () => {
           :current-page="page + 1"
           :page-size="size"
           :total="total"
-          @current-change="(p: number) => { page = p - 1; load() }"
+          @current-change="handlePageChange"
         />
       </div>
     </div>
@@ -142,7 +147,7 @@ onMounted(async () => {
 }
 
 .home-filters {
-  padding: 20px;
+  padding: 20px 22px;
   margin-bottom: 24px;
 }
 
@@ -164,18 +169,9 @@ onMounted(async () => {
 }
 
 .filter-btn {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-  color: white;
-  border: none;
-  border-radius: 20px;
+  border-radius: 14px;
   padding: 0 24px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.filter-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+  font-weight: 700;
 }
 
 .home-list {
@@ -189,13 +185,13 @@ onMounted(async () => {
   flex-direction: column;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.26s ease, box-shadow 0.26s ease, border-color 0.26s ease;
   padding: 0;
 }
 
 .post:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 16px 32px rgba(74, 144, 226, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 16px 30px rgba(98, 167, 234, 0.18);
 }
 
 .post__cover {
@@ -207,7 +203,7 @@ onMounted(async () => {
 .cover-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(45deg, rgba(74, 144, 226, 0.2), rgba(80, 227, 194, 0.2));
+  background: linear-gradient(135deg, rgba(98, 167, 234, 0.24), rgba(165, 142, 234, 0.22), rgba(244, 169, 212, 0.16));
   position: relative;
 }
 .cover-placeholder::after {
@@ -276,17 +272,8 @@ onMounted(async () => {
 }
 
 .anime-tag {
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  background: rgba(74, 144, 226, 0.1);
-  color: var(--primary-color);
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.3s;
-}
-.anime-tag:hover {
-  background: var(--primary-color);
-  color: white;
+  font-size: 0.72rem;
+  cursor: pointer;
 }
 
 .empty-state {

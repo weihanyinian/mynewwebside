@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,33 +11,62 @@
  */
 
 :root {
-  --primary-color: #5b9bd8;
-  --secondary-color: #9b8fd4;
+  --primary-color: #62a7ea;
+  --secondary-color: #a58eea;
+  --accent-pink: #f4a9d4;
+  --accent-cyan: #7ee8ff;
+  --surface-1: rgba(255, 255, 255, 0.74);
+  --surface-2: rgba(255, 255, 255, 0.5);
+  --surface-3: rgba(255, 255, 255, 0.3);
+  --surface-elevated: rgba(255, 255, 255, 0.82);
+  --text-strong: #0f172a;
+  --text-normal: rgba(15, 23, 42, 0.9);
+  --text-muted: rgba(15, 23, 42, 0.64);
   --neon-accent-cyan: #6ee7ff;
   --neon-accent-pink: #f9a8d4;
   --neon-ring-soft: color-mix(in srgb, var(--primary-color) 35%, transparent);
-  --bg-gradient: linear-gradient(135deg, rgba(230, 238, 245, 0.8) 0%, rgba(200, 218, 235, 0.9) 100%);
-  --glass-bg: rgba(255, 255, 255, 0.14);
-  --glass-border: rgba(255, 255, 255, 0.42);
-  --glass-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
-  --text-color: #0f172a;
-  --text-muted: rgba(15, 23, 42, 0.68);
+  --bg-gradient: radial-gradient(circle at 20% 15%, rgba(126, 232, 255, 0.18), transparent 44%),
+    radial-gradient(circle at 82% 12%, rgba(244, 169, 212, 0.14), transparent 40%),
+    linear-gradient(145deg, #edf3fb 0%, #e5eef9 52%, #e7e2fa 100%);
+  --glass-bg: rgba(255, 255, 255, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.56);
+  --glass-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+  --text-color: var(--text-strong);
   /* 博客玻璃卡片上的主/次文字（SiteLayout 切换主题时会覆盖） */
-  --blog-on-glass: #0f172a;
+  --blog-on-glass: var(--text-strong);
   --blog-on-glass-muted: rgba(15, 23, 42, 0.72);
+  --card-radius: 18px;
+  --panel-radius: 22px;
   --ux-duration: 0.42s;
   --ux-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   color: var(--text-color);
   background: var(--bg-gradient);
   background-attachment: fixed;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition:
     background var(--ux-duration) var(--ux-ease),
     color var(--ux-duration) var(--ux-ease);
+}
+
+:root[data-theme='dark'] {
+  --surface-1: rgba(15, 23, 42, 0.86);
+  --surface-2: rgba(15, 23, 42, 0.66);
+  --surface-3: rgba(30, 41, 59, 0.54);
+  --surface-elevated: rgba(15, 23, 42, 0.94);
+  --text-strong: #f1f5f9;
+  --text-normal: rgba(241, 245, 249, 0.94);
+  --text-muted: rgba(226, 232, 240, 0.74);
+  --text-color: var(--text-strong);
+  --bg-gradient: radial-gradient(circle at 18% 12%, rgba(126, 232, 255, 0.12), transparent 44%),
+    radial-gradient(circle at 84% 16%, rgba(165, 142, 234, 0.14), transparent 42%),
+    linear-gradient(150deg, #0b1220 0%, #111a2e 52%, #151533 100%);
+  --glass-bg: rgba(17, 26, 46, 0.54);
+  --glass-border: rgba(148, 163, 184, 0.28);
+  --glass-shadow: 0 16px 42px rgba(2, 8, 23, 0.44);
 }
 
 html {
@@ -58,19 +89,23 @@ body {
     color var(--ux-duration) var(--ux-ease);
 }
 
+h1, h2, h3, h4, h5, h6, p, li, button, a {
+  text-wrap: pretty;
+}
+
 a {
   color: inherit;
 }
 
 .card {
-  background: var(--glass-bg);
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--neon-accent-cyan) 28%);
-  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 70%, var(--accent-cyan) 30%);
+  border-radius: var(--card-radius);
   box-shadow:
     var(--glass-shadow),
-    0 0 0 1px color-mix(in srgb, var(--neon-accent-cyan) 10%, transparent) inset;
+    0 0 0 1px color-mix(in srgb, var(--accent-cyan) 10%, transparent) inset;
 }
 
 .page-title {
@@ -95,11 +130,11 @@ a {
  */
 /* 首页留言区 / 工具等：极浅玻璃，与视频背景分层 */
 .site-module-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--surface-3) 88%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid color-mix(in srgb, rgba(255, 255, 255, 0.42) 76%, var(--neon-accent-cyan) 24%);
-  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, rgba(255, 255, 255, 0.48) 74%, var(--accent-cyan) 26%);
+  border-radius: var(--panel-radius);
   box-shadow:
     0 12px 40px rgba(15, 23, 42, 0.07),
     0 0 20px color-mix(in srgb, var(--neon-accent-cyan) 14%, transparent);
@@ -111,7 +146,7 @@ a {
 }
 
 :root[data-theme='dark'] .site-module-card {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(18, 27, 44, 0.56);
   border-color: color-mix(in srgb, rgba(255, 255, 255, 0.14) 70%, var(--secondary-color) 30%);
   box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.28),
@@ -120,7 +155,7 @@ a {
 
 .site-module-card:hover {
   transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.14);
+  background: color-mix(in srgb, var(--surface-3) 96%, transparent);
   border-color: color-mix(in srgb, var(--neon-accent-cyan) 44%, #fff 56%);
   box-shadow:
     0 18px 48px rgba(15, 23, 42, 0.11),

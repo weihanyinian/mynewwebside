@@ -88,18 +88,18 @@ function logout() {
 <style scoped>
 .admin-root {
   min-height: 100vh;
-  background: linear-gradient(135deg, rgba(26, 26, 46, 1) 0%, rgba(42, 27, 61, 1) 100%);
+  background: linear-gradient(145deg, #111827 0%, #162238 52%, #1c233f 100%);
   color: #e2e8f0;
 }
 
 .admin-aside {
-  background: rgba(16, 18, 27, 0.8);
+  background: rgba(12, 18, 31, 0.74);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid rgba(74, 144, 226, 0.2);
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  box-shadow: 4px 0 20px rgba(0,0,0,0.34);
   z-index: 10;
 }
 
@@ -125,7 +125,7 @@ function logout() {
   padding: 2px 6px;
   background: rgba(80, 227, 194, 0.2);
   color: #50e3c2;
-  border-radius: 4px;
+  border-radius: 999px;
   font-weight: bold;
 }
 
@@ -137,7 +137,7 @@ function logout() {
 
 .admin-menu :deep(.el-menu-item) {
   margin: 8px 12px;
-  border-radius: 8px;
+  border-radius: 12px;
   transition: all 0.3s;
 }
 
@@ -242,12 +242,12 @@ function logout() {
 }
 
 .admin-main-inner {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 20px;
   min-height: calc(100% - 40px);
   padding: 24px;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.16);
 }
 
 /* Global scrollbar for admin */

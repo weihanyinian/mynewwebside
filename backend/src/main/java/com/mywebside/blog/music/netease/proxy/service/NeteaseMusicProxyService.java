@@ -175,6 +175,10 @@ public class NeteaseMusicProxyService {
     if (url == null || url.isBlank()) {
       return new SongUrlDto(null, false, "NO_COPYRIGHT", "无版权或需登录后播放");
     }
+    // 在 HTTPS 页面中，http 音频会被浏览器 Mixed Content 拦截；优先升级到 https。
+    if (url.startsWith("http://")) {
+      url = "https://" + url.substring("http://".length());
+    }
     return new SongUrlDto(url, true, "OK", null);
   }
 }

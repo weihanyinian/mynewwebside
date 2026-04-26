@@ -10,16 +10,15 @@ export type ApiResponse<T> = {
 }
 
 /**
- * - 未设置 VITE_API_BASE_URL：生产用同源 `/api`（需 Nginx 反代）；开发用空串走 Vite proxy，见 vite.config.ts。
- * - 若仍要直连后端（如调试 CORS），可设 VITE_API_BASE_URL=http://127.0.0.1:8080
+ * - 未设置 VITE_API_BASE_URL：走相对路径 `/api`。
+ *   - npm run dev：由 Vite 代理到 8080；经 Nginx :88 打开时由网关转发到 8080。
+ *   - 生产：同源 Nginx 反代 /api。
+ * - 仅当需要跨域直连后端时设置，例如 VITE_API_BASE_URL=http://127.0.0.1:8080
  */
 function resolveApiBaseUrl(): string {
   const v = import.meta.env.VITE_API_BASE_URL as string | undefined
   if (v !== undefined && v !== '') {
-    return v
-  }
-  if (import.meta.env.DEV) {
-    return ''
+    return v.trim()
   }
   return ''
 }

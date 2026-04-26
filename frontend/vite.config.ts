@@ -17,6 +17,16 @@ export default defineConfig(({ mode }) => {
         changeOrigin: true,
       },
     },
+    // 经 Nginx :88 反代到本机 5173 时，HMR WebSocket 需走对外端口 88（见 .env.development 说明）
+    ...(env.VITE_DEV_HMR_CLIENT_PORT
+      ? {
+          hmr: {
+            host: 'localhost',
+            clientPort: Number(env.VITE_DEV_HMR_CLIENT_PORT),
+            protocol: 'ws',
+          },
+        }
+      : {}),
   },
   build: {
     chunkSizeWarningLimit: 800,

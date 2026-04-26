@@ -13,7 +13,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card panel page-animation">
+  <div class="panel-card panel page-animation">
     <div class="page-top">
       <BackToBlogButton />
     </div>
@@ -22,7 +22,7 @@ onMounted(async () => {
       <div
         v-for="c in items"
         :key="c.id"
-        class="cell glass-card"
+        class="cell content-card"
         @click="router.push({ path: '/blog', query: { categoryId: c.id } })"
       >
         <span class="cell-icon">📁</span>
@@ -54,20 +54,20 @@ onMounted(async () => {
   margin-top: 20px;
 }
 .cell {
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
   transition: all 0.3s;
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: color-mix(in srgb, var(--surface-2) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--accent-cyan) 28%);
 }
 .cell:hover {
   transform: translateY(-4px);
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 8px 24px rgba(74, 144, 226, 0.2);
+  background: color-mix(in srgb, var(--surface-2) 92%, transparent);
+  box-shadow: 0 10px 24px rgba(98, 167, 234, 0.18);
 }
 .cell-icon {
   font-size: 1.5rem;

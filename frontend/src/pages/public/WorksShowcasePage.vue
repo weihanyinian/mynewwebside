@@ -12,22 +12,15 @@ onMounted(() => {
   void worksStore.fetchWorksFromBackend()
 })
 
-function openLink(link: string) {
-  if (link.startsWith('/')) {
-    void router.push(link)
-    return
-  }
-  if (link.startsWith('http://') || link.startsWith('https://')) {
-    window.open(link, '_blank', 'noopener,noreferrer')
-    return
-  }
-  void router.push('/')
+function openWork(id?: number) {
+  if (!id) return
+  void router.push(`/works/${id}`)
 }
 </script>
 
 <template>
   <main class="works-showcase">
-    <header class="works-showcase__hero glass-panel">
+    <header class="works-showcase__hero hero-card glass-panel">
       <h1>作品全景展示</h1>
       <p>这里集中展示我的项目背景、核心能力点与落地价值，方便你快速了解每个作品的完整信息。</p>
       <button type="button" class="site-pill site-pill--secondary" @click="router.push('/')">返回首页</button>
@@ -37,18 +30,21 @@ function openLink(link: string) {
       <p v-if="worksStore.loadError" class="works-showcase__hint works-showcase__hint--error">
         {{ worksStore.loadError }}
       </p>
-      <article v-for="(work, idx) in works" :key="`${work.title}-${idx}`" class="showcase-card glass-panel">
+      <article v-for="(work, idx) in works" :key="`${work.title}-${idx}`" class="showcase-card content-card glass-panel">
         <img :src="work.cover" :alt="work.title" class="showcase-card__cover" loading="lazy" decoding="async" />
         <div class="showcase-card__body">
           <span class="showcase-card__tag">{{ work.tag }}</span>
           <h2>{{ work.title }}</h2>
           <p class="showcase-card__desc">{{ work.desc }}</p>
           <p class="showcase-card__detail">{{ work.detail }}</p>
-          <button type="button" class="site-pill site-pill--active showcase-card__btn" @click="openLink(work.link)">
+          <button type="button" class="site-pill site-pill--active showcase-card__btn" @click="openWork(work.id)">
             查看该作品
           </button>
         </div>
       </article>
+      <p v-if="!worksStore.loadError && works.length === 0" class="works-showcase__hint">
+        还没有发布作品，先在后台「作品管理」中创建并启用。
+      </p>
     </section>
   </main>
 </template>
@@ -57,17 +53,17 @@ function openLink(link: string) {
 .works-showcase {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 92px 20px 48px;
+  padding: 88px 20px 48px;
   color: var(--text-color, #0f172a);
 }
 
 .glass-panel {
   border-radius: 20px;
-  border: 1px solid rgba(148, 163, 184, 0.26);
-  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--accent-cyan, #7ee8ff) 28%);
+  background: color-mix(in srgb, var(--surface-2) 82%, transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 12px 34px rgba(51, 65, 85, 0.1);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
 }
 
 .works-showcase__hero {
@@ -109,6 +105,12 @@ function openLink(link: string) {
 
 .showcase-card {
   overflow: hidden;
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
+}
+
+.showcase-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.16);
 }
 
 .showcase-card__cover {

@@ -12,9 +12,9 @@ import { getCategories, getPublicArticles, getTags, type ArticleListItem, type C
 
 // ---------- 可调整参数（设计 token，改这里即可全局微调）----------
 const STYLE = {
-  glassBg: 'rgba(255, 255, 255, 0.2)',
-  glassBorder: 'rgba(255, 255, 255, 0.5)',
-  glassShadow: '0 8px 32px rgba(102, 217, 255, 0.2)',
+  glassBg: 'color-mix(in srgb, var(--surface-2) 84%, transparent)',
+  glassBorder: 'color-mix(in srgb, var(--glass-border) 72%, var(--accent-cyan) 28%)',
+  glassShadow: '0 12px 30px rgba(15, 23, 42, 0.12)',
   glassBlur: '10px',
   radius: '16px',
   transition: '0.3s ease',
@@ -528,7 +528,7 @@ onUnmounted(() => {
   max-width: var(--blog-grid-max);
   padding: 1rem 1.125rem;
   margin-bottom: 1.25rem;
-  transition: box-shadow 0.35s ease, transform 0.35s ease;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .blog-toolbar:focus-within {
@@ -627,10 +627,10 @@ onUnmounted(() => {
 }
 
 .blog-card:hover {
-  transform: translateY(-6px) scale(1.015);
+  transform: translateY(-4px) scale(1.01);
   box-shadow:
-    0 0 22px rgba(102, 217, 255, 0.22),
-    0 16px 40px rgba(74, 144, 226, 0.2);
+    0 0 20px rgba(98, 167, 234, 0.16),
+    0 14px 32px rgba(15, 23, 42, 0.16);
 }
 
 .blog-card--visible:hover {
@@ -661,7 +661,7 @@ onUnmounted(() => {
   justify-content: center;
   font-size: 2rem;
   color: var(--on-glass-muted);
-  background: linear-gradient(135deg, rgba(74, 144, 226, 0.35), rgba(80, 227, 194, 0.3));
+  background: linear-gradient(135deg, rgba(98, 167, 234, 0.32), rgba(165, 142, 234, 0.3), rgba(244, 169, 212, 0.22));
 }
 
 .blog-card__body {

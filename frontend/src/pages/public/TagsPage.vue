@@ -13,7 +13,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="card panel page-animation">
+  <div class="panel-card panel page-animation">
     <div class="page-top">
       <BackToBlogButton />
     </div>
@@ -23,7 +23,7 @@ onMounted(async () => {
         v-for="t in items"
         :key="t.id"
         type="button"
-        class="site-pill site-pill--chip"
+        class="site-pill site-pill--chip site-pill--secondary"
         @click="router.push({ path: '/blog', query: { tagId: t.id } })"
       >
         # {{ t.name }}

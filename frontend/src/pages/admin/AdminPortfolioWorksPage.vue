@@ -20,9 +20,13 @@ const form = reactive<PortfolioWorkUpsertPayload>({
   title: '',
   desc: '',
   detail: '',
+  contentMd: '',
   tag: '',
   link: '',
-  cover: '/avatar.webp',
+  demoUrl: '',
+  repoUrl: '',
+  techStack: '',
+  cover: 'https://c4.wallpaperflare.com/wallpaper/957/640/962/anime-girls-red-eyes-white-hair-wallpaper-preview.jpg',
   enabled: true,
   sortOrder: 0,
 })
@@ -31,9 +35,13 @@ function resetForm() {
   form.title = ''
   form.desc = ''
   form.detail = ''
+  form.contentMd = ''
   form.tag = ''
   form.link = ''
-  form.cover = '/avatar.webp'
+  form.demoUrl = ''
+  form.repoUrl = ''
+  form.techStack = ''
+  form.cover = 'https://c4.wallpaperflare.com/wallpaper/957/640/962/anime-girls-red-eyes-white-hair-wallpaper-preview.jpg'
   form.enabled = true
   form.sortOrder = 0
 }
@@ -42,8 +50,12 @@ function fillForm(row: PortfolioWorkAdmin) {
   form.title = row.title
   form.desc = row.desc
   form.detail = row.detail
+  form.contentMd = row.contentMd
   form.tag = row.tag
   form.link = row.link
+  form.demoUrl = row.demoUrl || ''
+  form.repoUrl = row.repoUrl || ''
+  form.techStack = row.techStack || ''
   form.cover = row.cover
   form.enabled = row.enabled
   form.sortOrder = row.sortOrder
@@ -73,8 +85,12 @@ function onEdit(row: PortfolioWorkAdmin) {
 }
 
 async function onSave() {
-  if (!form.title.trim() || !form.desc.trim() || !form.detail.trim() || !form.tag.trim() || !form.link.trim()) {
-    ElMessage.warning('请先完整填写标题、简介、详情、标签与链接')
+  if (!form.title.trim() || !form.desc.trim() || !form.detail.trim() || !form.contentMd.trim() || !form.tag.trim() || !form.link.trim()) {
+    ElMessage.warning('请先完整填写标题、简介、详情、正文、标签与链接')
+    return
+  }
+  if (form.enabled && (!form.cover.trim() || !form.contentMd.trim())) {
+    ElMessage.warning('启用发布前请确保封面与正文文案完整')
     return
   }
   saving.value = true
@@ -84,9 +100,13 @@ async function onSave() {
       title: form.title.trim(),
       desc: form.desc.trim(),
       detail: form.detail.trim(),
+      contentMd: form.contentMd.trim(),
       tag: form.tag.trim(),
       link: form.link.trim(),
-      cover: form.cover.trim() || '/avatar.webp',
+      demoUrl: form.demoUrl?.trim(),
+      repoUrl: form.repoUrl?.trim(),
+      techStack: form.techStack?.trim(),
+      cover: form.cover.trim() || 'https://c4.wallpaperflare.com/wallpaper/957/640/962/anime-girls-red-eyes-white-hair-wallpaper-preview.jpg',
     }
     if (editingId.value) {
       await adminUpdatePortfolioWork(editingId.value, payload)
@@ -170,6 +190,9 @@ onMounted(load)
         <el-form-item label="详情（展示页详细描述）">
           <el-input v-model="form.detail" type="textarea" :rows="3" />
         </el-form-item>
+        <el-form-item label="正文文案（Markdown，详情页展示）">
+          <el-input v-model="form.contentMd" type="textarea" :rows="8" />
+        </el-form-item>
         <div class="row">
           <el-form-item label="标签" class="row__item">
             <el-input v-model="form.tag" maxlength="100" />
@@ -184,6 +207,17 @@ onMounted(load)
         <el-form-item label="链接（站内路径 / 或 https 外链）">
           <el-input v-model="form.link" maxlength="700" />
         </el-form-item>
+        <div class="row">
+          <el-form-item label="Demo 链接（可选）" class="row__item">
+            <el-input v-model="form.demoUrl" maxlength="700" />
+          </el-form-item>
+          <el-form-item label="仓库链接（可选）" class="row__item">
+            <el-input v-model="form.repoUrl" maxlength="700" />
+          </el-form-item>
+          <el-form-item label="技术栈（可选）" class="row__item">
+            <el-input v-model="form.techStack" maxlength="500" />
+          </el-form-item>
+        </div>
         <el-form-item label="封面 URL">
           <el-input v-model="form.cover" maxlength="700" />
         </el-form-item>

@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.net.http.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
@@ -35,13 +38,29 @@ public class NeteaseBinaryifyClient {
       throw new IllegalStateException("netease.proxy.base-url 未配置");
     }
     this.primaryBaseUrl = base;
-    this.restClient = RestClient.builder().baseUrl(base).build();
+    this.restClient = RestClient.builder()
+        .baseUrl(base)
+        .requestFactory(buildRequestFactory())
+        .build();
     String fallbackBase = normalizeBaseUrl(properties.getFallbackBaseUrl());
     if (!fallbackBase.isBlank() && !fallbackBase.equalsIgnoreCase(base)) {
-      this.fallbackRestClient = RestClient.builder().baseUrl(fallbackBase).build();
+      this.fallbackRestClient = RestClient.builder()
+          .baseUrl(fallbackBase)
+          .requestFactory(buildRequestFactory())
+          .build();
     } else {
       this.fallbackRestClient = null;
     }
+  }
+
+  private static JdkClientHttpRequestFactory buildRequestFactory() {
+    HttpClient httpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(3))
+        .build();
+    JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+    // 避免上游不稳定时前端 15s 超时；优先快速失败并走自动换曲/错误提示。
+    factory.setReadTimeout(Duration.ofSeconds(5));
+    return factory;
   }
 
   /**

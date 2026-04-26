@@ -56,7 +56,7 @@ onUnmounted(() => {
         :data-pswp-width="it.w"
         :data-pswp-height="it.h"
         target="_blank"
-        class="album-thumb card"
+        class="album-thumb content-card"
       >
         <img :src="it.src" :alt="it.title || `img-${i}`" loading="lazy" />
         <span v-if="it.title" class="album-cap">{{ it.title }}</span>
@@ -80,7 +80,7 @@ onUnmounted(() => {
   display: block;
   padding: 0;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 18px;
   text-decoration: none;
   color: inherit;
   transition:
@@ -88,8 +88,8 @@ onUnmounted(() => {
     box-shadow 0.28s ease;
 }
 .album-thumb:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 44px rgba(102, 217, 255, 0.22);
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
 }
 .album-thumb img {
   width: 100%;

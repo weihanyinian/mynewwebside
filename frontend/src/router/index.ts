@@ -47,6 +47,7 @@ const GameSnakeball = () => import('../pages/moyu/GameSnakeball.vue')
 const GameDoudizhu = () => import('../views/GameBoard.vue')
 const MemoriesPage = () => import('../pages/public/MemoriesPage.vue')
 const WorksShowcasePage = () => import('../pages/public/WorksShowcasePage.vue')
+const WorksDetailPage = () => import('../pages/public/WorksDetailPage.vue')
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -73,6 +74,7 @@ export const router = createRouter({
     { path: '/search', redirect: '/blog' },
     { path: '/albums', component: AlbumsPage },
     { path: '/works-showcase', component: WorksShowcasePage },
+    { path: '/works/:id', component: WorksDetailPage },
     { path: '/snippets', redirect: '/tools' },
     { path: '/stats', component: StatsPage },
     { path: '/music', component: MusicCenterPage, meta: { requiresAuth: true } },

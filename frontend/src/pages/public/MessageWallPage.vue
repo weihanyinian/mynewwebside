@@ -45,7 +45,7 @@ onMounted(() => void wall.load())
       <button
         v-if="userStore.isAdmin"
         type="button"
-        class="wall-admin-btn"
+        class="site-pill site-pill--secondary wall-admin-btn"
         @click="router.push('/admin/messages')"
       >
         管理留言
@@ -133,13 +133,7 @@ onMounted(() => void wall.load())
 }
 .wall-admin-btn {
   margin-top: 10px;
-  border: 1px solid color-mix(in srgb, var(--primary-color) 35%, rgba(255, 255, 255, 0.6));
-  background: rgba(255, 255, 255, 0.28);
-  color: var(--text-color);
-  border-radius: 999px;
-  min-height: 34px;
-  padding: 0 0.86rem;
-  cursor: pointer;
+  min-height: 36px;
 }
 
 .message-form-wrap {

@@ -25,11 +25,23 @@ public class PortfolioWork {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String detail;
 
+  @Column(name = "content_md", nullable = false, columnDefinition = "LONGTEXT")
+  private String contentMd = "";
+
   @Column(nullable = false, length = 100)
   private String tag;
 
   @Column(nullable = false, length = 700)
   private String link;
+
+  @Column(name = "demo_url", length = 700)
+  private String demoUrl;
+
+  @Column(name = "repo_url", length = 700)
+  private String repoUrl;
+
+  @Column(name = "tech_stack", length = 500)
+  private String techStack;
 
   @Column(name = "cover_url", nullable = false, length = 700)
   private String coverUrl;
@@ -78,6 +90,14 @@ public class PortfolioWork {
     this.detail = detail;
   }
 
+  public String getContentMd() {
+    return contentMd;
+  }
+
+  public void setContentMd(String contentMd) {
+    this.contentMd = contentMd;
+  }
+
   public String getTag() {
     return tag;
   }
@@ -92,6 +112,30 @@ public class PortfolioWork {
 
   public void setLink(String link) {
     this.link = link;
+  }
+
+  public String getDemoUrl() {
+    return demoUrl;
+  }
+
+  public void setDemoUrl(String demoUrl) {
+    this.demoUrl = demoUrl;
+  }
+
+  public String getRepoUrl() {
+    return repoUrl;
+  }
+
+  public void setRepoUrl(String repoUrl) {
+    this.repoUrl = repoUrl;
+  }
+
+  public String getTechStack() {
+    return techStack;
+  }
+
+  public void setTechStack(String techStack) {
+    this.techStack = techStack;
   }
 
   public String getCoverUrl() {

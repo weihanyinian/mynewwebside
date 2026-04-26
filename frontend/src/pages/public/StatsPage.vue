@@ -24,7 +24,7 @@ const dashUrl = computed(() => (import.meta.env.VITE_UMAMI_DASHBOARD_URL as stri
 </script>
 
 <template>
-  <div class="stats-page card">
+  <div class="stats-page panel-card">
     <h1 class="page-title">{{ t('pages.statsTitle') }}</h1>
     <p class="muted">{{ t('pages.statsHint') }}</p>
     <div v-if="shareUrl" class="frame-wrap">
@@ -62,7 +62,7 @@ const dashUrl = computed(() => (import.meta.env.VITE_UMAMI_DASHBOARD_URL as stri
 .box {
   margin-top: 16px;
   padding: 20px;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px dashed var(--glass-border);
 }
 .actions {

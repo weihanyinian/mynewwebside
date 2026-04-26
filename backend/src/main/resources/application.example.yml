@@ -44,7 +44,8 @@ spring:
 
 app:
   cors:
-    allowed-origins: "http://localhost:5173"
+    # 含 :88 时与 Nginx 统一入口一致；同源 /api 反代时浏览器多数情况不触发 CORS，仍建议列出
+    allowed-origins: "http://localhost:5173,http://localhost:88,http://127.0.0.1:88"
   daily-quotes:
     - "维寒一念，步履不停。"
     - "代码与文字，都是留给自己和访客的路标。"

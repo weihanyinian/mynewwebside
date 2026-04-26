@@ -3,6 +3,7 @@ package com.mywebside.blog.service;
 import com.mywebside.blog.common.BusinessException;
 import com.mywebside.blog.domain.PortfolioWork;
 import com.mywebside.blog.dto.PortfolioWorkAdminDto;
+import com.mywebside.blog.dto.PortfolioWorkDetailDto;
 import com.mywebside.blog.dto.PortfolioWorkPublicDto;
 import com.mywebside.blog.dto.PortfolioWorkUpsertRequest;
 import com.mywebside.blog.repo.PortfolioWorkRepository;
@@ -30,12 +31,30 @@ public class PortfolioWorkService {
             w.getId(),
             w.getTitle(),
             w.getShortDesc(),
-            w.getDetail(),
             w.getTag(),
-            w.getLink(),
             w.getCoverUrl()
         ))
         .toList();
+  }
+
+  @Cacheable("portfolioWorkDetail")
+  @Transactional(readOnly = true)
+  public PortfolioWorkDetailDto getPublicWorkDetail(long id) {
+    PortfolioWork w = portfolioWorkRepository.findByIdAndEnabledTrue(id)
+        .orElseThrow(() -> new BusinessException(404, "作品不存在或未发布"));
+    return new PortfolioWorkDetailDto(
+        w.getId(),
+        w.getTitle(),
+        w.getShortDesc(),
+        w.getDetail(),
+        w.getContentMd(),
+        w.getTag(),
+        w.getLink(),
+        w.getDemoUrl(),
+        w.getRepoUrl(),
+        w.getTechStack(),
+        w.getCoverUrl()
+    );
   }
 
   @Transactional(readOnly = true)
@@ -45,7 +64,7 @@ public class PortfolioWorkService {
         .toList();
   }
 
-  @CacheEvict(value = "portfolioWorks", allEntries = true)
+  @CacheEvict(value = {"portfolioWorks", "portfolioWorkDetail"}, allEntries = true)
   @Transactional
   public PortfolioWorkAdminDto create(PortfolioWorkUpsertRequest req) {
     PortfolioWork entity = new PortfolioWork();
@@ -56,7 +75,7 @@ public class PortfolioWorkService {
     return toAdminDto(portfolioWorkRepository.save(entity));
   }
 
-  @CacheEvict(value = "portfolioWorks", allEntries = true)
+  @CacheEvict(value = {"portfolioWorks", "portfolioWorkDetail"}, allEntries = true)
   @Transactional
   public PortfolioWorkAdminDto update(long id, PortfolioWorkUpsertRequest req) {
     PortfolioWork entity = portfolioWorkRepository.findById(id)
@@ -66,7 +85,7 @@ public class PortfolioWorkService {
     return toAdminDto(entity);
   }
 
-  @CacheEvict(value = "portfolioWorks", allEntries = true)
+  @CacheEvict(value = {"portfolioWorks", "portfolioWorkDetail"}, allEntries = true)
   @Transactional
   public void delete(long id) {
     if (!portfolioWorkRepository.existsById(id)) {
@@ -79,11 +98,21 @@ public class PortfolioWorkService {
     entity.setTitle(req.title().trim());
     entity.setShortDesc(req.desc().trim());
     entity.setDetail(req.detail().trim());
+    entity.setContentMd(req.contentMd().trim());
     entity.setTag(req.tag().trim());
     entity.setLink(req.link().trim());
+    entity.setDemoUrl(trimToNull(req.demoUrl()));
+    entity.setRepoUrl(trimToNull(req.repoUrl()));
+    entity.setTechStack(trimToNull(req.techStack()));
     entity.setCoverUrl(req.cover().trim());
     entity.setEnabled(Boolean.TRUE.equals(req.enabled()));
     entity.setSortOrder(req.sortOrder());
+  }
+
+  private String trimToNull(String raw) {
+    if (raw == null) return null;
+    String v = raw.trim();
+    return v.isEmpty() ? null : v;
   }
 
   private PortfolioWorkAdminDto toAdminDto(PortfolioWork w) {
@@ -92,8 +121,12 @@ public class PortfolioWorkService {
         w.getTitle(),
         w.getShortDesc(),
         w.getDetail(),
+        w.getContentMd(),
         w.getTag(),
         w.getLink(),
+        w.getDemoUrl(),
+        w.getRepoUrl(),
+        w.getTechStack(),
         w.getCoverUrl(),
         w.isEnabled(),
         w.getSortOrder(),

@@ -125,6 +125,10 @@ if __name__ == "__main__":
 // ==================== Monaco Editor 配置 ====================
 function initMonacoEditor() {
   if (!editorContainer.value) return
+  if (editorInstance) {
+    editorInstance.dispose()
+    editorInstance = null
+  }
 
   // 定义阿里巴巴/GitHub 风格主题
   monaco.editor.defineTheme('alibaba-dark', {
@@ -264,6 +268,11 @@ function initMonacoEditor() {
   editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => {
     runCode(true)
   })
+
+  // flex 布局下首帧高度可能为 0，下一帧再 layout 一次避免「有区域但看不见光标/行号」
+  requestAnimationFrame(() => {
+    editorInstance?.layout()
+  })
 }
 
 // ==================== 语言切换 ====================
@@ -329,15 +338,16 @@ async function loadProblem() {
         currentLang.value = firstLang
       }
     }
-    
-    // 等待 DOM 更新后初始化编辑器
-    await nextTick()
-    initMonacoEditor()
   } catch (e: unknown) {
     err.value = e instanceof Error ? e.message : '加载失败'
   } finally {
     loading.value = false
   }
+
+  // 编辑器在 v-else-if="problem" 中，必须等 loading=false 后容器才挂载，再初始化 Monaco
+  if (!problem.value || err.value) return
+  await nextTick()
+  initMonacoEditor()
 }
 
 // 保存代码到 localStorage

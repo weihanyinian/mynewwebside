@@ -132,92 +132,95 @@ const mobileTabs = computed(() => [
           </div>
         </div>
         <div id="site-layout-nav-links" class="links site-nav-links">
-          <!-- 【全站统一】顶栏：玻璃态 pill + 摸鱼粉强调 -->
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-top-anchor"
-            :class="{ 'site-pill--active': isSectionActive('#about') }"
-            @click.prevent="goHome('#about')"
-          >{{ t('nav.about') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-top-anchor"
-            :class="{ 'site-pill--active': isSectionActive('#works') }"
-            @click.prevent="goHome('#works')"
-          >{{ t('nav.works') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-top-anchor"
-            :class="{ 'site-pill--active': isSectionActive('#contact') }"
-            @click.prevent="goHome('#contact')"
-          >{{ t('nav.contact') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav"
-            :class="{ 'site-pill--active': route.path === '/message' }"
-            @click.prevent="router.push('/message')"
-          >{{ t('nav.message') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isRoutePrefix('/albums') }"
-            @click.prevent="router.push('/albums')"
-          >{{ t('breadcrumb.albums') }}</a>
-          <a
-            v-if="!isBlogContext"
-            href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path === '/music' }"
-            @click.prevent="router.push('/music')"
-          >{{ t('nav.music') }}</a>
-          <a href="#" class="site-pill site-pill--nav lang-toggle" :title="t('home.langToggle')" @click.prevent="toggleLocale">
-            {{ locale === 'zh' ? 'EN' : '中' }}
-          </a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isRoutePrefix('/tools') }"
-            @click.prevent="router.push('/tools')"
-          >{{ t('nav.tools') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isRoutePrefix('/blog') || isRoutePrefix('/article') }"
-            @click.prevent="router.push('/blog')"
-          >{{ t('nav.blog') }}</a>
-          <a
-            v-if="isAdminUser"
-            href="#"
-            class="site-pill site-pill--nav site-nav-auth"
-            :class="{ 'site-pill--active': route.path.startsWith('/admin') }"
-            @click.prevent="router.push('/admin')"
-          >{{ t('nav.admin') }}</a>
-          <a
-            v-if="!isLoggedIn"
-            href="#"
-            class="site-pill site-pill--nav site-nav-auth"
-            :class="{ 'site-pill--active': route.path === '/login' }"
-            @click.prevent="router.push('/login')"
-          >{{ t('nav.login') }}</a>
-          <a
-            v-if="!isLoggedIn"
-            href="#"
-            class="site-pill site-pill--nav site-nav-auth"
-            :class="{ 'site-pill--active': route.path === '/register' }"
-            @click.prevent="router.push('/register')"
-          >{{ t('nav.register') }}</a>
-          <a
-            v-if="isLoggedIn"
-            href="#"
-            class="site-pill site-pill--nav site-nav-auth"
-            @click.prevent="logout"
-          >{{ t('nav.logout') }}</a>
-          <a
-            href="#"
-            class="nav-social-link nav-theme-icon"
-            :title="t('home.themeToggle')"
-            @click.prevent="themeStore.toggleTheme"
-          >{{ !isDarkMode ? '🌙' : '☀️' }}</a>
+          <div class="site-nav-links__core">
+            <a
+              href="#"
+              class="site-pill site-pill--nav site-top-anchor"
+              :class="{ 'site-pill--active': isSectionActive('#about') }"
+              @click.prevent="goHome('#about')"
+            >{{ t('nav.about') }}</a>
+            <a
+              href="#"
+              class="site-pill site-pill--nav site-top-anchor"
+              :class="{ 'site-pill--active': isSectionActive('#works') }"
+              @click.prevent="goHome('#works')"
+            >{{ t('nav.works') }}</a>
+            <a
+              href="#"
+              class="site-pill site-pill--nav site-top-anchor"
+              :class="{ 'site-pill--active': isSectionActive('#contact') }"
+              @click.prevent="goHome('#contact')"
+            >{{ t('nav.contact') }}</a>
+            <a
+              href="#"
+              class="site-pill site-pill--nav"
+              :class="{ 'site-pill--active': route.path === '/message' }"
+              @click.prevent="router.push('/message')"
+            >{{ t('nav.message') }}</a>
+            <a
+              href="#"
+              class="site-pill site-pill--nav site-pill--keep-mobile"
+              :class="{ 'site-pill--active': isRoutePrefix('/tools') }"
+              @click.prevent="router.push('/tools')"
+            >{{ t('nav.tools') }}</a>
+            <a
+              href="#"
+              class="site-pill site-pill--nav site-pill--keep-mobile"
+              :class="{ 'site-pill--active': isRoutePrefix('/blog') || isRoutePrefix('/article') }"
+              @click.prevent="router.push('/blog')"
+            >{{ t('nav.blog') }}</a>
+            <a
+              href="#"
+              class="site-pill site-pill--nav site-pill--keep-mobile"
+              :class="{ 'site-pill--active': isRoutePrefix('/albums') }"
+              @click.prevent="router.push('/albums')"
+            >{{ t('breadcrumb.albums') }}</a>
+            <a
+              v-if="!isBlogContext"
+              href="#"
+              class="site-pill site-pill--nav site-pill--keep-mobile"
+              :class="{ 'site-pill--active': route.path === '/music' }"
+              @click.prevent="router.push('/music')"
+            >{{ t('nav.music') }}</a>
+          </div>
+          <div class="site-nav-links__actions">
+            <a href="#" class="site-pill site-pill--nav site-pill--ghost lang-toggle" :title="t('home.langToggle')" @click.prevent="toggleLocale">
+              {{ locale === 'zh' ? 'EN' : '中' }}
+            </a>
+            <a
+              href="#"
+              class="nav-social-link nav-theme-icon"
+              :title="t('home.themeToggle')"
+              @click.prevent="themeStore.toggleTheme"
+            >{{ !isDarkMode ? '夜' : '昼' }}</a>
+            <a
+              v-if="isAdminUser"
+              href="#"
+              class="site-pill site-pill--nav site-nav-auth"
+              :class="{ 'site-pill--active': route.path.startsWith('/admin') }"
+              @click.prevent="router.push('/admin')"
+            >{{ t('nav.admin') }}</a>
+            <a
+              v-if="!isLoggedIn"
+              href="#"
+              class="site-pill site-pill--nav site-nav-auth"
+              :class="{ 'site-pill--active': route.path === '/login' }"
+              @click.prevent="router.push('/login')"
+            >{{ t('nav.login') }}</a>
+            <a
+              v-if="!isLoggedIn"
+              href="#"
+              class="site-pill site-pill--nav site-nav-auth"
+              :class="{ 'site-pill--active': route.path === '/register' }"
+              @click.prevent="router.push('/register')"
+            >{{ t('nav.register') }}</a>
+            <a
+              v-if="isLoggedIn"
+              href="#"
+              class="site-pill site-pill--nav site-nav-auth"
+              @click.prevent="logout"
+            >{{ t('nav.logout') }}</a>
+          </div>
         </div>
       </div>
     </nav>
@@ -383,6 +386,19 @@ const mobileTabs = computed(() => [
 .links a.site-pill {
   text-decoration: none;
   flex-shrink: 0;
+}
+
+.site-nav-links__core,
+.site-nav-links__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.site-nav-links__actions {
+  margin-left: 6px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 .site-main {
