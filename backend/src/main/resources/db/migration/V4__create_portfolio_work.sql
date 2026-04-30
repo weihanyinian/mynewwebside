@@ -41,11 +41,11 @@ FROM (
     NOW(6)
   UNION ALL
   SELECT
-    'MyWebSide Blog',
+    'Website Blog',
     '个人专属数字花园，基于 Spring Boot 3 与 Vue 3 构建的全栈展示平台。',
     '博客、留言墙、工具栏与 OJ 一体化；代码开源，欢迎交流与共建。',
     'Full Stack',
-    'https://github.com/weihanyinian/mynewwebside',
+    'https://github.com/weihanyinian/website',
     '/avatar.webp',
     TRUE,
     30,

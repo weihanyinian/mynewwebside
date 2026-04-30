@@ -18,7 +18,7 @@ function logout() {
   <el-container class="admin-root">
     <el-aside class="admin-aside" width="240px">
       <div class="admin-brand" @click="router.push('/')">
-        <span class="brand-text">MyWebSide</span>
+        <span class="brand-text">Website</span>
         <span class="brand-badge">ADMIN</span>
       </div>
       <el-menu

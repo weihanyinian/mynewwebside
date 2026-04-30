@@ -1,4 +1,4 @@
-# MyWebSide · 个人技术博客（Spring Boot 3 + Vue 3）
+# Website · 个人技术博客（Spring Boot 3 + Vue 3）
 
 ## 目录结构
 

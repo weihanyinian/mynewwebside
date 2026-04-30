@@ -1,11 +1,11 @@
 # =============================================
-# MyWebSide Docker Compose（使用预构建镜像）
+# Website Docker Compose（使用预构建镜像）
 # 适合离线/上传 tar 包后在服务器启动
 # =============================================
 services:
   mysql:
     image: mysql:8.0
-    container_name: mywebside-mysql
+    container_name: website-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-your_root_password}
@@ -29,7 +29,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: mywebside-redis
+    container_name: website-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
@@ -43,8 +43,8 @@ services:
       retries: 3
 
   backend:
-    image: mywebside-backend:${IMAGE_TAG:-latest}
-    container_name: mywebside-backend
+    image: website-backend:${IMAGE_TAG:-latest}
+    container_name: website-backend
     restart: unless-stopped
     depends_on:
       mysql:
@@ -68,8 +68,8 @@ services:
       start_period: 60s
 
   frontend:
-    image: mywebside-frontend:${IMAGE_TAG:-latest}
-    container_name: mywebside-frontend
+    image: website-frontend:${IMAGE_TAG:-latest}
+    container_name: website-frontend
     restart: unless-stopped
     depends_on:
       - backend
@@ -89,5 +89,5 @@ volumes:
 
 networks:
   default:
-    name: mywebside-network
+    name: website-network
     driver: bridge

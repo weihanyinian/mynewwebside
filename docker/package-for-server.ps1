@@ -16,9 +16,9 @@ $projectRoot = Resolve-Path (Join-Path $scriptDir "..")
 $dockerDir = Resolve-Path $scriptDir
 $outputPath = Join-Path $dockerDir $OutputDir
 
-$backendImage = "mywebside-backend:$Tag"
-$frontendImage = "mywebside-frontend:$Tag"
-$archiveName = "mywebside-images-$Tag.tar"
+$backendImage = "website-backend:$Tag"
+$frontendImage = "website-frontend:$Tag"
+$archiveName = "website-images-$Tag.tar"
 $archivePath = Join-Path $outputPath $archiveName
 
 Write-Step "准备输出目录: $outputPath"

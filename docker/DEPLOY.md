@@ -1,5 +1,5 @@
 # =============================================
-# MyWebSide Docker 部署指南
+# Website Docker 部署指南
 # =============================================
 
 ## 前置条件
@@ -26,12 +26,12 @@ docker compose version
 如果你不想在服务器上编译前后端，可以在本地直接打好镜像包再上传：
 
 ```powershell
-cd E:\mywebside\docker
+cd E:\website\docker
 .\package-for-server.ps1 -Tag v1
 ```
 
 脚本会在 `docker/dist` 下生成：
-- `mywebside-images-v1.tar`（前后端镜像）
+- `website-images-v1.tar`（前后端镜像）
 - `docker-compose.yml`
 - `.env.example`
 - `schema.sql`
@@ -39,8 +39,8 @@ cd E:\mywebside\docker
 上传整个 `dist` 目录到服务器后执行：
 
 ```bash
-cd /opt/mywebside
-docker load -i mywebside-images-v1.tar
+cd /opt/website
+docker load -i website-images-v1.tar
 cp .env.example .env
 # 确保 IMAGE_TAG=v1（与本地打包的 -Tag 一致）
 sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=v1/' .env
@@ -51,7 +51,7 @@ docker compose up -d
 
 ```bash
 # 在服务器上克隆/上传项目
-cd /opt/mywebside
+cd /opt/website
 
 # 确保 docker 目录存在
 mkdir -p docker
@@ -61,7 +61,7 @@ mkdir -p docker
 ### 2. 配置环境变量
 
 ```bash
-cd /opt/mywebside/docker
+cd /opt/website/docker
 cp .env.example .env
 nano .env  # 编辑配置
 ```
@@ -125,8 +125,8 @@ docker compose up -d --build
 docker stats
 
 # 进入容器调试
-docker exec -it mywebside-backend sh
-docker exec -it mywebside-mysql mysql -u root -p
+docker exec -it website-backend sh
+docker exec -it website-mysql mysql -u root -p
 ```
 
 ## 数据持久化
@@ -138,11 +138,11 @@ docker exec -it mywebside-mysql mysql -u root -p
 备份方法：
 ```bash
 # 备份 MySQL
-docker exec mywebside-mysql mysqldump -u root -p${MYSQL_ROOT_PASSWORD} blog > backup.sql
+docker exec website-mysql mysqldump -u root -p${MYSQL_ROOT_PASSWORD} blog > backup.sql
 
 # 备份 Redis
-docker exec mywebside-redis redis-cli SAVE
-docker cp mywebside-redis:/data/dump.rdb ./redis_backup.rdb
+docker exec website-redis redis-cli SAVE
+docker cp website-redis:/data/dump.rdb ./redis_backup.rdb
 ```
 
 ## 生产环境优化
@@ -201,7 +201,7 @@ docker compose down -v  # ⚠️ 会删除数据
 docker compose up -d
 
 # 2. 后端连接数据库失败
-docker exec mywebside-backend cat /etc/hosts
+docker exec website-backend cat /etc/hosts
 # 确认 mysql hostname 可解析
 
 # 3. 前端 502 Bad Gateway
@@ -231,7 +231,7 @@ sudo lsof -i :3306
 
 3. 在 Docker 中导入数据：
    ```bash
-   docker exec -i mywebside-mysql mysql -u root -p${MYSQL_ROOT_PASSWORD} blog < blog_backup.sql
+   docker exec -i website-mysql mysql -u root -p${MYSQL_ROOT_PASSWORD} blog < blog_backup.sql
    ```
 
 4. 修改 `application.yml` 中的 Redis 配置（如果之前没用）：

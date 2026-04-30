@@ -34,7 +34,7 @@ const worksStore = useWorksStore()
 const visitStore = useVisitStore()
 
 const githubRepo =
-  import.meta.env.VITE_PUBLIC_GITHUB_REPO || 'https://github.com/weihanyinian/mynewwebside'
+  import.meta.env.VITE_PUBLIC_GITHUB_REPO || 'https://github.com/weihanyinian/website'
 
 function logout() {
   userStore.logout()
