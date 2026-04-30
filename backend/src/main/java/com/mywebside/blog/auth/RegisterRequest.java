@@ -1,4 +1,4 @@
-package com.mywebside.blog.auth;
+﻿package com.mywebsite.blog.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

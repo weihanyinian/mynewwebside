@@ -1,5 +1,5 @@
-#!/bin/bash
-# MyWebSide Blog Backend - 2C2G 服务器启动脚本
+﻿#!/bin/bash
+# MyWebsite Blog Backend - 2C2G 服务器启动脚本
 # 使用方法：bash start.sh
 
 APP_NAME="blog-backend"

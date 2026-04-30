@@ -1,9 +1,9 @@
-package com.mywebside.blog.controller;
+﻿package com.mywebsite.blog.controller;
 
-import com.mywebside.blog.ai.AiCompanionService;
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.dto.AiCompanionChatRequest;
-import com.mywebside.blog.dto.AiCompanionChatResponse;
+import com.mywebsite.blog.ai.AiCompanionService;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.dto.AiCompanionChatRequest;
+import com.mywebsite.blog.dto.AiCompanionChatResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

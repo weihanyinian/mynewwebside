@@ -370,7 +370,7 @@ async function runCode(submit: boolean) {
   result.value = null
   
   try {
-    const stdin = useCustomInput.value ? customStdin.value : undefined
+    const stdin = useCustomInput.value ? customStdin.value : null
     
     result.value = await postOjJudge({
       problemId: problem.value.id,

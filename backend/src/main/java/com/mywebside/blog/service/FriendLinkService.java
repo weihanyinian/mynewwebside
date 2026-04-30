@@ -1,10 +1,10 @@
-package com.mywebside.blog.service;
+﻿package com.mywebsite.blog.service;
 
-import com.mywebside.blog.common.BusinessException;
-import com.mywebside.blog.domain.FriendLink;
-import com.mywebside.blog.dto.FriendLinkPublicDto;
-import com.mywebside.blog.dto.FriendLinkUpsertRequest;
-import com.mywebside.blog.repo.FriendLinkRepository;
+import com.mywebsite.blog.common.BusinessException;
+import com.mywebsite.blog.domain.FriendLink;
+import com.mywebsite.blog.dto.FriendLinkPublicDto;
+import com.mywebsite.blog.dto.FriendLinkUpsertRequest;
+import com.mywebsite.blog.repo.FriendLinkRepository;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.cache.annotation.CacheEvict;

@@ -1,9 +1,9 @@
-package com.mywebside.blog.controller;
+﻿package com.mywebsite.blog.controller;
 
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.dto.CommentCreateRequest;
-import com.mywebside.blog.dto.CommentDto;
-import com.mywebside.blog.service.CommentService;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.dto.CommentCreateRequest;
+import com.mywebsite.blog.dto.CommentDto;
+import com.mywebsite.blog.service.CommentService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;

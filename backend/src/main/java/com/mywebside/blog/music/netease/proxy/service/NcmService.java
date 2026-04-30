@@ -1,6 +1,6 @@
-package com.mywebside.blog.music.netease.proxy.service;
+﻿package com.mywebsite.blog.music.netease.proxy.service;
 
-import com.mywebside.blog.common.BusinessException;
+import com.mywebsite.blog.common.BusinessException;
 import jakarta.servlet.http.HttpSession;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -84,7 +84,7 @@ public class NcmService {
   ) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    headers.set("User-Agent", "MyWebSide-NCM-Proxy/1.0");
+    headers.set("User-Agent", "MyWebsite-NCM-Proxy/1.0");
     String cookie = getCookie(session);
     if (cookie != null) {
       headers.set("Cookie", cookie);

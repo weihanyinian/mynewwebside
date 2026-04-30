@@ -1,4 +1,4 @@
-package com.mywebside.blog.config;
+﻿package com.mywebsite.blog.config;
 
 import java.util.Arrays;
 import java.util.List;

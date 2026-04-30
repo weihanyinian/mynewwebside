@@ -1,11 +1,11 @@
-package com.mywebside.blog.oj;
+﻿package com.mywebsite.blog.oj;
 
-import com.mywebside.blog.common.PageResponse;
-import com.mywebside.blog.oj.domain.JudgeResult;
-import com.mywebside.blog.oj.dto.JudgeRequest;
-import com.mywebside.blog.oj.dto.OjSubmissionRowDto;
-import com.mywebside.blog.persistence.entity.OjSubmissionEntity;
-import com.mywebside.blog.persistence.mapper.OjSubmissionEntityMapper;
+import com.mywebsite.blog.common.PageResponse;
+import com.mywebsite.blog.oj.domain.JudgeResult;
+import com.mywebsite.blog.oj.dto.JudgeRequest;
+import com.mywebsite.blog.oj.dto.OjSubmissionRowDto;
+import com.mywebsite.blog.persistence.entity.OjSubmissionEntity;
+import com.mywebsite.blog.persistence.mapper.OjSubmissionEntityMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import org.springframework.data.domain.Page;

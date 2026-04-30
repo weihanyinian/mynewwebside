@@ -1,14 +1,14 @@
-package com.mywebside.blog.service;
+﻿package com.mywebsite.blog.service;
 
-import com.mywebside.blog.common.BusinessException;
-import com.mywebside.blog.common.PageResponse;
-import com.mywebside.blog.domain.WallMessage;
-import com.mywebside.blog.domain.WallMessageStatus;
-import com.mywebside.blog.dto.WallMessageAdminDto;
-import com.mywebside.blog.dto.WallMessageCreateRequest;
-import com.mywebside.blog.dto.WallMessagePublicDto;
-import com.mywebside.blog.dto.WallMessageSubmitVo;
-import com.mywebside.blog.repo.WallMessageRepository;
+import com.mywebsite.blog.common.BusinessException;
+import com.mywebsite.blog.common.PageResponse;
+import com.mywebsite.blog.domain.WallMessage;
+import com.mywebsite.blog.domain.WallMessageStatus;
+import com.mywebsite.blog.dto.WallMessageAdminDto;
+import com.mywebsite.blog.dto.WallMessageCreateRequest;
+import com.mywebsite.blog.dto.WallMessagePublicDto;
+import com.mywebsite.blog.dto.WallMessageSubmitVo;
+import com.mywebsite.blog.repo.WallMessageRepository;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.data.domain.Page;

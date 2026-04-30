@@ -1,10 +1,10 @@
-package com.mywebside.blog.oj;
+﻿package com.mywebsite.blog.oj;
 
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.common.BusinessException;
-import com.mywebside.blog.oj.domain.JudgeResult;
-import com.mywebside.blog.oj.dto.JudgeRequest;
-import com.mywebside.blog.service.UserAccountService;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.common.BusinessException;
+import com.mywebsite.blog.oj.domain.JudgeResult;
+import com.mywebsite.blog.oj.dto.JudgeRequest;
+import com.mywebsite.blog.service.UserAccountService;
 import jakarta.validation.Valid;
 import java.util.Map;
 import java.util.UUID;

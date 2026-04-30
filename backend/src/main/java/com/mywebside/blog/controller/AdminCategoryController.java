@@ -1,9 +1,9 @@
-package com.mywebside.blog.controller;
+﻿package com.mywebsite.blog.controller;
 
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.dto.CategoryDto;
-import com.mywebside.blog.dto.CategoryUpsertRequest;
-import com.mywebside.blog.service.CategoryService;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.dto.CategoryDto;
+import com.mywebsite.blog.dto.CategoryUpsertRequest;
+import com.mywebsite.blog.service.CategoryService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;

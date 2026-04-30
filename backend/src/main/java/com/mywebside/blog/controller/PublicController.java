@@ -1,16 +1,16 @@
-package com.mywebside.blog.controller;
+﻿package com.mywebsite.blog.controller;
 
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.common.PageResponse;
-import com.mywebside.blog.dto.ArticleDetailDto;
-import com.mywebside.blog.dto.ArticleListItemDto;
-import com.mywebside.blog.dto.CategoryDto;
-import com.mywebside.blog.dto.DailyQuoteDto;
-import com.mywebside.blog.dto.TagDto;
-import com.mywebside.blog.service.ArticleService;
-import com.mywebside.blog.service.CategoryService;
-import com.mywebside.blog.service.DailyQuoteService;
-import com.mywebside.blog.service.TagService;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.common.PageResponse;
+import com.mywebsite.blog.dto.ArticleDetailDto;
+import com.mywebsite.blog.dto.ArticleListItemDto;
+import com.mywebsite.blog.dto.CategoryDto;
+import com.mywebsite.blog.dto.DailyQuoteDto;
+import com.mywebsite.blog.dto.TagDto;
+import com.mywebsite.blog.service.ArticleService;
+import com.mywebsite.blog.service.CategoryService;
+import com.mywebsite.blog.service.DailyQuoteService;
+import com.mywebsite.blog.service.TagService;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 访客只读资源（REST 前缀 {@code /api/public}）。
- * <p>统一响应体为 {@link com.mywebside.blog.common.ApiResponse}，错误由全局异常处理转换为 HTTP 状态码 + JSON。</p>
+ * <p>统一响应体为 {@link com.mywebsite.blog.common.ApiResponse}，错误由全局异常处理转换为 HTTP 状态码 + JSON。</p>
  */
 @RestController
 @RequestMapping("/api/public")

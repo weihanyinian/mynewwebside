@@ -1,9 +1,9 @@
-package com.mywebside.blog.controller;
+﻿package com.mywebsite.blog.controller;
 
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.domain.FriendLink;
-import com.mywebside.blog.dto.FriendLinkUpsertRequest;
-import com.mywebside.blog.service.FriendLinkService;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.domain.FriendLink;
+import com.mywebsite.blog.dto.FriendLinkUpsertRequest;
+import com.mywebsite.blog.service.FriendLinkService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;

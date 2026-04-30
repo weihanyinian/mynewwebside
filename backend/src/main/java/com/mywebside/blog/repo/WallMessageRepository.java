@@ -1,7 +1,7 @@
-package com.mywebside.blog.repo;
+﻿package com.mywebsite.blog.repo;
 
-import com.mywebside.blog.domain.WallMessage;
-import com.mywebside.blog.domain.WallMessageStatus;
+import com.mywebsite.blog.domain.WallMessage;
+import com.mywebsite.blog.domain.WallMessageStatus;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

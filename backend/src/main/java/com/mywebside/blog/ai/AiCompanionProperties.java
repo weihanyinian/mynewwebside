@@ -1,4 +1,4 @@
-package com.mywebside.blog.ai;
+﻿package com.mywebsite.blog.ai;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

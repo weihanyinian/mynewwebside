@@ -1,4 +1,4 @@
-package com.mywebside.blog.music.netease.config;
+﻿package com.mywebsite.blog.music.netease.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

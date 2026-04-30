@@ -1,10 +1,10 @@
-package com.mywebside.blog.music.netease.client;
+﻿package com.mywebsite.blog.music.netease.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mywebside.blog.common.BusinessException;
-import com.mywebside.blog.music.netease.config.NeteaseMusicOpenProperties;
-import com.mywebside.blog.music.netease.util.NeteaseCryptoUtils;
+import com.mywebsite.blog.common.BusinessException;
+import com.mywebsite.blog.music.netease.config.NeteaseMusicOpenProperties;
+import com.mywebsite.blog.music.netease.util.NeteaseCryptoUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;

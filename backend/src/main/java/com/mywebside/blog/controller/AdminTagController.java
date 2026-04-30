@@ -1,9 +1,9 @@
-package com.mywebside.blog.controller;
+﻿package com.mywebsite.blog.controller;
 
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.dto.TagDto;
-import com.mywebside.blog.dto.TagUpsertRequest;
-import com.mywebside.blog.service.TagService;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.dto.TagDto;
+import com.mywebsite.blog.dto.TagUpsertRequest;
+import com.mywebsite.blog.service.TagService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;

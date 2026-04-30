@@ -1,6 +1,6 @@
-package com.mywebside.blog.security;
+﻿package com.mywebsite.blog.security;
 
-import com.mywebside.blog.user.UserRoles;
+import com.mywebsite.blog.user.UserRoles;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

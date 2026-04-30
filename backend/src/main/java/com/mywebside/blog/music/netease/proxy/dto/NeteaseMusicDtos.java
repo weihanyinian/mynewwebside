@@ -1,4 +1,4 @@
-package com.mywebside.blog.music.netease.proxy.dto;
+﻿package com.mywebsite.blog.music.netease.proxy.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
@@ -13,7 +13,7 @@ public final class NeteaseMusicDtos {
 
   public record NeteaseStatusDto(boolean bound, Long neteaseUid, String neteaseNickname) {}
 
-  /** 与 {@link com.mywebside.blog.controller.MusicController.PlaylistTrack} 对齐字段名，便于前端复用 */
+  /** 与 {@link com.mywebsite.blog.controller.MusicController.PlaylistTrack} 对齐字段名，便于前端复用 */
   public record SongMetaDto(long id, String name, String artist, String cover) {}
 
   public record SongUrlDto(String url, boolean playable, String reasonCode, String reasonMessage) {}

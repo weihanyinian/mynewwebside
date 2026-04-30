@@ -1,4 +1,4 @@
-package com.mywebside.blog.dto;
+﻿package com.mywebsite.blog.dto;
 
 public record PortfolioWorkPublicDto(
     long id,

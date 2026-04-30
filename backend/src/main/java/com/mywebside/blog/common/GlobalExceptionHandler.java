@@ -1,4 +1,4 @@
-package com.mywebside.blog.common;
+﻿package com.mywebsite.blog.common;
 
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;

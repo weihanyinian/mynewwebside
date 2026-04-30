@@ -1,8 +1,8 @@
-package com.mywebside.blog.music.netease.config;
+﻿package com.mywebsite.blog.music.netease.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mywebside.blog.music.netease.client.NeteaseOpenApiClient;
-import com.mywebside.blog.music.netease.service.NeteaseMusicOpenService;
+import com.mywebsite.blog.music.netease.client.NeteaseOpenApiClient;
+import com.mywebsite.blog.music.netease.service.NeteaseMusicOpenService;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import org.slf4j.Logger;
@@ -65,7 +65,7 @@ public class NeteaseMusicOpenConfiguration {
       throw new IllegalStateException("netease.music.open.private-key-base64 不能为空");
     }
     try {
-      com.mywebside.blog.music.netease.util.NeteaseCryptoUtils.loadPkcs8PrivateKeyFromBase64(
+      com.mywebsite.blog.music.netease.util.NeteaseCryptoUtils.loadPkcs8PrivateKeyFromBase64(
           props.getPrivateKeyBase64()
       );
     } catch (Exception e) {

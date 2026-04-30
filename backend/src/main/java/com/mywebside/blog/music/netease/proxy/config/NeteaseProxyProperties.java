@@ -1,4 +1,4 @@
-package com.mywebside.blog.music.netease.proxy.config;
+﻿package com.mywebsite.blog.music.netease.proxy.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -9,7 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class NeteaseProxyProperties {
 
   /**
-   * 与 {@link com.mywebside.blog.controller.MusicController} 历史默认一致，可通过环境变量覆盖。
+   * 与 {@link com.mywebsite.blog.controller.MusicController} 历史默认一致，可通过环境变量覆盖。
    */
   private String baseUrl = "https://netease-cloud-music-api-five-roan-58.vercel.app";
 

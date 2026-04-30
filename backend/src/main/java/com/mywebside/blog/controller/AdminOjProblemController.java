@@ -1,11 +1,11 @@
-package com.mywebside.blog.controller;
+﻿package com.mywebsite.blog.controller;
 
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.common.BusinessException;
-import com.mywebside.blog.oj.OjProblemStore;
-import com.mywebside.blog.oj.domain.Problem;
-import com.mywebside.blog.oj.dto.ProblemListItemDto;
-import com.mywebside.blog.persistence.mapper.OjProblemEntityMapper;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.common.BusinessException;
+import com.mywebsite.blog.oj.OjProblemStore;
+import com.mywebsite.blog.oj.domain.Problem;
+import com.mywebsite.blog.oj.dto.ProblemListItemDto;
+import com.mywebsite.blog.persistence.mapper.OjProblemEntityMapper;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.web.bind.annotation.DeleteMapping;

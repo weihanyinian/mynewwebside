@@ -1,8 +1,8 @@
-package com.mywebside.blog.config;
+﻿package com.mywebsite.blog.config;
 
-import com.mywebside.blog.ai.AiCompanionProperties;
-import com.mywebside.blog.music.netease.config.NeteaseMusicOpenProperties;
-import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
+import com.mywebsite.blog.ai.AiCompanionProperties;
+import com.mywebsite.blog.music.netease.config.NeteaseMusicOpenProperties;
+import com.mywebsite.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

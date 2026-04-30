@@ -1,6 +1,6 @@
-package com.mywebside.blog.security;
+﻿package com.mywebsite.blog.security;
 
-import com.mywebside.blog.config.AppProperties;
+import com.mywebsite.blog.config.AppProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

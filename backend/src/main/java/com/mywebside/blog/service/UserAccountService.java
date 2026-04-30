@@ -1,14 +1,14 @@
-package com.mywebside.blog.service;
+﻿package com.mywebsite.blog.service;
 
-import com.mywebside.blog.auth.LoginRequest;
-import com.mywebside.blog.auth.LoginResponse;
-import com.mywebside.blog.auth.RegisterRequest;
-import com.mywebside.blog.auth.UserInfoDto;
-import com.mywebside.blog.common.BusinessException;
-import com.mywebside.blog.persistence.entity.UserEntity;
-import com.mywebside.blog.persistence.mapper.UserEntityMapper;
-import com.mywebside.blog.security.JwtService;
-import com.mywebside.blog.user.UserRoles;
+import com.mywebsite.blog.auth.LoginRequest;
+import com.mywebsite.blog.auth.LoginResponse;
+import com.mywebsite.blog.auth.RegisterRequest;
+import com.mywebsite.blog.auth.UserInfoDto;
+import com.mywebsite.blog.common.BusinessException;
+import com.mywebsite.blog.persistence.entity.UserEntity;
+import com.mywebsite.blog.persistence.mapper.UserEntityMapper;
+import com.mywebsite.blog.security.JwtService;
+import com.mywebsite.blog.user.UserRoles;
 import java.time.LocalDateTime;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
-package com.mywebside.blog.repo;
+﻿package com.mywebsite.blog.repo;
 
-import com.mywebside.blog.domain.Article;
-import com.mywebside.blog.domain.ArticleStatus;
+import com.mywebsite.blog.domain.Article;
+import com.mywebsite.blog.domain.ArticleStatus;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.domain.Page;

@@ -1,9 +1,9 @@
-package com.mywebside.blog.music.netease.controller;
+﻿package com.mywebsite.blog.music.netease.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.music.netease.config.NeteaseMusicOpenProperties;
-import com.mywebside.blog.music.netease.service.NeteaseMusicOpenService;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.music.netease.config.NeteaseMusicOpenProperties;
+import com.mywebsite.blog.music.netease.service.NeteaseMusicOpenService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -1,10 +1,10 @@
-package com.mywebside.blog.bootstrap;
+﻿package com.mywebsite.blog.bootstrap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mywebside.blog.oj.OjProblemStore;
-import com.mywebside.blog.oj.domain.Problem;
-import com.mywebside.blog.persistence.mapper.OjProblemEntityMapper;
+import com.mywebsite.blog.oj.OjProblemStore;
+import com.mywebsite.blog.oj.domain.Problem;
+import com.mywebsite.blog.persistence.mapper.OjProblemEntityMapper;
 import java.io.InputStream;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;

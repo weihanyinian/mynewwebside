@@ -1,6 +1,6 @@
-package com.mywebside.blog.repo;
+﻿package com.mywebsite.blog.repo;
 
-import com.mywebside.blog.domain.Comment;
+import com.mywebsite.blog.domain.Comment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

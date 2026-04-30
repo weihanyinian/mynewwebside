@@ -1,7 +1,7 @@
-package com.mywebside.blog.music.netease.proxy.controller;
+﻿package com.mywebsite.blog.music.netease.proxy.controller;
 
-import com.mywebside.blog.common.ApiResponse;
-import com.mywebside.blog.music.netease.proxy.service.NcmService;
+import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.music.netease.proxy.service.NcmService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

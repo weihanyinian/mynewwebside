@@ -1,6 +1,6 @@
-package com.mywebside.blog.dto;
+﻿package com.mywebsite.blog.dto;
 
-import com.mywebside.blog.domain.WallMessageStatus;
+import com.mywebsite.blog.domain.WallMessageStatus;
 import java.time.Instant;
 
 /** 后台管理列表项。 */
