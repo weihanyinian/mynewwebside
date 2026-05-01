@@ -16,8 +16,8 @@ docker compose up -d mysql
 echo "Step 4: Waiting for MySQL to be ready..."
 sleep 15
 
-echo "Step 5: Fixing Flyway baseline..."
-docker exec -i website-mysql mysql -uroot -p"$(grep MYSQL_ROOT_PASSWORD .env | cut -d= -f2)" < fix-flyway.sql
+echo "Step 5: Fixing Flyway baseline (final)..."
+docker exec -i website-mysql mysql -uroot -p"$(grep MYSQL_ROOT_PASSWORD .env | cut -d= -f2)" < fix-flyway-final.sql
 
 echo "Step 6: Building backend (no cache)..."
 docker compose build --no-cache backend
