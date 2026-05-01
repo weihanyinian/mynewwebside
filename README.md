@@ -63,11 +63,18 @@ $env:PORT=3001
 netease-cloud-music-api-enhanced
 ```
 
-### 2) 启动第三方 API 服务（Docker 方式）
+### 2) 启动第三方 API 服务（Docker 方式，增强版镜像）
+
+与 npm 包 [@neteasecloudmusicapienhanced/api](https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api) 对应：
 
 ```bash
-docker run -d --name ncm-enhanced -p 3000:3000 binaryify/netease_cloud_music_api
+docker pull moefurina/ncm-api:latest
+docker run -d --name ncm-api -p 3000:3000 \
+  -e http_proxy= -e https_proxy= -e HTTP_PROXY= -e HTTPS_PROXY= -e no_proxy=* -e NO_PROXY=* \
+  moefurina/ncm-api:latest
 ```
+
+（若宿主设置了不可用代理，可按文档清空上述变量；也可直接 `docker compose` 使用仓库内 `ncm-api` 服务。）
 
 健康检查（任选其一）：
 

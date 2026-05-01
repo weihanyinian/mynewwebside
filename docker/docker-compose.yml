@@ -42,13 +42,21 @@ services:
       retries: 5
     networks: [app]
 
-  # 网易云 API（容器内供后端调用；不映射到宿主机，避免公网暴露）
+  # 网易云增强 API（@neteasecloudmusicapienhanced/api，镜像 moefurina/ncm-api）
+  # 文档: https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api
   ncm-api:
-    image: binaryify/netease_cloud_music_api:latest
+    image: moefurina/ncm-api:latest
     container_name: mywebsite-ncm-api
     restart: unless-stopped
     environment:
-      PORT: 3000
+      PORT: "3000"
+      # Docker 内 request 会读代理变量；宿主若设了不可用的代理会导致请求失败，故显式清空
+      http_proxy: ""
+      https_proxy: ""
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      no_proxy: "*"
+      NO_PROXY: "*"
     networks: [app]
 
   backend:
