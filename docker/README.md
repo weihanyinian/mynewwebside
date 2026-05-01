@@ -1,97 +1,214 @@
-# Docker 部署说明
+# 个人博客全栈：阿里云 ECS + Docker 一次性部署手册
 
-项目结构：`backend/`（Spring Boot 3 + Flyway + MySQL + Redis）、`frontend/`（Vue 3 + Vite）。  
-编排文件在 `docker/`，构建上下文为**仓库根目录**（`..`），以便同时复制 `backend` 与 `frontend`。
+面向本仓库当前结构：**`backend/`**（Spring Boot 3、Flyway、MySQL、Redis）、**`frontend/`**（Vue 3、Vite）。  
+编排目录：**`docker/`**，镜像构建上下文为**仓库根目录**（与 `docker-compose.yml` 中 `context: ..` 一致）。
 
-## 阿里云 ECS 部署（推荐流程）
+---
 
-### 1. 准备云服务器
+## 目录
 
-- 选购 **ECS**（建议 2 核 4G 及以上），系统可选 **Alibaba Cloud Linux 3** 或 **Ubuntu 22.04**。
-- 分配 **公网 IP**（或后续绑定 SLB / 弹性公网 IP）。
+1. [架构与端口](#1-架构与端口)  
+2. [ECS 与安全组](#2-ecs-与安全组)  
+3. [安装 Docker](#3-安装-docker)  
+4. [获取代码](#4-获取代码)  
+5. [创建 `docker/.env`（全文模板，必做）](#5-创建-dockerenv全文模板必做)  
+6. [首次启动](#6-首次启动)  
+7. [验证是否成功](#7-验证是否成功)  
+8. [日常更新](#8-日常更新)  
+9. [离线部署（本机打镜像）](#9-离线部署本机打镜像)  
+10. [故障排查](#10-故障排查)  
 
-### 2. 安全组（非常重要）
+---
 
-在 ECS 控制台 → 本实例安全组 → **入方向** 放行：
+## 1. 架构与端口
 
-| 端口 | 用途 |
-|------|------|
-| 22 | SSH 维护 |
-| 80 | HTTP（本方案对外只开前端 Nginx） |
+| 组件 | 容器名 | 说明 |
+|------|--------|------|
+| MySQL 8 | `mywebsite-mysql` | 业务库，数据在卷 `mysql_data` |
+| Redis 7 | `mywebsite-redis` | 缓存等，卷 `redis_data` |
+| 网易云 API | `mywebsite-ncm-api` | 仅 Docker 内网访问，**不映射宿主机端口** |
+| 后端 | `mywebsite-backend` | `SPRING_PROFILES_ACTIVE=docker`，**不映射宿主机端口** |
+| 前端 | `mywebsite-frontend` | Nginx 静态资源 + `/api` 反代到后端 |
 
-可选：若以后上 HTTPS，再放行 **443**。  
-**不要**对 `0.0.0.0/0` 放行 **3306、6379**（本 compose 未将 MySQL/Redis 映射到宿主机，但若自行映射请务必限制来源 IP）。
+对外只暴露 **`HTTP_PORT`（默认 80）→ 前端容器**。访客浏览器只访问 `http://公网IP` 或域名即可；**不要**把 MySQL、Redis、8080 开到公网安全组。
 
-### 3. 安装 Docker
+数据库表由后端 **Flyway** 自动迁移，**不需要**在服务器上再执行 `mysql/schema.sql`。
+
+---
+
+## 2. ECS 与安全组
+
+1. 购买 **阿里云 ECS**（建议 2 核 4G 及以上），系统可选 **Alibaba Cloud Linux 3** 或 **Ubuntu 22.04**，分配**公网 IP**。  
+2. 控制台 → 实例 → **安全组** → **入方向** 添加规则：
+
+| 协议 | 端口 | 授权对象 | 说明 |
+|------|------|----------|------|
+| TCP | 22 | 你的办公网 IP / 谨慎使用 0.0.0.0/0 | SSH |
+| TCP | 80 | 0.0.0.0/0 | HTTP 站点 |
+| TCP | 443 | 0.0.0.0/0 | 可选，上 HTTPS 时再配 |
+
+**不要**对 `0.0.0.0/0` 放行 3306、6379、8080（本方案默认也未映射这些端口到宿主机）。
+
+---
+
+## 3. 安装 Docker
 
 **Alibaba Cloud Linux 3：**
 
 ```bash
 sudo dnf install -y docker
 sudo systemctl enable --now docker
-sudo usermod -aG docker $USER
-# 重新登录 SSH 后 docker 免 sudo
+sudo usermod -aG docker "$USER"
 ```
 
-**Ubuntu：**
+**Ubuntu 22.04：**
 
 ```bash
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker $USER
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo usermod -aG docker "$USER"
 ```
 
-安装 Compose 插件（多数新装 Docker 已自带）：
+验证（**新开一个 SSH 会话**或重新登录后再执行，避免组权限未生效）：
 
 ```bash
+docker version
 docker compose version
 ```
 
-### 4. 拉取代码
+若仍提示权限不足，可暂时：`sudo docker compose version`。
+
+---
+
+## 4. 获取代码
 
 ```bash
 sudo mkdir -p /opt
-sudo chown $USER:$USER /opt
+sudo chown "$USER:$USER" /opt
 cd /opt
-git clone <你的仓库地址> mywebsite
+git clone https://github.com/weihanyinian/mywebsite.git mywebsite
 cd mywebsite
 ```
 
-### 5. 配置环境变量
+若使用私有仓库，请改为 SSH 地址或配置 `git credential`。
+
+---
+
+## 5. 创建 `docker/.env`（全文模板，必做）
+
+在服务器上**不要**从任何「example」复制；请**新建**文件 `docker/.env`，内容与下面**完全一致结构**，并把**所有必须修改项**换成你自己的值。
+
+在仓库根目录 `/opt/mywebsite` 执行：
 
 ```bash
-cp docker/.env.example docker/.env
 nano docker/.env
 ```
 
-必改项：
+**将下面整个代码框内的内容粘贴进编辑器**，保存退出（nano：`Ctrl+O` 回车，`Ctrl+X`）。
 
-- `MYSQL_ROOT_PASSWORD`、`MYSQL_PASSWORD`：强密码。
-- `JWT_SECRET`：长随机串，例如 `openssl rand -base64 48`。
-- `APP_CORS_ALLOWED_ORIGINS`：填写访客在浏览器里实际访问的地址，**逗号分隔、不要空格**。  
-  例：`http://47.xxx.xxx.xxx` 或 `https://www.你的域名.com`（若 HTTP/HTTPS 混用，两个都写上）。
+```dotenv
+# ============ MySQL（官方镜像会创建库 + 用户）============
+MYSQL_ROOT_PASSWORD=在这里写数据库root强密码
+MYSQL_DATABASE=blog
+MYSQL_USER=blog
+MYSQL_PASSWORD=在这里写应用用户强密码与上面不同
 
-可选：`HTTP_PORT` 默认 80；若 80 被占用可改为 `8080` 等。
+# ============ JWT（必须足够长；可在服务器执行: openssl rand -base64 48）============
+JWT_SECRET=在这里粘贴openssl生成的随机串至少32字符
 
-### 6. 启动
+JWT_EXPIRE_MINUTES=10080
 
-在**仓库根目录** `/opt/mywebsite`：
+# ============ CORS：浏览器访问你站点时看到的「协议+主机+端口」逗号分隔不要空格 ============
+# 例：仅 IP:   http://47.96.xxx.xxx
+# 例：仅域名: https://www.yourdomain.com
+# 例：都要:   http://47.96.xxx.xxx,https://www.yourdomain.com
+APP_CORS_ALLOWED_ORIGINS=http://你的ECS公网IP或域名
+
+# ============ 宿主机映射到前端的端口（默认 80；被占用可改 8080）============
+HTTP_PORT=80
+
+# ============ 可选：阅读量走 Redis 写库缓冲（一般 false）============
+VIEW_COUNTER_REDIS=false
+
+# ============ 可选：首次引导管理员密码（见后端 bootstrap 说明，不需要可留空）============
+BOOTSTRAP_ADMIN_PASSWORD=
+
+# ============ 可选：看板娘 AI ============
+AI_COMPANION_ENABLED=false
+AI_COMPANION_API_KEY=
+
+# ============ 仅在使用「镜像 tar + docker-compose.images.yml」时需要 ============
+IMAGE_TAG=latest
+```
+
+**必填检查清单（少一项都会导致启动失败或浏览器跨域失败）：**
+
+1. `MYSQL_ROOT_PASSWORD`、`MYSQL_PASSWORD`：已改为强密码。  
+2. `JWT_SECRET`：已在服务器执行 `openssl rand -base64 48`，粘贴到此处。  
+3. `APP_CORS_ALLOWED_ORIGINS`：与你在浏览器地址栏访问**完全一致**的来源列表（含 `http://` 或 `https://`，**无尾斜杠**习惯上也可不带路径）。
+
+**权限（可选，防止同机其他用户读到密码）：**
 
 ```bash
+chmod 600 docker/.env
+```
+
+---
+
+## 6. 首次启动
+
+在**仓库根目录**执行（`/opt/mywebsite`）：
+
+```bash
+cd /opt/mywebsite
 docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
 ```
 
-查看状态：
+首次构建可能需要 **数分钟**（拉基础镜像、Maven、npm）。完成后：
 
 ```bash
 docker compose -f docker/docker-compose.yml ps
+```
+
+期望所有服务为 `running` 或 `healthy`（刚启动时 `backend` 可能短暂 `starting`，可再等 1～2 分钟）。
+
+查看后端日志：
+
+```bash
 docker compose -f docker/docker-compose.yml logs -f backend
 ```
 
-浏览器访问：`http://<ECS公网IP>`（或你设置的端口）。
+看到 Spring 启动完成、无 Flyway 报错即可 `Ctrl+C` 退出日志跟随。
 
-数据库表由后端 **Flyway** 自动迁移，无需再执行 `mysql/schema.sql` 初始化脚本。
+---
 
-### 7. 更新版本
+## 7. 验证是否成功
+
+在**你自己的电脑浏览器**访问：
+
+```text
+http://你的ECS公网IP
+```
+
+若 `HTTP_PORT` 改为例如 `8080`，则访问 `http://公网IP:8080`。
+
+在服务器本机可执行：
+
+```bash
+curl -sI "http://127.0.0.1:${HTTP_PORT:-80}/" | head -5
+```
+
+（若 `.env` 里 `HTTP_PORT` 非 80，请先 `set -a && source docker/.env && set +a` 再 curl，或直接把 URL 里的端口改成你设置的数字。）
+
+---
+
+## 8. 日常更新
 
 ```bash
 cd /opt/mywebsite
@@ -101,47 +218,94 @@ docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
 
 ---
 
-## 本地进入 `docker` 目录启动（等价）
+## 9. 离线部署（本机打镜像）
 
-```bash
-cd docker
-cp .env.example .env
-# 编辑 .env 后
-docker compose up -d --build
-```
-
-此时 `docker compose` 默认读取当前目录下的 `docker-compose.yml`，`build.context` 仍为上级目录 `..`。
-
----
-
-## 离线：本机打镜像再上云
-
-在 **Windows** 项目里：
+适用于服务器**不能访问 Docker Hub / 构建慢**的情况：在 **Windows** 开发机安装 Docker Desktop，在项目里执行：
 
 ```powershell
 cd docker
 .\package-for-server.ps1 -Tag v1
 ```
 
-将 `docker/dist` 中的 `mywebsite-images-v1.tar`、`docker-compose.yml`、`.env.example` 上传到服务器后：
+会在 `docker/dist` 生成：
+
+- `mywebsite-images-v1.tar`
+- `docker-compose.yml`（对应仓库内 `docker-compose.images.yml`）
+
+将整个 `dist` 目录上传到服务器某目录（例如 `/opt/mywebsite-dist`）。目录内会有：
+
+- `mywebsite-images-v1.tar`
+- `docker-compose.yml`
+- `阿里云与Docker完整部署说明.md`（与本仓库 `docker/README.md` 相同）
+- `dot-env-请填写后重命名为.env.txt`（骨架，**必须**按说明改成真正的 `.env`）
+
+在服务器执行：
 
 ```bash
+cd /opt/mywebsite-dist
 docker load -i mywebsite-images-v1.tar
-cp .env.example .env
-# 将 IMAGE_TAG=v1 写入 .env
+```
+
+在**同一目录**（与 `docker-compose.yml` 同级）创建 **`.env`**：内容与[第 5 节](#5-创建-dockerenv全文模板必做)**完全相同**，并**必须包含**（与打包标签一致）：
+
+```dotenv
+IMAGE_TAG=v1
+```
+
+可将 `dot-env-请填写后重命名为.env.txt` 复制为 `.env` 再逐项填写。启动：
+
+```bash
 docker compose up -d
+```
+
+Compose 会自动读取当前目录下的 `.env`。若你坚持用显式参数：
+
+```bash
+docker compose --env-file .env up -d
+```
+
+确认 `docker-compose.yml` 中镜像为 `mywebsite-backend:v1`、`mywebsite-frontend:v1`，与 `IMAGE_TAG=v1` 一致。
+
+---
+
+## 10. 故障排查
+
+**1）`docker compose` 报 `JWT_SECRET` / `MYSQL_PASSWORD` / `APP_CORS_ALLOWED_ORIGINS` 未设置**  
+→ 说明 `docker/.env` 未加载或变量名拼写错误。确认使用 `--env-file docker/.env`，且变量名与第 5 节一致。
+
+**2）浏览器能打开页面，但登录或 API 报 CORS**  
+→ `APP_CORS_ALLOWED_ORIGINS` 必须包含浏览器地址栏的**完整来源**（含协议与端口）。
+
+**3）后端一直重启**  
+```bash
+docker compose -f docker/docker-compose.yml logs --tail=200 backend
+```  
+常见原因：数据库密码错误、MySQL 未就绪（首次多等一会）、Flyway 与旧数据冲突（新装 ECS 一般无此问题）。
+
+**4）80 端口被占用**  
+在 `docker/.env` 中改 `HTTP_PORT=8080`，安全组放行对应端口，访问 `http://IP:8080`。
+
+**5）彻底重来（会删库，慎用）**  
+```bash
+cd /opt/mywebsite
+docker compose -f docker/docker-compose.yml --env-file docker/.env down -v
+docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
 ```
 
 ---
 
-## 服务说明
+## 等价启动方式（可选）
 
-| 容器 | 说明 |
-|------|------|
-| mywebsite-mysql | MySQL 8，数据卷 `mysql_data` |
-| mywebsite-redis | Redis 7，数据卷 `redis_data` |
-| mywebsite-ncm-api | 网易云第三方 API，仅容器网络内访问 |
-| mywebsite-backend | Spring Boot，`SPRING_PROFILES_ACTIVE=docker` |
-| mywebsite-frontend | Nginx 托管前端，`/api` 反代到 backend |
+若你习惯先 `cd docker`，且希望 `docker compose` 默认找到 `docker-compose.yml`：
 
-对外仅 **frontend** 映射 `HTTP_PORT`（默认 80）；backend、MySQL、Redis、ncm-api **不映射**到宿主机，减少暴露面。
+```bash
+cd /opt/mywebsite/docker
+# 将 .env 放在本目录：可从仓库根复制
+cp ../路径不推荐混乱
+```
+
+推荐始终**在仓库根**使用 `-f docker/docker-compose.yml --env-file docker/.env`，路径最清晰。
+
+---
+
+以上为从零到可访问的**完整**步骤；不依赖任何名为 `*.example` 的文件。

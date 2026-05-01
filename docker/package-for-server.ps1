@@ -24,11 +24,27 @@ Write-Host "Save: $tar" -ForegroundColor Cyan
 docker save -o $tar $backendImage $frontendImage
 
 Copy-Item (Join-Path $dockerDir "docker-compose.images.yml") (Join-Path $outputPath "docker-compose.yml") -Force
-Copy-Item (Join-Path $dockerDir ".env.example") (Join-Path $outputPath ".env.example") -Force
+Copy-Item (Join-Path $dockerDir "README.md") (Join-Path $outputPath "阿里云与Docker完整部署说明.md") -Force
 
-$envEx = Join-Path $outputPath ".env.example"
-if (-not (Select-String -Path $envEx -Pattern "^IMAGE_TAG=" -Quiet)) {
-    Add-Content $envEx "`nIMAGE_TAG=$Tag`n"
-}
+$envGuide = @"
+# 在服务器与本目录并排新建 .env（不要提交 Git）
+# 完整变量说明与可复制模板见同目录：《阿里云与Docker完整部署说明.md》第五节。
+
+IMAGE_TAG=$Tag
+MYSQL_ROOT_PASSWORD=
+MYSQL_DATABASE=blog
+MYSQL_USER=blog
+MYSQL_PASSWORD=
+JWT_SECRET=
+JWT_EXPIRE_MINUTES=10080
+APP_CORS_ALLOWED_ORIGINS=
+HTTP_PORT=80
+VIEW_COUNTER_REDIS=false
+BOOTSTRAP_ADMIN_PASSWORD=
+AI_COMPANION_ENABLED=false
+AI_COMPANION_API_KEY=
+"@
+Set-Content -Path (Join-Path $outputPath "dot-env-请填写后重命名为.env.txt") -Value $envGuide -Encoding UTF8
 
 Write-Host "Done. Upload folder: $outputPath" -ForegroundColor Green
+Write-Host "服务器上：填好 dot-env-请填写后重命名为.env.txt 为 .env，docker load 后 docker compose up -d" -ForegroundColor Yellow

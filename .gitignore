@@ -21,7 +21,7 @@ frontend/dist/
 # Cursor / local agent
 .workbuddy/
 
-# Docker 部署密钥（示例见 docker/.env.example）
+# Docker 部署密钥（变量清单见 docker/README.md 第五节）
 .env
 docker/.env
 
