@@ -83,7 +83,7 @@ curl "http://127.0.0.1:3000/login/status"
 curl "http://127.0.0.1:3000/song/url?id=33894312"
 ```
 
-**本地 `localhost:5173` 音乐组件报 502：** 多数是 **Spring Boot 未在 8080 启动**（Vite 反代失败）或 **3000 未起**（可只起 NCM：`docker compose -f docker/docker-compose.ncm-only.yml up -d`，在项目 `docker/` 目录执行）。可在项目根运行 `powershell -File scripts/check-local-dev.ps1` 查看端口。后端对 `127.0.0.1:3000` 不可达时会尝试 **公网回退**（见 `application.example.yml` 中 `local-fallback-enabled`），但 **必须先保证 8080 后端已运行**。
+**本地 `localhost:5173` 音乐组件报 502：** 多数是 **Spring Boot 未在 8080 启动**（Vite 反代失败）或 **3000 未起**（可只起 NCM：`docker compose -f docker/docker-compose.ncm-only.yml up -d`，在项目 `docker/` 目录执行）。可在项目根运行 `powershell -File scripts/check-local-dev.ps1` 查看 8080/3000/5173 端口。后端对 `127.0.0.1:3000` 不可达时会尝试 **公网回退**（见 `application.example.yml` 中 `local-fallback-enabled`），但 **必须先保证 8080 后端已运行**。
 
 ### 3) 后端配置（Spring Boot）
 
@@ -154,6 +154,10 @@ Copy-Item backend/src/main/resources/application.example.yml backend/src/main/re
 cd backend
 mvn spring-boot:run
 ```
+
+若出现 **`Unresolved compilation problem`**：多为 IDE 把错误 class 写进了 `target/classes`，请先 **`mvn clean package`** 再 **`java -jar target/blog-backend-0.1.0.jar`**，或只用 Maven 编译运行。
+
+若 Flyway 报 **`Migration checksum mismatch`**（迁移文件曾改动）：在 MySQL 的 `blog` 库执行 repair，或把历史表中的 `checksum` 改成与当前 `db/migration` 文件一致（控制台日志里会打印 `Resolved locally` 的期望值），也可用 `mvn -DskipTests flyway:repair`（需在 `pom.xml` 配置 Flyway 插件并传入数据源）。
 
 后端默认：`http://localhost:8080`
 
