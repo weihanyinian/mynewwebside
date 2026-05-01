@@ -2,9 +2,10 @@
 !.dockerignore
 !backend/**
 !frontend/**
-!docker/backend/Dockerfile
-!docker/frontend/Dockerfile
-!docker/frontend/nginx.conf
+!docker/**
+
+# 勿将本地 application.yml（通常含密钥）打进镜像
+backend/src/main/resources/application.yml
 
 # prune heavy/unneeded artifacts from included directories
 backend/target

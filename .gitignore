@@ -21,6 +21,10 @@ frontend/dist/
 # Cursor / local agent
 .workbuddy/
 
+# Docker 部署密钥（示例见 docker/.env.example）
+.env
+docker/.env
+
 # Local config
 backend/src/main/resources/application.yml
 frontend/.env.local
