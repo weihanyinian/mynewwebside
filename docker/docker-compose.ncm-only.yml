@@ -1,0 +1,19 @@
+# 仅启动网易云增强 API（本地配合 Vite + Spring Boot 调试）
+# docker compose -f docker/docker-compose.ncm-only.yml up -d
+name: ncm-dev
+
+services:
+  ncm-api:
+    image: moefurina/ncm-api:latest
+    container_name: ncm-api-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      http_proxy: ""
+      https_proxy: ""
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      no_proxy: "*"
+      NO_PROXY: "*"

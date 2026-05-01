@@ -83,6 +83,8 @@ curl "http://127.0.0.1:3000/login/status"
 curl "http://127.0.0.1:3000/song/url?id=33894312"
 ```
 
+**本地 `localhost:5173` 音乐组件报 502：** 多数是 **Spring Boot 未在 8080 启动**（Vite 反代失败）或 **3000 未起**（可只起 NCM：`docker compose -f docker/docker-compose.ncm-only.yml up -d`，在项目 `docker/` 目录执行）。可在项目根运行 `powershell -File scripts/check-local-dev.ps1` 查看端口。后端对 `127.0.0.1:3000` 不可达时会尝试 **公网回退**（见 `application.example.yml` 中 `local-fallback-enabled`），但 **必须先保证 8080 后端已运行**。
+
 ### 3) 后端配置（Spring Boot）
 
 复制配置模板后，重点确认：
