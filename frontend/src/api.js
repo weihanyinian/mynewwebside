@@ -32,11 +32,12 @@ export const ncmApi = {
   sendCaptcha(phone) {
     return api.post('/api/ncm/captcha/send', { phone })
   },
-  loginByPassword(phone, password) {
-    return api.post('/api/ncm/login/password', { phone, password })
+  /** @param {string} [countrycode] 默认 86，与 @neteasecloudmusicapienhanced/api login_cellphone 一致 */
+  loginByPassword(phone, password, countrycode) {
+    return api.post('/api/ncm/login/password', { phone, password, countrycode })
   },
-  loginByCaptcha(phone, captcha) {
-    return api.post('/api/ncm/login/captcha', { phone, captcha })
+  loginByCaptcha(phone, captcha, countrycode) {
+    return api.post('/api/ncm/login/captcha', { phone, captcha, countrycode })
   },
   loginByCookie(cookie) {
     return api.post('/api/ncm/login/cookie', { cookie })

@@ -37,8 +37,13 @@ export async function fetchNeteaseStatus() {
   return data.data
 }
 
-export async function neteaseLogin(phone: string, password: string) {
-  const { data } = await http.post<ApiResponse<NeteaseStatus>>('/api/music/login', { phone, password })
+/** countrycode 默认后端置为 86，与非中国区号需求见 @neteasecloudmusicapienhanced/api */
+export async function neteaseLogin(phone: string, password: string, countrycode?: string) {
+  const { data } = await http.post<ApiResponse<NeteaseStatus>>('/api/music/login', {
+    phone,
+    password,
+    countrycode,
+  })
   return data.data
 }
 
