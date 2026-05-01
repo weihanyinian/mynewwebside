@@ -49,10 +49,14 @@ public class NeteaseSessionService {
   }
 
   @Transactional
-  public NeteaseStatusDto login(String siteUsername, String phone, String password) {
+  public NeteaseStatusDto login(String siteUsername, String phone, String password, String countrycode) {
+    String cc = (countrycode == null || countrycode.isBlank()) ? "86" : countrycode.trim();
+    if (!cc.matches("^[0-9]{1,4}$")) {
+      throw new BusinessException(400, "countrycode 须为 1~4 位数字");
+    }
     JsonNode root;
     try {
-      root = client.loginCellphone(phone, password);
+      root = client.loginCellphone(phone, password, cc);
     } catch (RestClientException ex) {
       log.warn("网易云登录上游异常: {}", ex.toString());
       throw new BusinessException(502, describeLoginProxyFailure(ex));
@@ -117,7 +121,7 @@ public class NeteaseSessionService {
     if (ex instanceof ResourceAccessException) {
       return "无法连接网易云第三方 API（当前 netease.proxy.base-url="
           + proxyProperties.getBaseUrl()
-          + "）。请确认已启动 NeteaseCloudMusicApi（如 Docker：binaryify/netease_cloud_music_api 映射 3000 端口），"
+          + "）。请确认已启动 @neteasecloudmusicapienhanced/api（npm / Docker 镜像 moefurina/ncm-api，默认 3000），"
           + "且后端能访问该地址；若 Spring Boot 在容器内而 API 在宿主机，请改用 host.docker.internal 等，勿仅用 127.0.0.1。";
     }
     String msg = ex.getMessage() == null ? "" : ex.getMessage();

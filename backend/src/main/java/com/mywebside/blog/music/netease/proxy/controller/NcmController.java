@@ -1,12 +1,16 @@
 package com.mywebsite.blog.music.netease.proxy.controller;
 
 import com.mywebsite.blog.common.ApiResponse;
+import com.mywebsite.blog.common.BusinessException;
+import com.mywebsite.blog.common.IpRateLimiter;
 import com.mywebsite.blog.music.netease.proxy.service.NcmService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,23 +19,36 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 直连 {@code @neteasecloudmusicapienhanced/api}（默认 http://127.0.0.1:3000），供 Login.vue 等使用 HttpSession 存 Cookie。
+ * 文档：https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api
+ */
 @Validated
 @RestController
 @RequestMapping("/api/ncm")
 public class NcmController {
 
   private final NcmService ncmService;
+  private final IpRateLimiter neteaseLoginLimiter;
 
-  public NcmController(NcmService ncmService) {
+  public NcmController(
+      NcmService ncmService,
+      @Qualifier("neteaseLoginLimiter") IpRateLimiter neteaseLoginLimiter
+  ) {
     this.ncmService = ncmService;
+    this.neteaseLoginLimiter = neteaseLoginLimiter;
   }
 
   @PostMapping("/login/password")
   public ApiResponse<Map<String, Object>> loginByPassword(
       HttpSession session,
+      HttpServletRequest request,
       @Valid @RequestBody PasswordLoginRequest req
   ) {
-    return ApiResponse.ok(ncmService.loginByPassword(session, req.phone(), req.password()));
+    if (!neteaseLoginLimiter.tryAcquire(request.getRemoteAddr())) {
+      throw new BusinessException(429, "登录尝试过于频繁，请稍后再试");
+    }
+    return ApiResponse.ok(ncmService.loginByPassword(session, req.phone(), req.password(), req.countrycode()));
   }
 
   @PostMapping("/captcha/send")
@@ -45,16 +62,24 @@ public class NcmController {
   @PostMapping("/login/captcha")
   public ApiResponse<Map<String, Object>> loginByCaptcha(
       HttpSession session,
+      HttpServletRequest request,
       @Valid @RequestBody CaptchaLoginRequest req
   ) {
-    return ApiResponse.ok(ncmService.loginByCaptcha(session, req.phone(), req.captcha()));
+    if (!neteaseLoginLimiter.tryAcquire(request.getRemoteAddr())) {
+      throw new BusinessException(429, "登录尝试过于频繁，请稍后再试");
+    }
+    return ApiResponse.ok(ncmService.loginByCaptcha(session, req.phone(), req.captcha(), req.countrycode()));
   }
 
   @PostMapping("/login/cookie")
   public ApiResponse<Map<String, Object>> loginByCookie(
       HttpSession session,
+      HttpServletRequest request,
       @Valid @RequestBody CookieLoginRequest req
   ) {
+    if (!neteaseLoginLimiter.tryAcquire(request.getRemoteAddr())) {
+      throw new BusinessException(429, "登录尝试过于频繁，请稍后再试");
+    }
     return ApiResponse.ok(ncmService.loginByCookie(session, req.cookie()));
   }
 
@@ -73,7 +98,8 @@ public class NcmController {
 
   public record PasswordLoginRequest(
       @NotBlank @Pattern(regexp = "^[0-9]{11}$", message = "手机号格式不正确") String phone,
-      @NotBlank String password
+      @NotBlank String password,
+      String countrycode
   ) {}
 
   public record CaptchaSendRequest(
@@ -82,7 +108,8 @@ public class NcmController {
 
   public record CaptchaLoginRequest(
       @NotBlank @Pattern(regexp = "^[0-9]{11}$", message = "手机号格式不正确") String phone,
-      @NotBlank String captcha
+      @NotBlank String captcha,
+      String countrycode
   ) {}
 
   public record CookieLoginRequest(@NotBlank String cookie) {}

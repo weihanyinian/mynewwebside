@@ -89,7 +89,8 @@ curl "http://127.0.0.1:3000/song/url?id=33894312"
 
 复制配置模板后，重点确认：
 
-- `netease.proxy.base-url`：指向你启动的增强 API 地址（如 `http://127.0.0.1:3000`）
+- `netease.proxy.base-url`：指向你启动的增强 API 地址（如 `http://127.0.0.1:3000`）；站内绑定账号走 `/api/music/login`（需本站 JWT），独立页 `Login.vue` 走 **`/api/ncm/*`**（已 `permitAll`，与 npm **`login_cellphone`** 对齐：表单 POST、`countrycode` 默认 86、响应体 **`cookie`** 会写入服务端 Session）。
+- `ncm.base-url`：与上相同根地址，供 `/api/ncm` 代理使用。
 - `netease.proxy.default-playlist-id`：默认歌单
 - `netease.proxy.default-br`：默认音质码率（128000/192000/320000/999000）
 - `netease.proxy.retry-count`：上游失败重试次数

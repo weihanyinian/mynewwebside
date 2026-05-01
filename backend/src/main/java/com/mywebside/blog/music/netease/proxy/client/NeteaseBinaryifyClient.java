@@ -9,8 +9,11 @@ import java.net.http.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -68,21 +71,24 @@ public class NeteaseBinaryifyClient {
    * {@link RestClient} 默认 {@code retrieve()} 遇非 2xx 会直接抛异常，导致无法解析正文。
    * 此处用 {@code exchange} 始终读取 body，与 Node 版 API 行为对齐。
    */
-  public JsonNode loginCellphone(String phone, String password) throws RestClientException {
-    String relativeUri = UriComponentsBuilder.fromUriString("/login/cellphone")
-        .queryParam("phone", phone)
-        .queryParam("password", password)
-        .build(true)
-        .toUriString();
+  /**
+   * 调用增强版 {@code /login/cellphone}：与 npm {@code login_cellphone({ phone, password, countrycode })}
+   * 一致，使用表单 POST（Express 合并 {@code req.body}）；明文密码由上游做 MD5。
+   */
+  public JsonNode loginCellphone(String phone, String password, String countrycode) throws RestClientException {
+    MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+    form.add("phone", phone);
+    form.add("password", password);
+    form.add("countrycode", countrycode != null && !countrycode.isBlank() ? countrycode : "86");
     int maxAttempt = Math.max(1, properties.getRetryCount() + 1);
     RestClientException last = null;
     for (int attempt = 1; attempt <= maxAttempt; attempt++) {
       try {
-        String body = restClient.get()
-            .uri(relativeUri)
-            .headers(h -> {
-              h.set(HttpHeaders.ACCEPT_ENCODING, "identity");
-            })
+        String body = restClient.post()
+            .uri("/login/cellphone")
+            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .body(form)
+            .headers(h -> h.set(HttpHeaders.ACCEPT_ENCODING, "identity"))
             .exchange((request, response) -> {
               try (response) {
                 return StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
@@ -95,7 +101,7 @@ public class NeteaseBinaryifyClient {
       } catch (ResourceAccessException e) {
         last = e;
         log.warn("网易云登录代理连接失败(第{}次): {}", attempt, e.getMessage());
-        JsonNode fallback = tryFallbackLogin(relativeUri);
+        JsonNode fallback = tryFallbackLoginPost(form);
         if (fallback != null) {
           return fallback;
         }
@@ -237,13 +243,15 @@ public class NeteaseBinaryifyClient {
     }
   }
 
-  private JsonNode tryFallbackLogin(String relativeUri) {
+  private JsonNode tryFallbackLoginPost(MultiValueMap<String, String> form) {
     if (!canUseFallback()) {
       return null;
     }
     try {
-      String body = fallbackRestClient.get()
-          .uri(relativeUri)
+      String body = fallbackRestClient.post()
+          .uri("/login/cellphone")
+          .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+          .body(form)
           .headers(h -> h.set(HttpHeaders.ACCEPT_ENCODING, "identity"))
           .exchange((request, response) -> {
             try (response) {

@@ -35,6 +35,8 @@ public class SecurityConfig {
     http.authorizeHttpRequests(auth -> auth
         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register").permitAll()
         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+        /** 直连 @neteasecloudmusicapienhanced/api 的会话式代理（Login.vue）；使用 HttpSession 存 NCM Cookie */
+        .requestMatchers("/api/ncm/**").permitAll()
         .requestMatchers("/api/music/**").authenticated()
         .requestMatchers("/api/public/**").permitAll()
         .requestMatchers("/actuator/health", "/actuator/info").permitAll()

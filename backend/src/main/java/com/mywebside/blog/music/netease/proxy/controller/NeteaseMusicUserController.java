@@ -68,7 +68,7 @@ public class NeteaseMusicUserController {
     if (!neteaseLoginLimiter.tryAcquire(ip)) {
       throw new BusinessException(429, "登录尝试过于频繁，请稍后再试");
     }
-    return ApiResponse.ok(sessionService.login(auth.getName(), req.phone(), req.password()));
+    return ApiResponse.ok(sessionService.login(auth.getName(), req.phone(), req.password(), req.countrycode()));
   }
 
   @PostMapping("/logout")

@@ -17,6 +17,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -34,10 +36,15 @@ public class NcmService {
     this.baseUrl = baseUrl.replaceAll("/+$", "");
   }
 
-  public Map<String, Object> loginByPassword(HttpSession session, String phone, String password) {
-    String query = "phone=" + encode(phone) + "&password=" + encode(password);
-    ResponseEntity<Map> resp = callNcm(session, "/login/cellphone?" + query, HttpMethod.POST, null, false);
+  public Map<String, Object> loginByPassword(HttpSession session, String phone, String password, String countrycode) {
+    String cc = (countrycode == null || countrycode.isBlank()) ? "86" : countrycode.trim();
+    MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+    form.add("phone", phone);
+    form.add("password", password);
+    form.add("countrycode", cc);
+    ResponseEntity<Map> resp = callNcmForm(session, "/login/cellphone", form, false);
     saveCookieFromResponse(session, resp);
+    saveCookieFromJsonBody(session, resp.getBody());
     return normalizeLoginResponse(resp.getBody(), session);
   }
 
@@ -46,10 +53,15 @@ public class NcmService {
     return safeBody(resp.getBody());
   }
 
-  public Map<String, Object> loginByCaptcha(HttpSession session, String phone, String captcha) {
-    String query = "phone=" + encode(phone) + "&captcha=" + encode(captcha);
-    ResponseEntity<Map> resp = callNcm(session, "/login/cellphone?" + query, HttpMethod.POST, null, false);
+  public Map<String, Object> loginByCaptcha(HttpSession session, String phone, String captcha, String countrycode) {
+    String cc = (countrycode == null || countrycode.isBlank()) ? "86" : countrycode.trim();
+    MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+    form.add("phone", phone);
+    form.add("captcha", captcha);
+    form.add("countrycode", cc);
+    ResponseEntity<Map> resp = callNcmForm(session, "/login/cellphone", form, false);
     saveCookieFromResponse(session, resp);
+    saveCookieFromJsonBody(session, resp.getBody());
     return normalizeLoginResponse(resp.getBody(), session);
   }
 
@@ -59,6 +71,7 @@ public class NcmService {
     }
     session.setAttribute(SESSION_NCM_COOKIE, rawCookie.trim());
     ResponseEntity<Map> resp = callNcm(session, "/login/status", HttpMethod.GET, null, true);
+    saveCookieFromJsonBody(session, resp.getBody());
     return normalizeLoginResponse(resp.getBody(), session);
   }
 
@@ -75,6 +88,29 @@ public class NcmService {
     return data;
   }
 
+  private ResponseEntity<Map> callNcmForm(
+      HttpSession session,
+      String path,
+      MultiValueMap<String, String> form,
+      boolean requiresCookie
+  ) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    headers.set("User-Agent", "MyWebsite-NCM-Proxy/1.0");
+    String cookie = getCookie(session);
+    if (cookie != null) {
+      headers.set("Cookie", cookie);
+    } else if (requiresCookie) {
+      throw new BusinessException(401, "未登录网易云，请先完成登录");
+    }
+    HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(form, headers);
+    try {
+      return restTemplate.exchange(baseUrl + path, HttpMethod.POST, entity, Map.class);
+    } catch (Exception e) {
+      throw new BusinessException(502, "NCM API 请求失败: " + e.getMessage());
+    }
+  }
+
   private ResponseEntity<Map> callNcm(
       HttpSession session,
       String path,
@@ -83,7 +119,9 @@ public class NcmService {
       boolean requiresCookie
   ) {
     HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
+    if (body != null) {
+      headers.setContentType(MediaType.APPLICATION_JSON);
+    }
     headers.set("User-Agent", "MyWebsite-NCM-Proxy/1.0");
     String cookie = getCookie(session);
     if (cookie != null) {
@@ -96,6 +134,16 @@ public class NcmService {
       return restTemplate.exchange(baseUrl + path, method, entity, Map.class);
     } catch (Exception e) {
       throw new BusinessException(502, "NCM API 请求失败: " + e.getMessage());
+    }
+  }
+
+  private void saveCookieFromJsonBody(HttpSession session, Map<?, ?> body) {
+    if (body == null) {
+      return;
+    }
+    Object c = body.get("cookie");
+    if (c instanceof String s && !s.isBlank()) {
+      session.setAttribute(SESSION_NCM_COOKIE, s.trim());
     }
   }
 
