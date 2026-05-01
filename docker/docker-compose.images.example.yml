@@ -1,4 +1,4 @@
-# 使用已构建/已 docker load 的镜像（无构建上下文）
+# 模板：使用已构建/已 docker load 的镜像。复制为 docker-compose.images.yml 后按需修改（该文件名已 gitignore）
 # 打包镜像（Windows，在项目根目录）：docker\package-for-server.ps1 -Tag v1
 # 启动：docker compose -f docker/docker-compose.images.yml --env-file docker/.env up -d
 

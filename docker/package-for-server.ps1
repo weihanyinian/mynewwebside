@@ -23,7 +23,7 @@ docker build -f (Join-Path $dockerDir "frontend\Dockerfile") -t $frontendImage $
 Write-Host "Save: $tar" -ForegroundColor Cyan
 docker save -o $tar $backendImage $frontendImage
 
-Copy-Item (Join-Path $dockerDir "docker-compose.images.yml") (Join-Path $outputPath "docker-compose.yml") -Force
+Copy-Item (Join-Path $dockerDir "docker-compose.images.example.yml") (Join-Path $outputPath "docker-compose.yml") -Force
 Copy-Item (Join-Path $dockerDir "README.md") (Join-Path $outputPath "阿里云与Docker完整部署说明.md") -Force
 
 $envGuide = @"

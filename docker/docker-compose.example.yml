@@ -1,6 +1,6 @@
-# 项目：backend/（Spring Boot 3 + Flyway） + frontend/（Vue 3 + Vite）
-# 在仓库根目录执行：docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
-# 或进入 docker 目录：cd docker && docker compose up -d --build
+# 模板：复制为 docker-compose.yml 后再改（docker-compose.yml 已 gitignore，pull 不会覆盖）
+# 首次：cp docker/docker-compose.example.yml docker/docker-compose.yml
+# 在仓库根目录：docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
 
 name: mywebsite
 

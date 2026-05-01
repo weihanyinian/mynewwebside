@@ -92,7 +92,7 @@ oj:
 netease:
   proxy:
     # 本地: npm i -g @neteasecloudmusicapienhanced/api && netease-cloud-music-api-enhanced （默认 3000）
-    # Docker: moefurina/ncm-api:latest，见 docker/docker-compose.yml 中 ncm-api
+    # Docker: moefurina/ncm-api:latest，见 docker/docker-compose.example.yml 中 ncm-api
     base-url: ${NETEASE_PROXY_BASE_URL:https://netease-cloud-music-api-five-roan-58.vercel.app}
     # 当 base-url 为 127.0.0.1/localhost 且本机 3000 未监听时，自动改用 fallback-base-url（避免仅开前端时出现 502）
     local-fallback-enabled: ${NETEASE_LOCAL_FALLBACK_ENABLED:true}

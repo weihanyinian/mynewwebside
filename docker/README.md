@@ -1,7 +1,7 @@
 # 个人博客全栈：阿里云 ECS + Docker 一次性部署手册
 
 面向本仓库当前结构：**`backend/`**（Spring Boot 3、Flyway、MySQL、Redis）、**`frontend/`**（Vue 3、Vite）。  
-编排目录：**`docker/`**，镜像构建上下文为**仓库根目录**（与 `docker-compose.yml` 中 `context: ..` 一致）。
+编排目录：**`docker/`**，镜像构建上下文为**仓库根目录**（与模板 `docker-compose.example.yml` 中 `context: ..` 一致）。**Git 只提交 `*.example.yml`**；服务器上实际使用的 `docker-compose.yml` 由你本地复制生成且已 **`.gitignore`**，`git pull` 不会覆盖现场编排。
 
 ---
 
@@ -98,6 +98,18 @@ cd mywebsite
 
 若使用私有仓库，请改为 SSH 地址或配置 `git credential`。
 
+### 4.1 Compose 模板（首次必做，避免 pull 覆盖服务器编排）
+
+仓库内仅跟踪 **`docker/docker-compose.example.yml`**（以及 `docker-compose.images.example.yml`、`docker-compose.ncm-only.example.yml`）。请在仓库根**一次性**生成实际文件（之后可按服务器环境随意修改，**这些文件名已被 Git 忽略**）：
+
+```bash
+cd /opt/mywebsite
+cp docker/docker-compose.example.yml docker/docker-compose.yml
+```
+
+使用「预构建镜像」流程时，可复制 `docker/docker-compose.images.example.yml` → `docker/docker-compose.images.yml`。本地只起 NCM 可直接执行  
+`docker compose -f docker/docker-compose.ncm-only.example.yml up -d`，不必复制。
+
 ---
 
 ## 5. 创建 `docker/.env`（全文模板，必做）
@@ -143,7 +155,7 @@ BOOTSTRAP_ADMIN_PASSWORD=
 AI_COMPANION_ENABLED=false
 AI_COMPANION_API_KEY=
 
-# ============ 仅在使用「镜像 tar + docker-compose.images.yml」时需要 ============
+# ============ 仅在使用「镜像 tar + docker-compose.images.example.yml」时需要 ============
 IMAGE_TAG=latest
 ```
 
@@ -163,7 +175,7 @@ chmod 600 docker/.env
 
 ## 6. 首次启动
 
-在**仓库根目录**执行（`/opt/mywebsite`）：
+确认已完成 **4.1 节**（已存在 `docker/docker-compose.yml`）。在**仓库根目录**执行（`/opt/mywebsite`）：
 
 ```bash
 cd /opt/mywebsite
@@ -216,6 +228,8 @@ git pull
 docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
 ```
 
+`docker/docker-compose.yml` 为服务器本地文件，**不会被** `git pull` 覆盖。若仓库内 `docker-compose.example.yml` 有重要变更，可用 `diff docker/docker-compose.example.yml docker/docker-compose.yml` 自行合并。
+
 ---
 
 ## 9. 离线部署（本机打镜像）
@@ -230,7 +244,7 @@ cd docker
 会在 `docker/dist` 生成：
 
 - `mywebsite-images-v1.tar`
-- `docker-compose.yml`（对应仓库内 `docker-compose.images.yml`）
+- `docker-compose.yml`（由 `docker-compose.images.example.yml` 复制生成）
 
 将整个 `dist` 目录上传到服务器某目录（例如 `/opt/mywebsite-dist`）。目录内会有：
 
@@ -308,4 +322,4 @@ cp ../路径不推荐混乱
 
 ---
 
-以上为从零到可访问的**完整**步骤；不依赖任何名为 `*.example` 的文件。
+以上为从零到可访问的**完整**步骤。`.env` 必须手写，不按 example 复制；**Compose 编排**则使用仓库内的 `*.example.yml` 生成本地 `docker-compose*.yml`（后者不提交 Git，以免覆盖服务器配置）。

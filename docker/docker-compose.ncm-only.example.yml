@@ -1,5 +1,5 @@
-# 仅启动网易云增强 API（本地配合 Vite + Spring Boot 调试）
-# docker compose -f docker/docker-compose.ncm-only.yml up -d
+# 模板：仅启动网易云增强 API（本地配合 Vite + Spring Boot）。可复制为 docker-compose.ncm-only.yml 再改端口等（该文件名已 gitignore）
+# 不复制也可直接用：docker compose -f docker/docker-compose.ncm-only.example.yml up -d
 name: ncm-dev
 
 services:

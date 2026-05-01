@@ -25,6 +25,11 @@ frontend/dist/
 .env
 docker/.env
 
+# 实际使用的 Compose 文件由 docker/*.example.yml 复制而来，勿提交，避免 git pull 覆盖服务器现场配置
+docker/docker-compose.yml
+docker/docker-compose.images.yml
+docker/docker-compose.ncm-only.yml
+
 # Local config
 backend/src/main/resources/application.yml
 frontend/.env.local
