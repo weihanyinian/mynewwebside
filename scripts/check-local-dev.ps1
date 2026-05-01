@@ -9,7 +9,7 @@ foreach ($p in @(8080, 3000, 5173)) {
 }
 Write-Host ""
 Write-Host "5173 = Vite (npm run dev)" -ForegroundColor Yellow
-Write-Host "8080 = Spring Boot (mvn spring-boot:run) — required or browser gets 502" -ForegroundColor Yellow
+Write-Host "8080 = Spring Boot (mvn spring-boot:run); without it -> 502 from Vite proxy" -ForegroundColor Yellow
 Write-Host "3000 = Netease NCM API (optional; use docker compose ncm-only below)" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Start NCM only (Docker, from repo root):" -ForegroundColor Green
