@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.config;
+package com.mywebsite.blog.music.netease.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mywebsite.blog.music.netease.client.NeteaseOpenApiClient;

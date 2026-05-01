@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.proxy.dto;
+package com.mywebsite.blog.music.netease.proxy.dto;
 
 import jakarta.validation.constraints.NotBlank;
 

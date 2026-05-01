@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.persistence.mapper;
+package com.mywebsite.blog.persistence.mapper;
 
 import com.mywebsite.blog.persistence.entity.OjProblemEntity;
 import java.util.List;

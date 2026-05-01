@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.user;
+package com.mywebsite.blog.user;
 
 public final class UserRoles {
   private UserRoles() {

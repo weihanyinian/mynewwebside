@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.oj.dto;
+package com.mywebsite.blog.oj.dto;
 
 import com.mywebsite.blog.oj.domain.Problem;
 import java.util.List;

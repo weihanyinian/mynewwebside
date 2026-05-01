@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.security;
+package com.mywebsite.blog.security;
 
 import com.mywebsite.blog.config.AppProperties;
 import io.jsonwebtoken.Claims;

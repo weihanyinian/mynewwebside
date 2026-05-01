@@ -10,8 +10,13 @@ WORKDIR /app
 COPY backend/pom.xml .
 RUN mvn dependency:go-offline -B
 
-# 复制源代码并构建
+# 复制源代码
 COPY backend/src ./src
+
+# 去除 Java 文件的 UTF-8 BOM 头（Windows 开发 Linux 编译的兼容问题）
+RUN find ./src -name "*.java" -exec sed -i '1s/^\xEF\xBB\xBF//' {} +
+
+# 构建
 RUN mvn package -DskipTests -B
 
 # =============================================

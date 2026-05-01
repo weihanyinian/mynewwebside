@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.service.views;
+package com.mywebsite.blog.service.views;
 
 import com.mywebsite.blog.repo.ArticleRepository;
 import java.util.Collections;

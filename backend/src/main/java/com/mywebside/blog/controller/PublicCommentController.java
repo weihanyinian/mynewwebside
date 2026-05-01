@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.controller;
+package com.mywebsite.blog.controller;
 
 import com.mywebsite.blog.common.ApiResponse;
 import com.mywebsite.blog.dto.CommentCreateRequest;

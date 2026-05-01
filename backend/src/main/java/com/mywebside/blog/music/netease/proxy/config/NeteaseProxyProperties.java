@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.proxy.config;
+package com.mywebsite.blog.music.netease.proxy.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

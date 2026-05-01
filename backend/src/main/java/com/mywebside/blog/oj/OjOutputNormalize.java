@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.oj;
+package com.mywebsite.blog.oj;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;

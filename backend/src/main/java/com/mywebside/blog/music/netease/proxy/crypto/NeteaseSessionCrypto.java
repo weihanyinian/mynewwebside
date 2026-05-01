@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.proxy.crypto;
+package com.mywebsite.blog.music.netease.proxy.crypto;
 
 import com.mywebsite.blog.config.AppProperties;
 import java.nio.ByteBuffer;

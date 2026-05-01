@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.controller;
+package com.mywebsite.blog.music.netease.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mywebsite.blog.common.ApiResponse;

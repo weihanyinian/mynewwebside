@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.config;
+package com.mywebsite.blog.config;
 
 import com.mywebsite.blog.common.IpRateLimiter;
 import org.springframework.context.annotation.Bean;

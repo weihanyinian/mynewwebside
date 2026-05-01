@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.proxy.service;
+package com.mywebsite.blog.music.netease.proxy.service;
 
 import com.mywebsite.blog.common.BusinessException;
 import jakarta.servlet.http.HttpSession;

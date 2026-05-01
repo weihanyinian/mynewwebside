@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.security;
+package com.mywebsite.blog.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mywebsite.blog.common.ApiResponse;

@@ -49,8 +49,8 @@ Write-Step "打包完成"
 Write-Host "输出目录: $outputPath" -ForegroundColor Green
 Write-Host "镜像归档: $archivePath" -ForegroundColor Green
 Write-Host ""
-Write-Host "下一步建议：" -ForegroundColor Yellow
-Write-Host "1) 将 $outputPath 整个目录上传到服务器"
-Write-Host "2) 服务器执行：docker load -i $archiveName"
-Write-Host "3) 复制 .env.example 为 .env 并修改密钥"
-Write-Host "4) 执行：docker compose up -d"
+Write-Host 'Next steps:' -ForegroundColor Yellow
+Write-Host "1) Upload directory: $outputPath"
+Write-Host "2) On server run: docker load -i $archiveName"
+Write-Host '3) Copy .env.example to .env and edit secrets'
+Write-Host '4) Run: docker compose up -d'

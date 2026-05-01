@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.proxy.client;
+package com.mywebsite.blog.music.netease.proxy.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

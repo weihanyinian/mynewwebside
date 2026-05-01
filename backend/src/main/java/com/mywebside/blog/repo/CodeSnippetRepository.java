@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.repo;
+package com.mywebsite.blog.repo;
 
 import com.mywebsite.blog.domain.CodeSnippet;
 import java.util.List;

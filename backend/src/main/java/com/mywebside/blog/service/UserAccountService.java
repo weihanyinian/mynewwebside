@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.service;
+package com.mywebsite.blog.service;
 
 import com.mywebsite.blog.auth.LoginRequest;
 import com.mywebsite.blog.auth.LoginResponse;

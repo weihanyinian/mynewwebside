@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.service;
+package com.mywebsite.blog.music.netease.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mywebsite.blog.music.netease.client.NeteaseOpenApiClient;

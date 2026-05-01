@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.oj;
+package com.mywebsite.blog.oj;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

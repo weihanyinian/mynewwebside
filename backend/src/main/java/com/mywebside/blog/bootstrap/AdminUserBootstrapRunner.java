@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.bootstrap;
+package com.mywebsite.blog.bootstrap;
 
 import com.mywebsite.blog.config.AppProperties;
 import com.mywebsite.blog.persistence.entity.UserEntity;

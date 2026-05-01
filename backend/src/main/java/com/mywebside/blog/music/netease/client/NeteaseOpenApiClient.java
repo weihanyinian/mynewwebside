@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.client;
+package com.mywebsite.blog.music.netease.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.auth;
+package com.mywebsite.blog.auth;
 
 import com.mywebsite.blog.common.ApiResponse;
 import com.mywebsite.blog.common.BusinessException;

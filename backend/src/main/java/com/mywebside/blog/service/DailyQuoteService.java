@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.service;
+package com.mywebsite.blog.service;
 
 import com.mywebsite.blog.config.AppProperties;
 import com.mywebsite.blog.dto.DailyQuoteDto;

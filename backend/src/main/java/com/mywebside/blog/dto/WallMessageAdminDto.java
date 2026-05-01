@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.dto;
+package com.mywebsite.blog.dto;
 
 import com.mywebsite.blog.domain.WallMessageStatus;
 import java.time.Instant;

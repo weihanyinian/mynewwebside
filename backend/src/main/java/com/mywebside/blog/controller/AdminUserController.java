@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.controller;
+package com.mywebsite.blog.controller;
 
 import com.mywebsite.blog.admin.dto.UserListItemDto;
 import com.mywebsite.blog.common.ApiResponse;

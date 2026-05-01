@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.ai;
+package com.mywebsite.blog.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

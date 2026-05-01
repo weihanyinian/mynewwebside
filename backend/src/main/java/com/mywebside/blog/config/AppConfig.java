@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.config;
+package com.mywebsite.blog.config;
 
 import com.mywebsite.blog.ai.AiCompanionProperties;
 import com.mywebsite.blog.music.netease.config.NeteaseMusicOpenProperties;

@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.common;
+package com.mywebsite.blog.common;
 
 /**
  * RESTful 路径约定（仅文档常量，避免魔法字符串散落）。

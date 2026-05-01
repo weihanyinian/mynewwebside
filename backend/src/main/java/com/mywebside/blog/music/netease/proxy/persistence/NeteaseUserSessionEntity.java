@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.music.netease.proxy.persistence;
+package com.mywebsite.blog.music.netease.proxy.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

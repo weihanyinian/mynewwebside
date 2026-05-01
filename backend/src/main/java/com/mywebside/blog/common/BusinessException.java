@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.common;
+package com.mywebsite.blog.common;
 
 public class BusinessException extends RuntimeException {
   private final int code;

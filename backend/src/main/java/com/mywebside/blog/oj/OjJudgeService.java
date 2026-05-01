@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.oj;
+package com.mywebsite.blog.oj;
 
 import com.mywebsite.blog.common.BusinessException;
 import com.mywebsite.blog.oj.domain.JudgeResult;

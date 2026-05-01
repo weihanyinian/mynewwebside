@@ -1,4 +1,4 @@
-﻿package com.mywebsite.blog.bootstrap;
+package com.mywebsite.blog.bootstrap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
