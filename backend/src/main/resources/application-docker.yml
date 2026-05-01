@@ -1,9 +1,9 @@
-# Docker / 云服务器部署用（SPRING_PROFILES_ACTIVE=docker 时加载）
+# SPRING_PROFILES_ACTIVE=docker 时加载；与 application.yml（镜像内由 application.example 生成）叠加
 spring:
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:mysql}:3306/${MYSQL_DATABASE:blog}?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
-    username: ${MYSQL_USER:root}
-    password: ${MYSQL_PASSWORD:?请在环境变量 MYSQL_PASSWORD 中设置数据库密码}
+    username: ${MYSQL_USER:blog}
+    password: ${MYSQL_PASSWORD:?Set env MYSQL_PASSWORD}
   data:
     redis:
       host: ${REDIS_HOST:redis}

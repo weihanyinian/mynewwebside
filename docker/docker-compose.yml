@@ -1,20 +1,21 @@
-# 在仓库根目录的上一级为「项目根」，本文件位于 docker/，故 build context 为 ..
-# 启动：cd docker && docker compose up -d --build
+# 项目：backend/（Spring Boot 3 + Flyway） + frontend/（Vue 3 + Vite）
+# 在仓库根目录执行：docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
+# 或进入 docker 目录：cd docker && docker compose up -d --build
+
+name: mywebsite
+
 services:
   mysql:
     image: mysql:8.0
-    container_name: website-mysql
+    container_name: mywebsite-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?在 .env 中设置 MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in docker/.env}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-blog}
-      MYSQL_USER: ${MYSQL_USER:-blog_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?在 .env 中设置 MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER:-blog}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in docker/.env}
     volumes:
       - mysql_data:/var/lib/mysql
-    # 表结构由后端 JAR 内 Flyway 迁移执行，勿再挂载 mysql/schema.sql，以免与迁移重复冲突
-    ports:
-      - "3306:3306"
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
@@ -24,43 +25,38 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
-      start_period: 40s
+      start_period: 45s
+    networks: [app]
 
   redis:
     image: redis:7-alpine
-    container_name: website-redis
+    container_name: mywebsite-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
+    networks: [app]
 
-  netease-api:
-    image: moefurina/ncm-api:latest
-    container_name: website-netease-api
+  # 网易云 API（容器内供后端调用；不映射到宿主机，避免公网暴露）
+  ncm-api:
+    image: binaryify/netease_cloud_music_api:latest
+    container_name: mywebsite-ncm-api
     restart: unless-stopped
     environment:
-      - NCM_API_PORT=3000
-    ports:
-      - "3000:3000"
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
+      PORT: 3000
+    networks: [app]
 
   backend:
     build:
       context: ..
       dockerfile: docker/backend/Dockerfile
-    container_name: website-backend
+    image: mywebsite-backend:local
+    container_name: mywebsite-backend
     restart: unless-stopped
     depends_on:
       mysql:
@@ -71,18 +67,21 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       MYSQL_HOST: mysql
       MYSQL_DATABASE: ${MYSQL_DATABASE:-blog}
-      MYSQL_USER: ${MYSQL_USER:-blog_user}
+      MYSQL_USER: ${MYSQL_USER:-blog}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET:?在 .env 中设置 JWT_SECRET}
-      APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:88,http://localhost}
-      BOOTSTRAP_ADMIN_PASSWORD: ${ADMIN_INIT_PASSWORD:-}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in docker/.env}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-10080}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:?set APP_CORS_ALLOWED_ORIGINS in docker/.env}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
       VIEW_COUNTER_REDIS: ${VIEW_COUNTER_REDIS:-false}
-      NETEASE_PROXY_BASE_URL: http://netease-api:3000
-      NCM_BASE_URL: http://netease-api:3000
-    ports:
-      - "8080:8080"
+      NETEASE_PROXY_BASE_URL: http://ncm-api:3000
+      NCM_BASE_URL: http://ncm-api:3000
+      AI_COMPANION_ENABLED: ${AI_COMPANION_ENABLED:-false}
+      AI_COMPANION_API_KEY: ${AI_COMPANION_API_KEY:-}
+    networks: [app]
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/actuator/health"]
       interval: 30s
@@ -94,13 +93,15 @@ services:
     build:
       context: ..
       dockerfile: docker/frontend/Dockerfile
-    container_name: website-frontend
+    image: mywebsite-frontend:local
+    container_name: mywebsite-frontend
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     ports:
-      - "80:80"
+      - "${HTTP_PORT:-80}:80"
+    networks: [app]
     healthcheck:
       test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1/"]
       interval: 30s
@@ -108,24 +109,10 @@ services:
       retries: 3
       start_period: 20s
 
-  # 统一入口 http://宿主机:88 — /api → 后端，/ → 前端容器
-  gateway:
-    image: nginx:1.25-alpine
-    container_name: website-gateway-88
-    restart: unless-stopped
-    depends_on:
-      - backend
-      - frontend
-    ports:
-      - "88:80"
-    volumes:
-      - ./proxy/nginx.unified-88.conf:/etc/nginx/conf.d/default.conf:ro
+networks:
+  app:
+    driver: bridge
 
 volumes:
   mysql_data:
   redis_data:
-
-networks:
-  default:
-    name: website-network
-    driver: bridge

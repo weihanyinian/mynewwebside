@@ -1,18 +1,21 @@
-# 预构建镜像（docker load 后使用）。打包：在 docker 目录执行 .\package-for-server.ps1 -Tag v1
+# 使用已构建/已 docker load 的镜像（无构建上下文）
+# 打包镜像（Windows，在项目根目录）：docker\package-for-server.ps1 -Tag v1
+# 启动：docker compose -f docker/docker-compose.images.yml --env-file docker/.env up -d
+
+name: mywebsite
+
 services:
   mysql:
     image: mysql:8.0
-    container_name: website-mysql
+    container_name: mywebsite-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?在 .env 中设置 MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-blog}
-      MYSQL_USER: ${MYSQL_USER:-blog_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?在 .env 中设置 MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER:-blog}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?}
     volumes:
       - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
@@ -22,35 +25,34 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
-      start_period: 40s
+      start_period: 45s
+    networks: [app]
 
   redis:
     image: redis:7-alpine
-    container_name: website-redis
+    container_name: mywebsite-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
+    networks: [app]
 
-  netease-api:
-    image: moefurina/ncm-api:latest
-    container_name: website-netease-api
+  ncm-api:
+    image: binaryify/netease_cloud_music_api:latest
+    container_name: mywebsite-ncm-api
     restart: unless-stopped
     environment:
-      - NCM_API_PORT=3000
-    ports:
-      - "3000:3000"
+      PORT: 3000
+    networks: [app]
 
   backend:
-    image: website-backend:${IMAGE_TAG:-latest}
-    container_name: website-backend
+    image: mywebsite-backend:${IMAGE_TAG:-latest}
+    container_name: mywebsite-backend
     restart: unless-stopped
     depends_on:
       mysql:
@@ -61,18 +63,21 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       MYSQL_HOST: mysql
       MYSQL_DATABASE: ${MYSQL_DATABASE:-blog}
-      MYSQL_USER: ${MYSQL_USER:-blog_user}
+      MYSQL_USER: ${MYSQL_USER:-blog}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET:?在 .env 中设置 JWT_SECRET}
-      APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:88,http://localhost}
-      BOOTSTRAP_ADMIN_PASSWORD: ${ADMIN_INIT_PASSWORD:-}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      JWT_SECRET: ${JWT_SECRET:?}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-10080}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:?}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
       VIEW_COUNTER_REDIS: ${VIEW_COUNTER_REDIS:-false}
-      NETEASE_PROXY_BASE_URL: http://netease-api:3000
-      NCM_BASE_URL: http://netease-api:3000
-    ports:
-      - "8080:8080"
+      NETEASE_PROXY_BASE_URL: http://ncm-api:3000
+      NCM_BASE_URL: http://ncm-api:3000
+      AI_COMPANION_ENABLED: ${AI_COMPANION_ENABLED:-false}
+      AI_COMPANION_API_KEY: ${AI_COMPANION_API_KEY:-}
+    networks: [app]
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://127.0.0.1:8080/actuator/health"]
       interval: 30s
@@ -81,26 +86,20 @@ services:
       start_period: 120s
 
   frontend:
-    image: website-frontend:${IMAGE_TAG:-latest}
-    container_name: website-frontend
+    image: mywebsite-frontend:${IMAGE_TAG:-latest}
+    container_name: mywebsite-frontend
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     ports:
-      - "80:80"
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O-", "http://127.0.0.1/"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
+      - "${HTTP_PORT:-80}:80"
+    networks: [app]
+
+networks:
+  app:
+    driver: bridge
 
 volumes:
   mysql_data:
   redis_data:
-
-networks:
-  default:
-    name: website-network
-    driver: bridge
