@@ -1,6 +1,6 @@
-# 模板：复制为 docker-compose.yml 后再改（docker-compose.yml 已 gitignore，pull 不会覆盖）
-# 首次：cp docker/docker-compose.example.yml docker/docker-compose.yml
-# 在仓库根目录：docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
+﻿# 模板：复制为 docker-compose.yml 后再改（docker-compose.yml 已 gitignore，pull 不会覆盖）
+# 首次：cp deploy/docker-compose.example.yml deploy/docker-compose.yml
+# 在仓库根目录：docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 
 name: mywebsite
 
@@ -10,10 +10,10 @@ services:
     container_name: mywebsite-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in docker/.env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in deploy/.env}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-blog}
       MYSQL_USER: ${MYSQL_USER:-blog}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in docker/.env}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in deploy/.env}
     volumes:
       - mysql_data:/var/lib/mysql
     command:
@@ -90,9 +90,9 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ""
-      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in docker/.env}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in deploy/.env}
       JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-10080}
-      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:?set APP_CORS_ALLOWED_ORIGINS in docker/.env}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:?set APP_CORS_ALLOWED_ORIGINS in deploy/.env}
       BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
       VIEW_COUNTER_REDIS: ${VIEW_COUNTER_REDIS:-false}
       NETEASE_PROXY_BASE_URL: http://ncm-api:3000

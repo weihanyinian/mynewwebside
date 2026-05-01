@@ -1,6 +1,6 @@
-# 模板：使用已构建/已 docker load 的镜像。复制为 docker-compose.images.yml 后按需修改（该文件名已 gitignore）
-# 打包镜像（Windows，在项目根目录）：docker\package-for-server.ps1 -Tag v1
-# 启动：docker compose -f docker/docker-compose.images.yml --env-file docker/.env up -d
+﻿# 模板：使用已构建/已 docker load 的镜像。复制为 deploy/docker-compose.images.yml 后按需修改（该文件名已 gitignore）
+# 打包镜像（Windows）：仓库根下 cd deploy 后 .\package-for-server.ps1 -Tag v1
+# 启动：docker compose -f deploy/docker-compose.images.yml --env-file deploy/.env up -d
 
 name: mywebsite
 

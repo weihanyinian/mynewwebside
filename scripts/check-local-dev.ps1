@@ -13,5 +13,5 @@ Write-Host "8080 = Spring Boot (mvn spring-boot:run); without it -> 502 from Vit
 Write-Host "3000 = Netease NCM API (optional; use docker compose ncm-only below)" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Start NCM only (Docker, from repo root):" -ForegroundColor Green
-Write-Host "  docker compose -f docker/docker-compose.ncm-only.example.yml up -d"
+Write-Host "  docker compose -f deploy/docker-compose.ncm-only.example.yml up -d"
 Write-Host ""

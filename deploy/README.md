@@ -1,7 +1,7 @@
-# 个人博客全栈：阿里云 ECS + Docker 一次性部署手册
+﻿# 个人博客全栈：阿里云 ECS + Docker 一次性部署手册
 
 面向本仓库当前结构：**`backend/`**（Spring Boot 3、Flyway、MySQL、Redis）、**`frontend/`**（Vue 3、Vite）。  
-编排目录：**`docker/`**，镜像构建上下文为**仓库根目录**（与模板 `docker-compose.example.yml` 中 `context: ..` 一致）。**Git 只提交 `*.example.yml`**；服务器上实际使用的 `docker-compose.yml` 由你本地复制生成且已 **`.gitignore`**，`git pull` 不会覆盖现场编排。
+**`docker/`** 在 Git 中**仅含**镜像构建：`docker/backend/Dockerfile`、`docker/frontend/Dockerfile`（及 `nginx.conf`），**无 yml、无 env**。编排模板、部署脚本与本说明在 **`deploy/`**；镜像构建上下文仍为**仓库根目录**（compose 里 `context: ..`）。**Git 只提交 `deploy/*.example.yml` 模板**；由模板生成的 `deploy/docker-compose*.yml` 与 **`deploy/.env`** 已 **`.gitignore`**，`git pull` 不会覆盖现场配置。
 
 ---
 
@@ -11,7 +11,7 @@
 2. [ECS 与安全组](#2-ecs-与安全组)  
 3. [安装 Docker](#3-安装-docker)  
 4. [获取代码](#4-获取代码)  
-5. [创建 `docker/.env`（全文模板，必做）](#5-创建-dockerenv全文模板必做)  
+5. [创建 `deploy/.env`（全文模板，必做）](#5-创建-deployenv全文模板必做)  
 6. [首次启动](#6-首次启动)  
 7. [验证是否成功](#7-验证是否成功)  
 8. [日常更新](#8-日常更新)  
@@ -100,26 +100,26 @@ cd mywebsite
 
 ### 4.1 Compose 模板（首次必做，避免 pull 覆盖服务器编排）
 
-仓库内仅跟踪 **`docker/docker-compose.example.yml`**（以及 `docker-compose.images.example.yml`、`docker-compose.ncm-only.example.yml`）。请在仓库根**一次性**生成实际文件（之后可按服务器环境随意修改，**这些文件名已被 Git 忽略**）：
+仓库内仅跟踪 **`deploy/docker-compose.example.yml`**（以及 `docker-compose.images.example.yml`、`docker-compose.ncm-only.example.yml`）。请在仓库根**一次性**生成实际文件（之后可按服务器环境随意修改，**这些文件名已被 Git 忽略**）：
 
 ```bash
 cd /opt/mywebsite
-cp docker/docker-compose.example.yml docker/docker-compose.yml
+cp deploy/docker-compose.example.yml deploy/docker-compose.yml
 ```
 
-使用「预构建镜像」流程时，可复制 `docker/docker-compose.images.example.yml` → `docker/docker-compose.images.yml`。本地只起 NCM 可直接执行  
-`docker compose -f docker/docker-compose.ncm-only.example.yml up -d`，不必复制。
+使用「预构建镜像」流程时，可复制 `deploy/docker-compose.images.example.yml` → `deploy/docker-compose.images.yml`。本地只起 NCM 可直接执行  
+`docker compose -f deploy/docker-compose.ncm-only.example.yml up -d`，不必复制。
 
 ---
 
-## 5. 创建 `docker/.env`（全文模板，必做）
+## 5. 创建 `deploy/.env`（全文模板，必做）
 
-在服务器上**不要**从任何「example」复制；请**新建**文件 `docker/.env`，内容与下面**完全一致结构**，并把**所有必须修改项**换成你自己的值。
+在服务器上**不要**从任何「example」复制；请**新建**文件 `deploy/.env`，内容与下面**完全一致结构**，并把**所有必须修改项**换成你自己的值。
 
 在仓库根目录 `/opt/mywebsite` 执行：
 
 ```bash
-nano docker/.env
+nano deploy/.env
 ```
 
 **将下面整个代码框内的内容粘贴进编辑器**，保存退出（nano：`Ctrl+O` 回车，`Ctrl+X`）。
@@ -168,24 +168,24 @@ IMAGE_TAG=latest
 **权限（可选，防止同机其他用户读到密码）：**
 
 ```bash
-chmod 600 docker/.env
+chmod 600 deploy/.env
 ```
 
 ---
 
 ## 6. 首次启动
 
-确认已完成 **4.1 节**（已存在 `docker/docker-compose.yml`）。在**仓库根目录**执行（`/opt/mywebsite`）：
+确认已完成 **4.1 节**（已存在 `deploy/docker-compose.yml`）。在**仓库根目录**执行（`/opt/mywebsite`）：
 
 ```bash
 cd /opt/mywebsite
-docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 ```
 
 首次构建可能需要 **数分钟**（拉基础镜像、Maven、npm）。完成后：
 
 ```bash
-docker compose -f docker/docker-compose.yml ps
+docker compose -f deploy/docker-compose.yml ps
 ```
 
 期望所有服务为 `running` 或 `healthy`（刚启动时 `backend` 可能短暂 `starting`，可再等 1～2 分钟）。
@@ -193,7 +193,7 @@ docker compose -f docker/docker-compose.yml ps
 查看后端日志：
 
 ```bash
-docker compose -f docker/docker-compose.yml logs -f backend
+docker compose -f deploy/docker-compose.yml logs -f backend
 ```
 
 看到 Spring 启动完成、无 Flyway 报错即可 `Ctrl+C` 退出日志跟随。
@@ -216,7 +216,7 @@ http://你的ECS公网IP
 curl -sI "http://127.0.0.1:${HTTP_PORT:-80}/" | head -5
 ```
 
-（若 `.env` 里 `HTTP_PORT` 非 80，请先 `set -a && source docker/.env && set +a` 再 curl，或直接把 URL 里的端口改成你设置的数字。）
+（若 `.env` 里 `HTTP_PORT` 非 80，请先 `set -a && source deploy/.env && set +a` 再 curl，或直接把 URL 里的端口改成你设置的数字。）
 
 ---
 
@@ -225,10 +225,10 @@ curl -sI "http://127.0.0.1:${HTTP_PORT:-80}/" | head -5
 ```bash
 cd /opt/mywebsite
 git pull
-docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 ```
 
-`docker/docker-compose.yml` 为服务器本地文件，**不会被** `git pull` 覆盖。若仓库内 `docker-compose.example.yml` 有重要变更，可用 `diff docker/docker-compose.example.yml docker/docker-compose.yml` 自行合并。
+`deploy/docker-compose.yml` 为服务器本地文件，**不会被** `git pull` 覆盖。若仓库内 `docker-compose.example.yml` 有重要变更，可用 `diff deploy/docker-compose.example.yml deploy/docker-compose.yml` 自行合并。
 
 ---
 
@@ -237,11 +237,11 @@ docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
 适用于服务器**不能访问 Docker Hub / 构建慢**的情况：在 **Windows** 开发机安装 Docker Desktop，在项目里执行：
 
 ```powershell
-cd docker
+cd deploy
 .\package-for-server.ps1 -Tag v1
 ```
 
-会在 `docker/dist` 生成：
+会在 `deploy/dist` 生成：
 
 - `mywebsite-images-v1.tar`
 - `docker-compose.yml`（由 `docker-compose.images.example.yml` 复制生成）
@@ -250,7 +250,7 @@ cd docker
 
 - `mywebsite-images-v1.tar`
 - `docker-compose.yml`
-- `阿里云与Docker完整部署说明.md`（与本仓库 `docker/README.md` 相同）
+- `阿里云与Docker完整部署说明.md`（与本仓库 `deploy/README.md` 相同）
 - `dot-env-请填写后重命名为.env.txt`（骨架，**必须**按说明改成真正的 `.env`）
 
 在服务器执行：
@@ -260,7 +260,7 @@ cd /opt/mywebsite-dist
 docker load -i mywebsite-images-v1.tar
 ```
 
-在**同一目录**（与 `docker-compose.yml` 同级）创建 **`.env`**：内容与[第 5 节](#5-创建-dockerenv全文模板必做)**完全相同**，并**必须包含**（与打包标签一致）：
+在**同一目录**（与 `docker-compose.yml` 同级）创建 **`.env`**：内容与[第 5 节](#5-创建-deployenv全文模板必做)**完全相同**，并**必须包含**（与打包标签一致）：
 
 ```dotenv
 IMAGE_TAG=v1
@@ -285,40 +285,33 @@ docker compose --env-file .env up -d
 ## 10. 故障排查
 
 **1）`docker compose` 报 `JWT_SECRET` / `MYSQL_PASSWORD` / `APP_CORS_ALLOWED_ORIGINS` 未设置**  
-→ 说明 `docker/.env` 未加载或变量名拼写错误。确认使用 `--env-file docker/.env`，且变量名与第 5 节一致。
+→ 说明 `deploy/.env` 未加载或变量名拼写错误。确认使用 `--env-file deploy/.env`，且变量名与第 5 节一致。
 
 **2）浏览器能打开页面，但登录或 API 报 CORS**  
 → `APP_CORS_ALLOWED_ORIGINS` 必须包含浏览器地址栏的**完整来源**（含协议与端口）。
 
 **3）后端一直重启**  
 ```bash
-docker compose -f docker/docker-compose.yml logs --tail=200 backend
+docker compose -f deploy/docker-compose.yml logs --tail=200 backend
 ```  
 常见原因：数据库密码错误、MySQL 未就绪（首次多等一会）、Flyway 与旧数据冲突（新装 ECS 一般无此问题）。
 
 **4）80 端口被占用**  
-在 `docker/.env` 中改 `HTTP_PORT=8080`，安全组放行对应端口，访问 `http://IP:8080`。
+在 `deploy/.env` 中改 `HTTP_PORT=8080`，安全组放行对应端口，访问 `http://IP:8080`。
 
 **5）彻底重来（会删库，慎用）**  
 ```bash
 cd /opt/mywebsite
-docker compose -f docker/docker-compose.yml --env-file docker/.env down -v
-docker compose -f docker/docker-compose.yml --env-file docker/.env up -d --build
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env down -v
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 ```
 
 ---
 
 ## 等价启动方式（可选）
 
-若你习惯先 `cd docker`，且希望 `docker compose` 默认找到 `docker-compose.yml`：
-
-```bash
-cd /opt/mywebsite/docker
-# 将 .env 放在本目录：可从仓库根复制
-cp ../路径不推荐混乱
-```
-
-推荐始终**在仓库根**使用 `-f docker/docker-compose.yml --env-file docker/.env`，路径最清晰。
+也可先 `cd deploy` 再写相对路径，但推荐始终在**仓库根**使用  
+`-f deploy/docker-compose.yml --env-file deploy/.env`，路径最清晰。
 
 ---
 

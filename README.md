@@ -4,6 +4,7 @@
 
 - `backend/` Spring Boot 3 + MySQL 后端（RESTful）
 - `frontend/` Vue 3 + Vite + Element Plus 前端（前台 + 简易后台）
+- `docker/` 仅镜像构建（`backend`、`frontend` 的 Dockerfile 等），**无 compose / .env**；云上编排与变量模板见 **`deploy/README.md`**
 - `mysql/schema.sql` MySQL 建表语句
 
 ## 后端能力
@@ -83,7 +84,7 @@ curl "http://127.0.0.1:3000/login/status"
 curl "http://127.0.0.1:3000/song/url?id=33894312"
 ```
 
-**本地 `localhost:5173` 音乐组件报 502：** 多数是 **Spring Boot 未在 8080 启动**（Vite 反代失败）或 **3000 未起**（可只起 NCM：`docker compose -f docker/docker-compose.ncm-only.example.yml up -d`）。可在项目根运行 `powershell -File scripts/check-local-dev.ps1` 查看 8080/3000/5173 端口。后端对 `127.0.0.1:3000` 不可达时会尝试 **公网回退**（见 `application.example.yml` 中 `local-fallback-enabled`），但 **必须先保证 8080 后端已运行**。
+**本地 `localhost:5173` 音乐组件报 502：** 多数是 **Spring Boot 未在 8080 启动**（Vite 反代失败）或 **3000 未起**（可只起 NCM：`docker compose -f deploy/docker-compose.ncm-only.example.yml up -d`）。可在项目根运行 `powershell -File scripts/check-local-dev.ps1` 查看 8080/3000/5173 端口。后端对 `127.0.0.1:3000` 不可达时会尝试 **公网回退**（见 `application.example.yml` 中 `local-fallback-enabled`），但 **必须先保证 8080 后端已运行**。
 
 ### 3) 后端配置（Spring Boot）
 

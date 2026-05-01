@@ -21,11 +21,17 @@ frontend/dist/
 # Cursor / local agent
 .workbuddy/
 
-# Docker 部署密钥（变量清单见 docker/README.md 第五节）
+# 部署环境变量与本地编排（说明见 deploy/README.md）
 .env
+deploy/.env
+# 兼容旧路径
 docker/.env
 
-# 实际使用的 Compose 文件由 docker/*.example.yml 复制而来，勿提交，避免 git pull 覆盖服务器现场配置
+# deploy 下由 *.example.yml 复制的实际 compose，勿提交，避免 pull 覆盖服务器
+deploy/docker-compose.yml
+deploy/docker-compose.images.yml
+deploy/docker-compose.ncm-only.yml
+# 兼容旧路径（若本地仍留有）
 docker/docker-compose.yml
 docker/docker-compose.images.yml
 docker/docker-compose.ncm-only.yml
