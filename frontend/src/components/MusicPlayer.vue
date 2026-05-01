@@ -7,7 +7,10 @@ import { storeToRefs } from 'pinia'
 import { useMusicPlayerStore } from '../stores/musicPlayer'
 import { useUserStore } from '../stores/user'
 import { useThemeStore } from '../stores/theme'
-import { neteaseLogin, neteaseLogout } from '../api/musicApi'
+import { neteaseLoginWithCookie, neteaseLogout } from '../api/musicApi'
+// ncm 扫码走独立 axios（withCredentials），与 Login.vue 一致
+// @ts-expect-error api.js 无 TS 声明，与 vue-tsc 兼容
+import { ncmApi } from '../api'
 import { activeBilingualLrcIndex, parseBilingualLrc, type BilingualLrcLine } from '../utils/lrc'
 
 const PLAYER_Z_INDEX = 1100
@@ -67,14 +70,121 @@ const progressFillStr = computed(() =>
 )
 const volumeFillStr = computed(() => `${music.volume * 100}%`)
 const authPanelOpen = ref(false)
-const neteasePhone = ref('')
-const neteasePassword = ref('')
 const neteaseLoginLoading = ref(false)
 const neteaseAuthMsg = ref('')
 const neteaseAuthErr = ref('')
+const qrImg = ref('')
+const qrUnikey = ref('')
+const qrStatus = ref('')
+const qrPolling = ref(false)
+let qrPollTimer: ReturnType<typeof setInterval> | null = null
+
 const neteaseLabel = computed(() =>
   music.neteaseBound ? `🎵 ${music.neteaseNickname || '已绑定'}` : '🎵 网易云登录',
 )
+
+function pickNcmUnikey(inner: unknown): string {
+  const o = inner as { data?: { unikey?: string }; unikey?: string }
+  const d = o?.data ?? o
+  if (d && typeof d === 'object') {
+    const u = d as { unikey?: string; data?: { unikey?: string } }
+    if (u.unikey) return u.unikey
+    if (u.data?.unikey) return u.data.unikey
+  }
+  return ''
+}
+
+function stopQrPoll() {
+  if (qrPollTimer != null) {
+    clearInterval(qrPollTimer)
+    qrPollTimer = null
+  }
+  qrPolling.value = false
+}
+
+async function refreshNeteaseQrCode() {
+  if (!userStore.isLoggedIn) {
+    neteaseAuthErr.value = '请先登录本站账号，再绑定网易云账号'
+    return
+  }
+  stopQrPoll()
+  qrImg.value = ''
+  qrUnikey.value = ''
+  qrStatus.value = '正在获取二维码…'
+  neteaseAuthErr.value = ''
+  neteaseAuthMsg.value = ''
+  try {
+    const keyResp = await ncmApi.qrLoginKey()
+    const innerKey = keyResp.data?.data
+    const unikey = pickNcmUnikey(innerKey)
+    if (!unikey) {
+      throw new Error('未获取到二维码 key')
+    }
+    qrUnikey.value = unikey
+    const createResp = await ncmApi.qrLoginCreate(unikey, true)
+    const payload = createResp.data?.data as { data?: { qrimg?: string }; qrimg?: string } | undefined
+    const img = payload?.data?.qrimg ?? payload?.qrimg
+    if (!img) {
+      throw new Error('未返回二维码图片')
+    }
+    qrImg.value = img
+    qrStatus.value = '请使用网易云音乐 App 扫码'
+    qrPolling.value = true
+    qrPollTimer = setInterval(async () => {
+      if (!qrUnikey.value) return
+      try {
+        const checkResp = await ncmApi.qrLoginCheck(qrUnikey.value)
+        const body = checkResp.data?.data as
+          | { code?: number; message?: string; cookie?: string }
+          | undefined
+        const code = body?.code
+        if (code === 800) {
+          qrStatus.value = '二维码已过期，请点击刷新'
+          stopQrPoll()
+          return
+        }
+        if (code === 801) {
+          qrStatus.value = '等待扫码…'
+          return
+        }
+        if (code === 802) {
+          qrStatus.value = '请在手机上确认登录'
+          return
+        }
+        if (code === 803) {
+          stopQrPoll()
+          const ck = body?.cookie
+          if (!ck || !String(ck).trim()) {
+            throw new Error('登录成功但未返回 Cookie，请重试')
+          }
+          neteaseLoginLoading.value = true
+          try {
+            await neteaseLoginWithCookie(String(ck).trim())
+            await music.refreshNeteaseStatus()
+            neteaseAuthMsg.value = music.neteaseNickname
+              ? `绑定成功：${music.neteaseNickname}`
+              : '绑定成功'
+            qrStatus.value = '绑定成功'
+          } finally {
+            neteaseLoginLoading.value = false
+          }
+          return
+        }
+        qrStatus.value = body?.message || `状态码 ${code ?? '未知'}`
+      } catch (e: unknown) {
+        stopQrPoll()
+        neteaseAuthErr.value = e instanceof Error ? e.message : '轮询失败'
+      }
+    }, 2000)
+  } catch (e: unknown) {
+    qrStatus.value = ''
+    neteaseAuthErr.value = e instanceof Error ? e.message : '获取二维码失败'
+  }
+}
+
+watch(authPanelOpen, (open) => {
+  if (!open) stopQrPoll()
+})
 
 // ---------- 音源切换 ----------
 function toggleSource() {
@@ -90,31 +200,8 @@ function toggleAuthPanel() {
   authPanelOpen.value = !authPanelOpen.value
   neteaseAuthErr.value = ''
   neteaseAuthMsg.value = ''
-}
-
-async function submitNeteaseLogin() {
-  if (!userStore.isLoggedIn) {
-    neteaseAuthErr.value = '请先登录本站账号，再绑定网易云账号'
-    return
-  }
-  if (!neteasePhone.value.trim() || !neteasePassword.value.trim()) {
-    neteaseAuthErr.value = '请输入手机号和密码'
-    return
-  }
-  neteaseLoginLoading.value = true
-  neteaseAuthErr.value = ''
-  neteaseAuthMsg.value = ''
-  try {
-    await neteaseLogin(neteasePhone.value.trim(), neteasePassword.value.trim())
-    await music.refreshNeteaseStatus()
-    neteaseAuthMsg.value = music.neteaseNickname
-      ? `绑定成功：${music.neteaseNickname}`
-      : '绑定成功'
-    neteasePassword.value = ''
-  } catch (e: unknown) {
-    neteaseAuthErr.value = e instanceof Error ? e.message : '绑定失败，请稍后重试'
-  } finally {
-    neteaseLoginLoading.value = false
+  if (!authPanelOpen.value) {
+    stopQrPoll()
   }
 }
 
@@ -342,6 +429,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   cancelAnimationFrame(rafId)
+  stopQrPoll()
 })
 </script>
 
@@ -423,39 +511,30 @@ onUnmounted(() => {
 
         <div v-if="authPanelOpen" class="mp-auth-box">
           <p class="mp-auth-box__hint">
-            {{ userStore.isLoggedIn ? '绑定后可播放更多资源' : '请先登录本站账号后再绑定网易云账号' }}
+            {{ userStore.isLoggedIn ? '绑定后可播放更多音源' : '请先登录本站账号后再绑定网易云账号' }}
           </p>
-          <div class="mp-auth-box__row">
-            <input
-              v-model.trim="neteasePhone"
-              type="tel"
-              inputmode="numeric"
-              autocomplete="tel-national"
-              class="mp-auth-box__input"
-              placeholder="网易云手机号"
-              :disabled="neteaseLoginLoading || music.neteaseBound"
-            />
-            <input
-              v-model="neteasePassword"
-              type="password"
-              class="mp-auth-box__input"
-              placeholder="网易云密码"
-              :disabled="neteaseLoginLoading || music.neteaseBound"
-              @keydown.enter.prevent="submitNeteaseLogin"
-            />
-          </div>
-          <div class="mp-auth-box__actions">
+
+          <div v-if="!music.neteaseBound" class="mp-auth-box__qr">
             <button
-              v-if="!music.neteaseBound"
               type="button"
               class="mp-mini"
-              :disabled="neteaseLoginLoading || !userStore.isLoggedIn"
-              @click="submitNeteaseLogin"
+              :disabled="neteaseLoginLoading || qrPolling || !userStore.isLoggedIn"
+              @click="refreshNeteaseQrCode"
             >
-              {{ neteaseLoginLoading ? '绑定中…' : '绑定并登录' }}
+              {{ qrImg ? '刷新二维码' : '生成二维码' }}
             </button>
+            <div v-if="qrImg" class="mp-auth-box__qr-img-wrap">
+              <img :src="qrImg" alt="网易云扫码登录" class="mp-auth-box__qr-img" />
+            </div>
+            <p v-if="qrStatus" class="mp-auth-box__qr-hint">{{ qrStatus }}</p>
+            <p v-else class="mp-auth-box__qr-hint mp-auth-box__qr-hint--muted">
+              使用网易云音乐 App 扫码；成功后自动绑定到当前本站账号。
+            </p>
+          </div>
+
+          <div class="mp-auth-box__actions">
             <button
-              v-else
+              v-if="music.neteaseBound"
               type="button"
               class="mp-mini"
               :disabled="neteaseLoginLoading"
@@ -770,6 +849,39 @@ onUnmounted(() => {
   margin: 0 0 8px;
   font-size: 0.76rem;
   color: rgba(255, 255, 255, 0.9);
+}
+
+.mp-auth-box__qr {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.mp-auth-box__qr-img-wrap {
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px;
+  line-height: 0;
+}
+
+.mp-auth-box__qr-img {
+  width: 160px;
+  height: 160px;
+  display: block;
+  object-fit: contain;
+}
+
+.mp-auth-box__qr-hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.4;
+}
+
+.mp-auth-box__qr-hint--muted {
+  opacity: 0.8;
 }
 
 .mp-auth-box__row {

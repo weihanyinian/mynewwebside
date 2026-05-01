@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useNcmUserStore } from './user'
 import { ncmApi } from './api'
@@ -13,6 +13,96 @@ const captcha = ref('')
 const rawCookie = ref('')
 const songId = ref('29764545')
 const losslessResult = ref(null)
+
+/** 扫码登录 */
+const qrImg = ref('')
+const qrUnikey = ref('')
+const qrStatus = ref('')
+const qrPolling = ref(false)
+let qrPollTimer = null
+
+function pickNcmUnikey(inner) {
+  const d = inner?.data ?? inner
+  if (d?.unikey) return d.unikey
+  if (d?.data?.unikey) return d.data.unikey
+  return ''
+}
+
+function stopQrPoll() {
+  if (qrPollTimer != null) {
+    clearInterval(qrPollTimer)
+    qrPollTimer = null
+  }
+  qrPolling.value = false
+}
+
+async function refreshQrCode() {
+  stopQrPoll()
+  qrImg.value = ''
+  qrUnikey.value = ''
+  qrStatus.value = '正在获取二维码…'
+  try {
+    const keyResp = await ncmApi.qrLoginKey()
+    const innerKey = keyResp.data?.data
+    const unikey = pickNcmUnikey(innerKey)
+    if (!unikey) {
+      throw new Error('未获取到二维码 key')
+    }
+    qrUnikey.value = unikey
+    const createResp = await ncmApi.qrLoginCreate(unikey, true)
+    const payload = createResp.data?.data
+    const img = payload?.data?.qrimg ?? payload?.qrimg
+    if (!img) {
+      throw new Error('未返回二维码图片')
+    }
+    qrImg.value = img
+    qrStatus.value = '请使用网易云音乐 App 扫码'
+    qrPolling.value = true
+    qrPollTimer = setInterval(async () => {
+      if (!qrUnikey.value) return
+      try {
+        const checkResp = await ncmApi.qrLoginCheck(qrUnikey.value)
+        const body = checkResp.data?.data
+        const code = body?.code
+        if (code === 800) {
+          qrStatus.value = '二维码已过期，请点击刷新'
+          stopQrPoll()
+          return
+        }
+        if (code === 801) {
+          qrStatus.value = '等待扫码…'
+          return
+        }
+        if (code === 802) {
+          qrStatus.value = '请在手机上确认登录'
+          return
+        }
+        if (code === 803) {
+          stopQrPoll()
+          store.loginType = 'qr'
+          store.loggedIn = true
+          await store.refreshProfile()
+          qrStatus.value = '登录成功'
+          ElMessage.success('网易云扫码登录成功')
+          return
+        }
+        qrStatus.value = body?.message || `状态码 ${code ?? '未知'}`
+      } catch (e) {
+        stopQrPoll()
+        ElMessage.error(e?.message || '轮询失败')
+      }
+    }, 2000)
+  } catch (e) {
+    qrStatus.value = ''
+    ElMessage.error(e?.message || '获取二维码失败')
+  }
+}
+
+watch(tab, (v) => {
+  if (v !== 'qr') stopQrPoll()
+})
+
+onUnmounted(() => stopQrPoll())
 
 async function sendCaptcha() {
   if (!phone.value) {
@@ -97,6 +187,19 @@ onMounted(() => {
             />
           </el-form-item>
         </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane label="扫码登录" name="qr">
+        <el-space direction="vertical" alignment="start" :size="12" style="width: 100%">
+          <el-button type="primary" :disabled="qrPolling" @click="refreshQrCode">
+            {{ qrImg ? '刷新二维码' : '生成二维码' }}
+          </el-button>
+          <div v-if="qrImg" style="background: #fff; padding: 12px; border-radius: 8px; display: inline-block">
+            <img :src="qrImg" alt="网易云登录二维码" style="width: 200px; height: 200px; display: block" />
+          </div>
+          <el-text v-if="qrStatus" type="info">{{ qrStatus }}</el-text>
+          <el-text v-else type="info">与官方文档一致：先取 key，再生成图，轮询 check（803 成功）。</el-text>
+        </el-space>
       </el-tab-pane>
     </el-tabs>
 

@@ -7,6 +7,7 @@ import com.mywebsite.blog.common.IpRateLimiter;
 import com.mywebsite.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
 import com.mywebsite.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
+import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseCookieLoginRequest;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseLoginRequest;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseStatusDto;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.PlaylistItemDto;
@@ -69,6 +70,20 @@ public class NeteaseMusicUserController {
       throw new BusinessException(429, "登录尝试过于频繁，请稍后再试");
     }
     return ApiResponse.ok(sessionService.login(auth.getName(), req.phone(), req.password(), req.countrycode()));
+  }
+
+  /** 使用扫码等方式取得的网易云 Cookie 绑定本站账号（需已 JWT 登录）。 */
+  @PostMapping("/login/cookie")
+  public ApiResponse<NeteaseStatusDto> loginWithCookie(
+      @Valid @RequestBody NeteaseCookieLoginRequest req,
+      Authentication auth,
+      HttpServletRequest request
+  ) {
+    String ip = request.getRemoteAddr();
+    if (!neteaseLoginLimiter.tryAcquire(ip)) {
+      throw new BusinessException(429, "登录尝试过于频繁，请稍后再试");
+    }
+    return ApiResponse.ok(sessionService.loginWithCookie(auth.getName(), req.cookie()));
   }
 
   @PostMapping("/logout")

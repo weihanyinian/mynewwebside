@@ -25,7 +25,13 @@ api.interceptors.response.use(
     }
     return resp
   },
-  (err) => Promise.reject(err),
+  (err) => {
+    const msg = err.response?.data?.message
+    if (msg && typeof msg === 'string') {
+      return Promise.reject(new Error(msg))
+    }
+    return Promise.reject(err)
+  },
 )
 
 export const ncmApi = {
@@ -41,6 +47,16 @@ export const ncmApi = {
   },
   loginByCookie(cookie) {
     return api.post('/api/ncm/login/cookie', { cookie })
+  },
+  /** 网易云扫码登录三步：key → create（展示 qrimg）→ 轮询 check（803 为成功） */
+  qrLoginKey() {
+    return api.get('/api/ncm/login/qr/key', { params: { t: Date.now() } })
+  },
+  qrLoginCreate(key, qrimg = true) {
+    return api.get('/api/ncm/login/qr/create', { params: { key, qrimg, t: Date.now() } })
+  },
+  qrLoginCheck(key) {
+    return api.get('/api/ncm/login/qr/check', { params: { key, t: Date.now() } })
   },
   me() {
     return api.get('/api/ncm/me')

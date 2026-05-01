@@ -7,8 +7,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -25,6 +27,9 @@ import org.springframework.web.client.RestTemplate;
 public class NcmService {
 
   private static final String SESSION_NCM_COOKIE = "ncm_cookie";
+  /** Set-Cookie / document.cookie 风格字符串里的属性名，不应作为请求 Cookie 头发送 */
+  private static final Set<String> COOKIE_ATTR_NAMES = Set.of(
+      "path", "domain", "expires", "max-age", "samesite", "secure", "httponly", "partitioned");
   private final RestTemplate restTemplate;
   private final String baseUrl;
 
@@ -78,6 +83,37 @@ public class NcmService {
   public Map<String, Object> loginStatus(HttpSession session) {
     ResponseEntity<Map> status = callNcm(session, "/login/status", HttpMethod.GET, null, true);
     return safeBody(status.getBody());
+  }
+
+  /** 对应 @neteasecloudmusicapienhanced/api {@code GET /login/qr/key}，需带时间戳防缓存 */
+  public Map<String, Object> qrLoginKey(HttpSession session) {
+    String path = "/login/qr/key?t=" + System.currentTimeMillis();
+    ResponseEntity<Map> resp = callNcm(session, path, HttpMethod.GET, null, false);
+    saveCookieFromResponse(session, resp);
+    saveCookieFromJsonBody(session, resp.getBody());
+    return safeBody(resp.getBody());
+  }
+
+  /** 对应 {@code GET /login/qr/create?key=&qrimg=} */
+  public Map<String, Object> qrLoginCreate(HttpSession session, String key, boolean qrimg) {
+    String path = "/login/qr/create?key=" + encode(key) + "&qrimg=" + qrimg + "&t=" + System.currentTimeMillis();
+    ResponseEntity<Map> resp = callNcm(session, path, HttpMethod.GET, null, false);
+    saveCookieFromResponse(session, resp);
+    saveCookieFromJsonBody(session, resp.getBody());
+    return safeBody(resp.getBody());
+  }
+
+  /**
+   * 轮询 {@code GET /login/qr/check?key=}；返回体 {@code code}：800 过期、801 待扫、802 待确认、803 成功（含 cookie）。
+   */
+  public Map<String, Object> qrLoginCheck(HttpSession session, String key) {
+    String path = "/login/qr/check?key=" + encode(key) + "&t=" + System.currentTimeMillis();
+    ResponseEntity<Map> resp = callNcm(session, path, HttpMethod.GET, null, false);
+    saveCookieFromResponse(session, resp);
+    saveCookieFromJsonBody(session, resp.getBody());
+    Map<String, Object> out = safeBody(resp.getBody());
+    out.put("sessionCookiePresent", getCookie(session) != null);
+    return out;
   }
 
   public Map<String, Object> testLosslessUrl(HttpSession session, long songId) {
@@ -143,7 +179,40 @@ public class NcmService {
     }
     Object c = body.get("cookie");
     if (c instanceof String s && !s.isBlank()) {
-      session.setAttribute(SESSION_NCM_COOKIE, s.trim());
+      mergeSessionCookieFromRaw(session, s.trim());
+    }
+  }
+
+  /** 合并写入：扫码轮询可能多次返回不同片段，803 时再补全登录 cookie */
+  private void mergeSessionCookieFromRaw(HttpSession session, String rawWithMaybeAttrs) {
+    Map<String, String> merged = new LinkedHashMap<>();
+    putCookiePairsSkipAttrs(merged, getCookie(session));
+    putCookiePairsSkipAttrs(merged, rawWithMaybeAttrs);
+    String header = merged.entrySet().stream()
+        .map(e -> e.getKey() + "=" + e.getValue())
+        .collect(Collectors.joining("; "));
+    if (!header.isBlank()) {
+      session.setAttribute(SESSION_NCM_COOKIE, header);
+    }
+  }
+
+  /** 解析 cookie 串（可含 Max-Age/Path 等属性段），只把 name=value 放入 map（后者覆盖同名） */
+  private void putCookiePairsSkipAttrs(Map<String, String> into, String raw) {
+    if (raw == null || raw.isBlank()) {
+      return;
+    }
+    for (String segment : raw.split(";")) {
+      String s = segment.trim();
+      int eq = s.indexOf('=');
+      if (eq <= 0) {
+        continue;
+      }
+      String name = s.substring(0, eq).trim();
+      if (COOKIE_ATTR_NAMES.contains(name.toLowerCase(Locale.ROOT))) {
+        continue;
+      }
+      String value = s.substring(eq + 1).trim();
+      into.put(name, value);
     }
   }
 
@@ -152,7 +221,7 @@ public class NcmService {
     if (setCookies == null || setCookies.isEmpty()) return;
     String merged = mergeSetCookie(setCookies);
     if (!merged.isBlank()) {
-      session.setAttribute(SESSION_NCM_COOKIE, merged);
+      mergeSessionCookieFromRaw(session, merged);
     }
   }
 

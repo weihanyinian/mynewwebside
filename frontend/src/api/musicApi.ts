@@ -47,6 +47,12 @@ export async function neteaseLogin(phone: string, password: string, countrycode?
   return data.data
 }
 
+/** 扫码登录成功后，将上游返回的 Cookie 绑定到当前本站账号 */
+export async function neteaseLoginWithCookie(cookie: string) {
+  const { data } = await http.post<ApiResponse<NeteaseStatus>>('/api/music/login/cookie', { cookie })
+  return data.data
+}
+
 export async function neteaseLogout() {
   await http.post<ApiResponse<void>>('/api/music/logout')
 }

@@ -16,6 +16,9 @@ public final class NeteaseMusicDtos {
       String countrycode
   ) {}
 
+  /** 使用网易云 Cookie 绑定本站账号（如扫码登录成功后上游返回的 cookie 串）。 */
+  public record NeteaseCookieLoginRequest(@NotBlank String cookie) {}
+
   public record NeteaseStatusDto(boolean bound, Long neteaseUid, String neteaseNickname) {}
 
   /** 与 {@link com.mywebsite.blog.controller.MusicController.PlaylistTrack} 对齐字段名，便于前端复用 */

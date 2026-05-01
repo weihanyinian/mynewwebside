@@ -134,6 +134,8 @@ const messages = {
       musicPhone: '手机号',
       musicPassword: '密码',
       musicBind: '绑定并登录',
+      musicQrBindHint:
+        '请使用页面左下角的迷你播放器：点击「网易云登录」→「生成二维码」，用网易云音乐 App 扫码完成绑定。',
       musicLoginFail: '登录失败，请检查手机号与密码',
       musicTabPlaylists: '我的歌单',
       musicTabLikes: '我喜欢的音乐',
@@ -424,6 +426,8 @@ const messages = {
       musicPhone: 'Phone',
       musicPassword: 'Password',
       musicBind: 'Bind & login',
+      musicQrBindHint:
+        'Use the mini player at the bottom-left: Netease login → Generate QR code, then scan with the Netease Music app.',
       musicLoginFail: 'Login failed',
       musicTabPlaylists: 'Playlists',
       musicTabLikes: 'Liked songs',

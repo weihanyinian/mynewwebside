@@ -181,6 +181,11 @@ public class NeteaseBinaryifyClient {
     return getJson(uri, cookieHeaderOrNull);
   }
 
+  /** 对应第三方 API {@code GET /login/status}，用于校验 Cookie 是否已登录。 */
+  public JsonNode loginStatus(String cookieHeaderOrNull) throws RestClientException {
+    return getJson("/login/status", cookieHeaderOrNull);
+  }
+
   private JsonNode getJson(String relativeUri, String cookieHeaderOrNull) {
     int maxAttempt = Math.max(1, properties.getRetryCount() + 1);
     RestClientException last = null;

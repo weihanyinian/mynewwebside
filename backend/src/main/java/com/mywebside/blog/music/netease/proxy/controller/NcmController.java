@@ -71,6 +71,34 @@ public class NcmController {
     return ApiResponse.ok(ncmService.loginByCaptcha(session, req.phone(), req.captcha(), req.countrycode()));
   }
 
+  @GetMapping("/login/qr/key")
+  public ApiResponse<Map<String, Object>> qrLoginKey(
+      HttpSession session,
+      HttpServletRequest request
+  ) {
+    if (!neteaseLoginLimiter.tryAcquire(request.getRemoteAddr())) {
+      throw new BusinessException(429, "登录尝试过于频繁，请稍后再试");
+    }
+    return ApiResponse.ok(ncmService.qrLoginKey(session));
+  }
+
+  @GetMapping("/login/qr/create")
+  public ApiResponse<Map<String, Object>> qrLoginCreate(
+      HttpSession session,
+      @RequestParam("key") @NotBlank(message = "二维码 key 不能为空") String key,
+      @RequestParam(value = "qrimg", defaultValue = "true") boolean qrimg
+  ) {
+    return ApiResponse.ok(ncmService.qrLoginCreate(session, key, qrimg));
+  }
+
+  @GetMapping("/login/qr/check")
+  public ApiResponse<Map<String, Object>> qrLoginCheck(
+      HttpSession session,
+      @RequestParam("key") @NotBlank(message = "二维码 key 不能为空") String key
+  ) {
+    return ApiResponse.ok(ncmService.qrLoginCheck(session, key));
+  }
+
   @PostMapping("/login/cookie")
   public ApiResponse<Map<String, Object>> loginByCookie(
       HttpSession session,

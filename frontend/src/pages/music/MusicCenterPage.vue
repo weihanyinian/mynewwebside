@@ -8,7 +8,6 @@ import { useUserStore } from '../../stores/user'
 import { useMusicPlayerStore } from '../../stores/musicPlayer'
 import {
   fetchNeteaseStatus,
-  neteaseLogin,
   neteaseLogout,
   fetchUserPlaylists,
   fetchLikelist,
@@ -26,10 +25,6 @@ const loading = ref(true)
 const err = ref('')
 const bound = ref(false)
 const neteaseNickname = ref<string | null>(null)
-
-const phone = ref('')
-const password = ref('')
-const loginBusy = ref(false)
 
 const tab = ref<'playlists' | 'likes' | 'recent'>('playlists')
 const playlists = ref<PlaylistItem[]>([])
@@ -80,20 +75,6 @@ async function loadAll() {
     err.value = e instanceof Error ? e.message : t('pages.loadError')
   } finally {
     loading.value = false
-  }
-}
-
-async function onLogin() {
-  loginBusy.value = true
-  err.value = ''
-  try {
-    await neteaseLogin(phone.value.trim(), password.value)
-    password.value = ''
-    await loadAll()
-  } catch (e: unknown) {
-    err.value = e instanceof Error ? e.message : t('pages.musicLoginFail')
-  } finally {
-    loginBusy.value = false
   }
 }
 
@@ -166,15 +147,9 @@ onMounted(async () => {
           {{ t('pages.musicBoundAs') }} <strong>{{ neteaseNickname || '—' }}</strong>
           <button type="button" class="mp-btn" @click="onLogout">{{ t('pages.musicUnbind') }}</button>
         </p>
-        <form v-else class="music-form" @submit.prevent="onLogin">
-          <label class="music-label">{{ t('pages.musicPhone') }}</label>
-          <input v-model="phone" type="tel" inputmode="numeric" class="music-input" autocomplete="tel-national" required />
-          <label class="music-label">{{ t('pages.musicPassword') }}</label>
-          <input v-model="password" type="password" class="music-input" autocomplete="current-password" required />
-          <button type="submit" class="music-submit" :disabled="loginBusy">
-            {{ loginBusy ? '…' : t('pages.musicBind') }}
-          </button>
-        </form>
+        <p v-else class="music-qr-hint">
+          {{ t('pages.musicQrBindHint') }}
+        </p>
         <p v-if="err" class="music-err">{{ err }}</p>
       </section>
 
@@ -303,6 +278,14 @@ onMounted(async () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+}
+
+.music-qr-hint {
+  margin: 0;
+  max-width: 36rem;
+  line-height: 1.55;
+  font-size: 0.92rem;
+  opacity: 0.95;
 }
 
 .music-form {

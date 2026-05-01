@@ -48,6 +48,8 @@ services:
     image: moefurina/ncm-api:latest
     container_name: mywebsite-ncm-api
     restart: unless-stopped
+    ports:
+      - "3000:3000"
     environment:
       PORT: "3000"
       # Docker 内 request 会读代理变量；宿主若设了不可用的代理会导致请求失败，故显式清空
@@ -58,6 +60,12 @@ services:
       no_proxy: "*"
       NO_PROXY: "*"
     networks: [app]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
 
   backend:
     build:
