@@ -9,6 +9,7 @@ export const useWorksStore = defineStore('works', {
     loading: false,
     loadedFromBackend: false,
     loadError: '',
+    lastFetch: 0,
   }),
   getters: {
     categories: (s) => ['all', ...Array.from(new Set(s.works.map((w) => w.tag.split('/')[0].trim())))],
@@ -20,13 +21,14 @@ export const useWorksStore = defineStore('works', {
   actions: {
     async fetchWorksFromBackend(force = false) {
       if (this.loading) return
-      if (!force && this.loadedFromBackend) return
+      if (!force && this.loadedFromBackend && Date.now() - this.lastFetch < 300_000) return
       this.loading = true
       this.loadError = ''
       try {
         const rows = await fetchPortfolioWorks()
         this.works = rows
         this.loadedFromBackend = true
+        this.lastFetch = Date.now()
         if (
           this.selectedCategory !== 'all'
           && !this.categories.some((c) => c.toLowerCase() === this.selectedCategory.toLowerCase())

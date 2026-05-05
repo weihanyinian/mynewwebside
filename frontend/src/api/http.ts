@@ -23,6 +23,17 @@ function resolveApiBaseUrl(): string {
   return ''
 }
 
+/** 短时间内同一 GET 请求去重，避免页面挂载时重复调用 */
+const inflight = new Map<string, Promise<unknown>>()
+const DEDUP_WINDOW_MS = 800
+
+function dedupKey(config: { method?: string; url?: string; params?: unknown }): string | null {
+  if (config.method?.toUpperCase() !== 'GET') return null
+  const u = config.url || ''
+  const p = config.params ? JSON.stringify(config.params) : ''
+  return `${u}|${p}`
+}
+
 export const http = axios.create({
   baseURL: resolveApiBaseUrl(),
   timeout: 15000,
@@ -34,6 +45,19 @@ http.interceptors.request.use((config) => {
     config.headers = config.headers || {}
     config.headers.Authorization = `Bearer ${token}`
   }
+
+  const key = dedupKey(config)
+  if (key) {
+    const existing = inflight.get(key)
+    if (existing) return existing
+    // 构造一个带超时清理的 promise
+    const p = Promise.resolve(config)
+    inflight.set(key, p)
+    setTimeout(() => {
+      if (inflight.get(key) === p) inflight.delete(key)
+    }, DEDUP_WINDOW_MS)
+  }
+
   return config
 })
 

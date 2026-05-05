@@ -56,6 +56,15 @@ services:
       NO_PROXY: "*"
     networks: [app]
 
+  qq-music-api:
+    build:
+      context: ../docker/qq-music-api
+      dockerfile: Dockerfile
+    image: mywebsite-qq-music-api:local
+    container_name: mywebsite-qq-music-api
+    restart: unless-stopped
+    networks: [app]
+
   backend:
     image: mywebsite-backend:${IMAGE_TAG:-latest}
     container_name: mywebsite-backend
@@ -66,6 +75,8 @@ services:
       redis:
         condition: service_healthy
       ncm-api:
+        condition: service_started
+      qq-music-api:
         condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -83,6 +94,7 @@ services:
       VIEW_COUNTER_REDIS: ${VIEW_COUNTER_REDIS:-false}
       NETEASE_PROXY_BASE_URL: http://ncm-api:3000
       NCM_BASE_URL: http://ncm-api:3000
+      QQ_MUSIC_PROXY_BASE_URL: http://qq-music-api:3300
       AI_COMPANION_ENABLED: ${AI_COMPANION_ENABLED:-false}
       AI_COMPANION_API_KEY: ${AI_COMPANION_API_KEY:-}
     networks: [app]

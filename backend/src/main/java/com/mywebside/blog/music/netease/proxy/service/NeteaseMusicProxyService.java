@@ -5,11 +5,13 @@ import com.mywebsite.blog.common.BusinessException;
 import com.mywebsite.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import com.mywebsite.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
+import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.MusicSearchHitDto;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.PlaylistItemDto;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongMetaDto;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 
@@ -50,6 +52,137 @@ public class NeteaseMusicProxyService {
     } catch (RestClientException e) {
       return new LyricDto("", "");
     }
+  }
+
+  /**
+   * 网易云综合搜索（cloudsearch）。
+   *
+   * @param type song | artist | album | playlist
+   */
+  public List<MusicSearchHitDto> searchHits(String keyword, int limit, String type) {
+    int cloudType = cloudSearchType(type);
+    try {
+      JsonNode root = client.cloudSearch(keyword, limit, cloudType);
+      return switch (cloudType) {
+        case 1 -> parseCloudSongHits(root);
+        case 100 -> parseCloudArtistHits(root);
+        case 10 -> parseCloudAlbumHits(root);
+        case 1000 -> parseCloudPlaylistHits(root);
+        default -> List.of();
+      };
+    } catch (RestClientException e) {
+      return List.of();
+    }
+  }
+
+  private static int cloudSearchType(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return 1;
+    }
+    return switch (raw.trim().toLowerCase(Locale.ROOT)) {
+      case "artist", "singer" -> 100;
+      case "album" -> 10;
+      case "playlist", "songlist" -> 1000;
+      default -> 1;
+    };
+  }
+
+  private List<MusicSearchHitDto> parseCloudSongHits(JsonNode root) {
+    int code = root.path("code").asInt(-1);
+    if (code != 200) {
+      return List.of();
+    }
+    JsonNode songs = root.path("result").path("songs");
+    if (!songs.isArray()) {
+      return List.of();
+    }
+    List<MusicSearchHitDto> out = new ArrayList<>();
+    for (JsonNode song : songs) {
+      long id = song.path("id").asLong(0);
+      if (id == 0) {
+        continue;
+      }
+      String name = song.path("name").asText("");
+      String artist = firstArtistName(song.path("ar"));
+      String cover = song.path("al").path("picUrl").asText("");
+      out.add(new MusicSearchHitDto("song", id, "", name, artist, cover));
+    }
+    return out;
+  }
+
+  private List<MusicSearchHitDto> parseCloudArtistHits(JsonNode root) {
+    int code = root.path("code").asInt(-1);
+    if (code != 200) {
+      return List.of();
+    }
+    JsonNode artists = root.path("result").path("artists");
+    if (!artists.isArray()) {
+      return List.of();
+    }
+    List<MusicSearchHitDto> out = new ArrayList<>();
+    for (JsonNode a : artists) {
+      long id = a.path("id").asLong(0);
+      if (id == 0) {
+        continue;
+      }
+      String name = a.path("name").asText("");
+      String pic = a.path("picUrl").asText("");
+      String alias = "";
+      JsonNode al = a.path("alias");
+      if (al.isArray() && al.size() > 0) {
+        alias = al.get(0).asText("");
+      }
+      out.add(new MusicSearchHitDto("artist", id, "", name, alias, pic));
+    }
+    return out;
+  }
+
+  private List<MusicSearchHitDto> parseCloudAlbumHits(JsonNode root) {
+    int code = root.path("code").asInt(-1);
+    if (code != 200) {
+      return List.of();
+    }
+    JsonNode albums = root.path("result").path("albums");
+    if (!albums.isArray()) {
+      return List.of();
+    }
+    List<MusicSearchHitDto> out = new ArrayList<>();
+    for (JsonNode al : albums) {
+      long id = al.path("id").asLong(0);
+      if (id == 0) {
+        continue;
+      }
+      String name = al.path("name").asText("");
+      String cover = al.path("picUrl").asText("");
+      String artist = firstArtistName(al.path("artists"));
+      out.add(new MusicSearchHitDto("album", id, "", name, artist, cover));
+    }
+    return out;
+  }
+
+  private List<MusicSearchHitDto> parseCloudPlaylistHits(JsonNode root) {
+    int code = root.path("code").asInt(-1);
+    if (code != 200) {
+      return List.of();
+    }
+    JsonNode pls = root.path("result").path("playlists");
+    if (!pls.isArray()) {
+      return List.of();
+    }
+    List<MusicSearchHitDto> out = new ArrayList<>();
+    for (JsonNode p : pls) {
+      long id = p.path("id").asLong(0);
+      if (id == 0) {
+        continue;
+      }
+      String name = p.path("name").asText("");
+      String cover = p.path("coverImgUrl").asText("");
+      String creator = p.path("creator").path("nickname").asText("");
+      int tc = p.path("trackCount").asInt(0);
+      String sub = creator.isBlank() ? (tc + " 首") : (creator + " · " + tc + " 首");
+      out.add(new MusicSearchHitDto("playlist", id, "", name, sub, cover));
+    }
+    return out;
   }
 
   public List<PlaylistItemDto> parseUserPlaylists(JsonNode root) {

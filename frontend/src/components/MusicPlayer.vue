@@ -4,10 +4,11 @@
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import QqCookieGuide from './music/QqCookieGuide.vue'
 import { useMusicPlayerStore } from '../stores/musicPlayer'
 import { useUserStore } from '../stores/user'
 import { useThemeStore } from '../stores/theme'
-import { neteaseLoginWithCookie, neteaseLogout } from '../api/musicApi'
+import { neteaseLoginWithCookie, neteaseLogout, qqLoginCookie, qqLogout } from '../api/musicApi'
 // ncm 扫码走独立 axios（withCredentials），与 Login.vue 一致
 // @ts-expect-error api.js 无 TS 声明，与 vue-tsc 兼容
 import { ncmApi } from '../api'
@@ -37,10 +38,12 @@ const isSeeking = ref(false)
 const isLoading = computed(() => urlLoading.value)
 const currentTime = ref(0)
 const duration = ref(0)
-const FAV_KEY = 'weihan_mp_favorites_v2'
-const favorites = ref<string[]>([])
 
 const lyricBoxRef = ref<HTMLElement | null>(null)
+const authBoxRef = ref<HTMLElement | null>(null)
+
+/** 绑定面板当前平台：与顶部两个登录按钮对应，互不混排 */
+const authPanelTab = ref<'netease' | 'qq'>('netease')
 const lrcLines = computed<BilingualLrcLine[]>(() => parseBilingualLrc(music.lyricLrc || '', music.lyricTLrc || ''))
 const activeLine = computed(() => activeBilingualLrcIndex(lrcLines.value, currentTime.value))
 
@@ -54,13 +57,14 @@ const displayTitle = computed(() => {
 
 const sourceLabel = computed(() => {
   if (music.source === 'library') return '📚 音乐库'
-  if (music.source === 'playlist') return '📋 歌单'
+  if (music.source === 'playlist') {
+    if (music.dailyHotPlatform === 'netease') return '🔥 热歌 · 网易云'
+    if (music.dailyHotPlatform === 'qq') return '🔥 热歌 · QQ'
+    return '📋 歌单'
+  }
   return '🎲 随机'
 })
 
-const isFavorite = computed(
-  () => !!(currentTrack.value && favorites.value.includes(String(currentTrack.value.id))),
-)
 const modeLabel = computed(() =>
   music.playMode === 'loop_one' ? '🔂' : music.playMode === 'shuffle' ? '🔀' : '🔁',
 )
@@ -82,6 +86,15 @@ let qrPollTimer: ReturnType<typeof setInterval> | null = null
 const neteaseLabel = computed(() =>
   music.neteaseBound ? `🎵 ${music.neteaseNickname || '已绑定'}` : '🎵 网易云登录',
 )
+
+const qqLoginLabel = computed(() =>
+  music.qqBound ? `🎼 ${music.qqNickname || 'QQ已绑定'}` : '🎼 QQ音乐登录',
+)
+
+const qqCookieInput = ref('')
+const qqAuthErr = ref('')
+const qqAuthMsg = ref('')
+const qqLoginLoading = ref(false)
 
 function pickNcmUnikey(inner: unknown): string {
   const o = inner as { data?: { unikey?: string }; unikey?: string }
@@ -183,7 +196,9 @@ async function refreshNeteaseQrCode() {
 }
 
 watch(authPanelOpen, (open) => {
-  if (!open) stopQrPoll()
+  if (!open) {
+    stopQrPoll()
+  }
 })
 
 // ---------- 音源切换 ----------
@@ -196,12 +211,75 @@ function toggleSource() {
   }
 }
 
-function toggleAuthPanel() {
-  authPanelOpen.value = !authPanelOpen.value
+/** 网易云：再次点击（且当前为网易标签）收起绑定面板 */
+function onNeteaseLoginClick() {
+  if (authPanelOpen.value && authPanelTab.value === 'netease') {
+    authPanelOpen.value = false
+    stopQrPoll()
+    return
+  }
+  authPanelTab.value = 'netease'
+  authPanelOpen.value = true
   neteaseAuthErr.value = ''
   neteaseAuthMsg.value = ''
-  if (!authPanelOpen.value) {
-    stopQrPoll()
+  void nextTick(() => {
+    authBoxRef.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
+}
+
+/** QQ：再次点击（且当前为 QQ 标签）收起绑定面板 */
+function onQqLoginClick() {
+  if (authPanelOpen.value && authPanelTab.value === 'qq') {
+    authPanelOpen.value = false
+    return
+  }
+  stopQrPoll()
+  authPanelTab.value = 'qq'
+  authPanelOpen.value = true
+  neteaseAuthErr.value = ''
+  neteaseAuthMsg.value = ''
+  void nextTick(() => {
+    authBoxRef.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
+}
+
+async function submitQqCookie() {
+  if (!userStore.isLoggedIn) {
+    qqAuthErr.value = '请先登录本站账号'
+    return
+  }
+  const ck = qqCookieInput.value.trim()
+  if (!ck) {
+    qqAuthErr.value = '请粘贴 Cookie'
+    return
+  }
+  qqLoginLoading.value = true
+  qqAuthErr.value = ''
+  qqAuthMsg.value = ''
+  try {
+    await qqLoginCookie(ck)
+    await music.refreshNeteaseStatus()
+    qqAuthMsg.value = music.qqNickname ? `QQ 音乐已绑定：${music.qqNickname}` : 'QQ 音乐已绑定'
+    qqCookieInput.value = ''
+  } catch (e: unknown) {
+    qqAuthErr.value = e instanceof Error ? e.message : '绑定失败'
+  } finally {
+    qqLoginLoading.value = false
+  }
+}
+
+async function submitQqLogout() {
+  qqLoginLoading.value = true
+  qqAuthErr.value = ''
+  qqAuthMsg.value = ''
+  try {
+    await qqLogout()
+    await music.refreshNeteaseStatus()
+    qqAuthMsg.value = '已解绑 QQ 音乐'
+  } catch (e: unknown) {
+    qqAuthErr.value = e instanceof Error ? e.message : '解绑失败'
+  } finally {
+    qqLoginLoading.value = false
   }
 }
 
@@ -301,29 +379,8 @@ function toggleExpand() {
 
 function collapse() {
   isExpanded.value = false
-}
-
-function loadFavorites() {
-  try {
-    const raw = localStorage.getItem(FAV_KEY)
-    const o = raw ? JSON.parse(raw) : []
-    favorites.value = Array.isArray(o) ? o : []
-  } catch {
-    favorites.value = []
-  }
-}
-
-function persistFavorites() {
-  localStorage.setItem(FAV_KEY, JSON.stringify(favorites.value))
-}
-
-function toggleFavorite() {
-  if (!currentTrack.value) return
-  const id = String(currentTrack.value.id)
-  const i = favorites.value.indexOf(id)
-  if (i >= 0) favorites.value.splice(i, 1)
-  else favorites.value.push(id)
-  persistFavorites()
+  authPanelOpen.value = false
+  stopQrPoll()
 }
 
 function cyclePlayMode() {
@@ -419,8 +476,6 @@ function tick() {
 }
 
 onMounted(() => {
-  loadFavorites()
-  music.hydratePlayerPref()
   applyVolume()
   rafId = requestAnimationFrame(tick)
   userStore.hydrateFromStorage()
@@ -473,9 +528,20 @@ onUnmounted(() => {
               <span class="mp-panel__title" :title="displayTitle">
                 {{ isLoading ? '🎵 解析地址…' : displayTitle }}
               </span>
+              <button
+                type="button"
+                class="mp-source-chip"
+                title="点击切换默认歌单 / 随机"
+                @click="toggleSource"
+              >
+                {{ sourceLabel }}
+              </button>
               <span v-if="loadError" class="mp-panel__err">{{ loadError }}</span>
               <span v-if="userStore.isLoggedIn && music.neteaseBound" class="mp-panel__sub">
                 网易云：{{ music.neteaseNickname || '已登录' }}
+              </span>
+              <span v-if="userStore.isLoggedIn && music.qqBound" class="mp-panel__sub">
+                QQ 音乐：{{ music.qqNickname || '已登录' }}
               </span>
             </div>
           </div>
@@ -501,50 +567,111 @@ onUnmounted(() => {
         </div>
 
         <div class="mp-extra">
-          <button type="button" class="mp-mini" title="网易云账号" @click="toggleAuthPanel">{{ neteaseLabel }}</button>
-          <button type="button" class="mp-mini" title="切换音源" @click="toggleSource">{{ sourceLabel }}</button>
-          <button type="button" class="mp-mini" title="播放模式" @click="cyclePlayMode">{{ modeLabel }}</button>
-          <button type="button" class="mp-mini" title="收藏当前" @click="toggleFavorite">
-            {{ isFavorite ? '❤' : '♡' }}
+          <button
+            type="button"
+            class="mp-mini"
+            :class="{ 'mp-mini--active': authPanelOpen && authPanelTab === 'qq' }"
+            title="QQ 音乐登录"
+            @click="onQqLoginClick"
+          >
+            {{ qqLoginLabel }}
           </button>
+          <button
+            type="button"
+            class="mp-mini"
+            :class="{ 'mp-mini--active': authPanelOpen && authPanelTab === 'netease' }"
+            title="网易云账号"
+            @click="onNeteaseLoginClick"
+          >
+            {{ neteaseLabel }}
+          </button>
+          <button type="button" class="mp-mini" title="播放模式" @click="cyclePlayMode">{{ modeLabel }}</button>
         </div>
 
-        <div v-if="authPanelOpen" class="mp-auth-box">
-          <p class="mp-auth-box__hint">
-            {{ userStore.isLoggedIn ? '绑定后可播放更多音源' : '请先登录本站账号后再绑定网易云账号' }}
-          </p>
-
-          <div v-if="!music.neteaseBound" class="mp-auth-box__qr">
-            <button
-              type="button"
-              class="mp-mini"
-              :disabled="neteaseLoginLoading || qrPolling || !userStore.isLoggedIn"
-              @click="refreshNeteaseQrCode"
-            >
-              {{ qrImg ? '刷新二维码' : '生成二维码' }}
-            </button>
-            <div v-if="qrImg" class="mp-auth-box__qr-img-wrap">
-              <img :src="qrImg" alt="网易云扫码登录" class="mp-auth-box__qr-img" />
-            </div>
-            <p v-if="qrStatus" class="mp-auth-box__qr-hint">{{ qrStatus }}</p>
-            <p v-else class="mp-auth-box__qr-hint mp-auth-box__qr-hint--muted">
-              使用网易云音乐 App 扫码；成功后自动绑定到当前本站账号。
+        <div v-if="authPanelOpen" ref="authBoxRef" class="mp-auth-box">
+          <!-- 仅网易云 -->
+          <template v-if="authPanelTab === 'netease'">
+            <p class="mp-auth-box__hint">网易云音乐</p>
+            <p class="mp-auth-box__qr-hint mp-auth-box__qr-hint--muted" style="margin: 0 0 8px">
+              {{
+                userStore.isLoggedIn
+                  ? '绑定后可同步歌单、喜欢与更高音质播放等。'
+                  : '请先登录本站账号，再使用下方扫码绑定网易云。'
+              }}
             </p>
-          </div>
 
-          <div class="mp-auth-box__actions">
-            <button
-              v-if="music.neteaseBound"
-              type="button"
-              class="mp-mini"
-              :disabled="neteaseLoginLoading"
-              @click="submitNeteaseLogout"
-            >
-              {{ neteaseLoginLoading ? '处理中…' : '解绑账号' }}
-            </button>
-          </div>
-          <p v-if="neteaseAuthErr" class="mp-auth-box__err">{{ neteaseAuthErr }}</p>
-          <p v-else-if="neteaseAuthMsg" class="mp-auth-box__ok">{{ neteaseAuthMsg }}</p>
+            <div v-if="!music.neteaseBound" class="mp-auth-box__qr">
+              <button
+                type="button"
+                class="mp-mini"
+                :disabled="neteaseLoginLoading || qrPolling || !userStore.isLoggedIn"
+                @click="refreshNeteaseQrCode"
+              >
+                {{ qrImg ? '刷新二维码' : '生成二维码' }}
+              </button>
+              <div v-if="qrImg" class="mp-auth-box__qr-img-wrap">
+                <img :src="qrImg" alt="网易云扫码登录" class="mp-auth-box__qr-img" />
+              </div>
+              <p v-if="qrStatus" class="mp-auth-box__qr-hint">{{ qrStatus }}</p>
+              <p v-else class="mp-auth-box__qr-hint mp-auth-box__qr-hint--muted">
+                使用网易云音乐 App 扫码；成功后自动绑定到当前本站账号。
+              </p>
+            </div>
+
+            <div class="mp-auth-box__actions">
+              <button
+                v-if="music.neteaseBound"
+                type="button"
+                class="mp-mini"
+                :disabled="neteaseLoginLoading"
+                @click="submitNeteaseLogout"
+              >
+                {{ neteaseLoginLoading ? '处理中…' : '解绑网易云' }}
+              </button>
+            </div>
+            <p v-if="neteaseAuthErr" class="mp-auth-box__err">{{ neteaseAuthErr }}</p>
+            <p v-else-if="neteaseAuthMsg" class="mp-auth-box__ok">{{ neteaseAuthMsg }}</p>
+          </template>
+
+          <!-- 仅 QQ 音乐 -->
+          <template v-else>
+            <p class="mp-auth-box__hint">
+              QQ 音乐（<a href="https://github.com/jsososo/QQMusicApi" target="_blank" rel="noopener">QQMusicApi</a>）
+            </p>
+            <QqCookieGuide
+              class="mp-qq-guide"
+              compact
+              :require-site-user="!userStore.isLoggedIn"
+            />
+            <textarea
+              v-model="qqCookieInput"
+              class="mp-auth-box__textarea"
+              rows="3"
+              placeholder="uin=…; qm_keyst=…"
+              :disabled="!userStore.isLoggedIn || qqLoginLoading"
+            />
+            <div class="mp-auth-box__actions">
+              <button
+                type="button"
+                class="mp-mini"
+                :disabled="!userStore.isLoggedIn || qqLoginLoading"
+                @click="submitQqCookie"
+              >
+                {{ qqLoginLoading ? '处理中…' : '绑定 QQ Cookie' }}
+              </button>
+              <button
+                v-if="music.qqBound"
+                type="button"
+                class="mp-mini"
+                :disabled="qqLoginLoading"
+                @click="submitQqLogout"
+              >
+                解绑 QQ
+              </button>
+            </div>
+            <p v-if="qqAuthErr" class="mp-auth-box__err">{{ qqAuthErr }}</p>
+            <p v-else-if="qqAuthMsg" class="mp-auth-box__ok">{{ qqAuthMsg }}</p>
+          </template>
         </div>
 
         <div class="mp-controls">
@@ -681,6 +808,9 @@ onUnmounted(() => {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .mp-panel__head {
@@ -722,6 +852,28 @@ onUnmounted(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.mp-source-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+  max-width: 100%;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.mp-source-chip:hover {
+  background: rgba(102, 217, 255, 0.22);
+  transform: scale(1.02);
 }
 
 .mp-panel__err {
@@ -818,7 +970,8 @@ onUnmounted(() => {
 
 .mp-extra {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 10px;
 }
@@ -835,6 +988,12 @@ onUnmounted(() => {
 }
 .mp-mini:hover {
   transform: scale(1.05);
+}
+
+.mp-mini--active {
+  background: rgba(102, 217, 255, 0.35);
+  border-color: rgba(102, 217, 255, 0.75);
+  box-shadow: 0 0 0 1px rgba(102, 217, 255, 0.35);
 }
 
 .mp-auth-box {
@@ -884,6 +1043,22 @@ onUnmounted(() => {
   opacity: 0.8;
 }
 
+.mp-qq-guide {
+  margin: 0 0 8px;
+}
+
+.mp-auth-box__inline-code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.12);
+  font-family: ui-monospace, monospace;
+  font-size: 0.88em;
+}
+
+:root[data-theme='dark'] .mp-auth-box__inline-code {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 .mp-auth-box__row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -918,6 +1093,39 @@ onUnmounted(() => {
 .mp-auth-box__input:disabled {
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+.mp-auth-box__hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  margin: 12px 0;
+}
+
+.mp-auth-box__textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f1f32;
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+.mp-auth-box__textarea:focus {
+  outline: none;
+  border-color: rgba(102, 217, 255, 0.95);
+}
+
+:root[data-theme='dark'] .mp-auth-box__textarea {
+  background: rgba(18, 26, 38, 0.92);
+  color: #edf7ff;
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .mp-auth-box__actions {

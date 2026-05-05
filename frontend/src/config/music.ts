@@ -1,5 +1,5 @@
 /**
- * 全站默认网易云歌单（与后端 netease.proxy.default-playlist-id 保持一致）
+ * 热歌加载失败时的回退歌单（与后端 netease.proxy.default-playlist-id 一致）
  * @see https://music.163.com/playlist?id=489057279
  */
 export const DEFAULT_NETEASE_PLAYLIST_ID =

@@ -6,6 +6,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '../../stores/user'
 import { useMusicPlayerStore } from '../../stores/musicPlayer'
+import QqCookieGuide from '../../components/music/QqCookieGuide.vue'
 import {
   fetchNeteaseStatus,
   neteaseLogout,
@@ -13,8 +14,14 @@ import {
   fetchLikelist,
   fetchRecent,
   fetchPlaylistTracks,
+  fetchPublicPlaylist,
+  searchNetease,
+  searchQq,
+  qqLoginCookie,
+  qqLogout,
   type SongMeta,
   type PlaylistItem,
+  type MusicSearchHit,
 } from '../../api/musicApi'
 
 const { t } = useI18n()
@@ -34,7 +41,25 @@ const expandedPid = ref<number | null>(null)
 const expandedTracks = ref<SongMeta[]>([])
 const tracksLoading = ref(false)
 
+const searchPlatform = ref<'netease' | 'qq'>('netease')
+const searchKind = ref<'song' | 'artist' | 'album' | 'playlist'>('song')
+const searchQ = ref('')
+const searchLoading = ref(false)
+const searchErr = ref('')
+const searchInfo = ref('')
+const searchResults = ref<MusicSearchHit[]>([])
+
+const qqCookieDraft = ref('')
+const qqBindLoading = ref(false)
+const qqBindErr = ref('')
+const qqBindMsg = ref('')
+
 const siteTitle = computed(() => t('pages.musicTitle'))
+
+function setSearchPlatform(p: 'netease' | 'qq') {
+  searchPlatform.value = p
+  searchResults.value = []
+}
 
 function toPlayerTrack(m: SongMeta) {
   return music.metaToTrack(m)
@@ -49,7 +74,6 @@ async function refreshStatus() {
     bound.value = false
     neteaseNickname.value = null
   }
-  await music.refreshNeteaseStatus()
 }
 
 async function loadAll() {
@@ -122,10 +146,130 @@ async function playAll(list: SongMeta[]) {
   )
 }
 
+async function runSearch() {
+  if (!userStore.isLoggedIn) {
+    searchErr.value = t('pages.musicSearchNeedLogin')
+    return
+  }
+  const q = searchQ.value.trim()
+  if (!q) {
+    searchResults.value = []
+    return
+  }
+  searchLoading.value = true
+  searchErr.value = ''
+  searchInfo.value = ''
+  try {
+    if (searchPlatform.value === 'netease') {
+      searchResults.value = await searchNetease(q, 30, searchKind.value)
+    } else {
+      searchResults.value = await searchQq(q, 1, 25, searchKind.value)
+    }
+  } catch (e: unknown) {
+    searchErr.value = e instanceof Error ? e.message : t('pages.loadError')
+  } finally {
+    searchLoading.value = false
+  }
+}
+
+function kindLabel(k: MusicSearchHit['kind']) {
+  switch (k) {
+    case 'artist':
+      return t('pages.musicSearchKindArtist')
+    case 'album':
+      return t('pages.musicSearchKindAlbum')
+    case 'playlist':
+      return t('pages.musicSearchKindPlaylist')
+    default:
+      return t('pages.musicSearchKindSong')
+  }
+}
+
+async function onSearchHitClick(hit: MusicSearchHit) {
+  searchInfo.value = ''
+  if (hit.kind === 'song') {
+    if (searchPlatform.value === 'netease') {
+      await playSong({ id: hit.id, name: hit.title, artist: hit.subtitle, cover: hit.cover })
+    } else {
+      if (!hit.mid) return
+      await music.playTrack(
+        music.metaToQqTrack({
+          songmid: hit.mid,
+          name: hit.title,
+          artist: hit.subtitle,
+          cover: hit.cover,
+        }),
+      )
+    }
+    return
+  }
+  if (hit.kind === 'artist') {
+    searchKind.value = 'song'
+    searchQ.value = hit.title
+    await runSearch()
+    return
+  }
+  if (hit.kind === 'album') {
+    searchKind.value = 'song'
+    searchQ.value = hit.subtitle ? `${hit.title} ${hit.subtitle}` : hit.title
+    await runSearch()
+    return
+  }
+  if (hit.kind === 'playlist') {
+    if (searchPlatform.value === 'netease' && hit.id > 0) {
+      try {
+        const tracks = await fetchPublicPlaylist(String(hit.id))
+        await playAll(tracks)
+      } catch {
+        searchErr.value = t('pages.loadError')
+      }
+    } else if (searchPlatform.value === 'qq') {
+      searchInfo.value = t('pages.musicSearchQqPlaylistHint')
+      searchKind.value = 'song'
+      searchQ.value = hit.title
+    }
+  }
+}
+
+async function onQqBind() {
+  if (!userStore.isLoggedIn) return
+  const ck = qqCookieDraft.value.trim()
+  if (!ck) {
+    qqBindErr.value = '请粘贴 Cookie'
+    return
+  }
+  qqBindLoading.value = true
+  qqBindErr.value = ''
+  qqBindMsg.value = ''
+  try {
+    await qqLoginCookie(ck)
+    await music.refreshNeteaseStatus()
+    qqBindMsg.value = t('pages.musicQqBindOk')
+    qqCookieDraft.value = ''
+  } catch (e: unknown) {
+    qqBindErr.value = e instanceof Error ? e.message : t('pages.loadError')
+  } finally {
+    qqBindLoading.value = false
+  }
+}
+
+async function onQqUnbind() {
+  qqBindLoading.value = true
+  qqBindErr.value = ''
+  qqBindMsg.value = ''
+  try {
+    await qqLogout()
+    await music.refreshNeteaseStatus()
+  } catch (e: unknown) {
+    qqBindErr.value = e instanceof Error ? e.message : t('pages.loadError')
+  } finally {
+    qqBindLoading.value = false
+  }
+}
+
 onMounted(async () => {
   userStore.hydrateFromStorage()
   await loadAll()
-  await music.refreshNeteaseStatus()
 })
 </script>
 
@@ -141,6 +285,128 @@ onMounted(async () => {
     </section>
 
     <template v-else>
+      <section class="glass-card music-search">
+        <h2 class="music-h2">{{ t('pages.musicSearchTitle') }}</h2>
+        <div class="music-search-platform">
+          <button
+            type="button"
+            class="music-tab"
+            :class="{ 'music-tab--on': searchPlatform === 'netease' }"
+            @click="setSearchPlatform('netease')"
+          >
+            {{ t('pages.musicSearchPlatformNetease') }}
+          </button>
+          <button
+            type="button"
+            class="music-tab"
+            :class="{ 'music-tab--on': searchPlatform === 'qq' }"
+            @click="setSearchPlatform('qq')"
+          >
+            {{ t('pages.musicSearchPlatformQq') }}
+          </button>
+        </div>
+        <div class="music-search-kind">
+          <button
+            type="button"
+            class="music-tab music-tab--sm"
+            :class="{ 'music-tab--on': searchKind === 'song' }"
+            @click="searchKind = 'song'"
+          >
+            {{ t('pages.musicSearchKindSong') }}
+          </button>
+          <button
+            type="button"
+            class="music-tab music-tab--sm"
+            :class="{ 'music-tab--on': searchKind === 'artist' }"
+            @click="searchKind = 'artist'"
+          >
+            {{ t('pages.musicSearchKindArtist') }}
+          </button>
+          <button
+            type="button"
+            class="music-tab music-tab--sm"
+            :class="{ 'music-tab--on': searchKind === 'album' }"
+            @click="searchKind = 'album'"
+          >
+            {{ t('pages.musicSearchKindAlbum') }}
+          </button>
+          <button
+            type="button"
+            class="music-tab music-tab--sm"
+            :class="{ 'music-tab--on': searchKind === 'playlist' }"
+            @click="searchKind = 'playlist'"
+          >
+            {{ t('pages.musicSearchKindPlaylist') }}
+          </button>
+        </div>
+        <div class="music-search-row">
+          <input
+            v-model="searchQ"
+            type="search"
+            class="music-input music-search-input"
+            :placeholder="t('pages.musicSearchPlaceholder')"
+            @keydown.enter.prevent="runSearch"
+          />
+          <button type="button" class="music-submit music-search-btn" :disabled="searchLoading" @click="runSearch">
+            {{ searchLoading ? t('pages.loading') : t('pages.musicSearchBtn') }}
+          </button>
+        </div>
+        <p v-if="searchErr" class="music-err">{{ searchErr }}</p>
+        <p v-else-if="searchInfo" class="music-muted music-search-info">{{ searchInfo }}</p>
+        <div v-if="searchResults.length" class="music-list music-search-results">
+          <button
+            v-for="(h, idx) in searchResults"
+            :key="`${h.kind}-${h.id}-${h.mid}-${idx}`"
+            type="button"
+            class="music-row music-row--hit"
+            @click="onSearchHitClick(h)"
+          >
+            <img
+              v-if="h.cover"
+              class="music-hit-cover"
+              :src="h.cover"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="music-hit-text">
+              <span class="music-sn">{{ h.title }}</span>
+              <span v-if="h.subtitle" class="music-sa">{{ h.subtitle }}</span>
+              <span class="music-hit-kind">{{ kindLabel(h.kind) }}</span>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section class="glass-card music-bind">
+        <h2 class="music-h2">{{ t('pages.musicQqAccount') }}</h2>
+        <p v-if="music.qqBound" class="music-status">
+          {{ t('pages.musicQqBoundAs') }} <strong>{{ music.qqNickname || '—' }}</strong>
+          <button type="button" class="mp-btn" :disabled="qqBindLoading" @click="onQqUnbind">
+            {{ t('pages.musicQqUnbind') }}
+          </button>
+        </p>
+        <QqCookieGuide v-else class="music-qq-guide" />
+        <textarea
+          v-model="qqCookieDraft"
+          class="music-textarea"
+          rows="3"
+          :placeholder="t('pages.musicQqCookiePh')"
+          :disabled="qqBindLoading"
+        />
+        <button
+          v-if="!music.qqBound"
+          type="button"
+          class="music-submit"
+          :disabled="qqBindLoading"
+          @click="onQqBind"
+        >
+          {{ qqBindLoading ? t('pages.loading') : t('pages.musicQqBind') }}
+        </button>
+        <p v-if="qqBindErr" class="music-err">{{ qqBindErr }}</p>
+        <p v-else-if="qqBindMsg" class="music-muted">{{ qqBindMsg }}</p>
+      </section>
+
       <section class="glass-card music-bind">
         <h2 class="music-h2">{{ t('pages.musicNeteaseAccount') }}</h2>
         <p v-if="bound" class="music-status">
@@ -288,6 +554,10 @@ onMounted(async () => {
   opacity: 0.95;
 }
 
+.music-qq-guide {
+  margin-bottom: 0.75rem;
+}
+
 .music-form {
   display: flex;
   flex-direction: column;
@@ -305,6 +575,114 @@ onMounted(async () => {
   border: 1px solid rgba(0, 0, 0, 0.12);
   padding: 0.45rem 0.65rem;
   font-size: 0.95rem;
+}
+
+.music-search-platform {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.music-search-kind {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.music-tab--sm {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.music-search-info {
+  margin-top: 0.5rem;
+}
+
+.music-row--hit {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.music-hit-cover {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.music-hit-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.music-hit-kind {
+  font-size: 0.72rem;
+  opacity: 0.65;
+  margin-top: 0.15rem;
+}
+
+.music-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.music-search-input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.music-search-btn {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.music-search-results {
+  margin-top: 0.75rem;
+}
+
+.music-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.5rem 0;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 0.45rem 0.65rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+:root[data-theme='dark'] .music-textarea {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #eaf8ff;
+}
+
+.music-qq-cmd {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.88rem;
+}
+
+.music-qq-cmd code {
+  display: inline-block;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+}
+
+:root[data-theme='dark'] .music-qq-cmd code {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 :root[data-theme='dark'] .music-input {

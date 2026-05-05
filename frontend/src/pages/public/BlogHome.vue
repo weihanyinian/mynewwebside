@@ -300,8 +300,9 @@ onUnmounted(() => {
                 class="blog-card__img"
                 loading="lazy"
                 decoding="async"
+                @error="(e: Event) => { const t = e.target as HTMLImageElement; t.style.display = 'none'; const s = t.nextElementSibling as HTMLElement; if (s) s.style.display = 'flex'; }"
               />
-              <div v-else class="blog-card__placeholder">✦</div>
+              <div class="blog-card__placeholder" :style="{ display: article.coverUrl ? 'none' : 'flex' }">✦</div>
             </div>
             <div class="blog-card__body">
               <div class="blog-card__tags">

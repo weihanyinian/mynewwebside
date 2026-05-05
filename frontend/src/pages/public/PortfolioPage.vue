@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { goToSiteHome } from '../../utils/siteHome'
 import HitokotoCard from '../../components/HitokotoCard.vue'
 import SiteGlassFooter from '../../components/site/SiteGlassFooter.vue'
+import SiteBackgroundVideos from '../../components/site/SiteBackgroundVideos.vue'
 import SiteBackToTop from '../../components/site/SiteBackToTop.vue'
 import { useThemeStore } from '../../stores/theme'
 import { useUserStore } from '../../stores/user'
@@ -60,6 +61,36 @@ const { isHashActive, scrollToSection } = useSectionObserver(
 )
 const { heroParallaxY, isNavScrolled, pointerX, pointerY } = useHeroMotion()
 
+const BG_VIDEO_LS = 'portfolio_bg_mp4_v1'
+
+/**
+ * 背景 MP4：默认开启；仅当用户在顶栏 🎬 明确关闭时写入 localStorage '0'。
+ * 视频挂在 Shadow DOM 内，减轻 IDM 等扩展浮条；不再需要「首次点击后才加载」。
+ */
+const bgVideoWanted = ref(true)
+const bgVideoActive = ref(true)
+
+function readBgVideoPref() {
+  try {
+    const raw = localStorage.getItem(BG_VIDEO_LS)
+    bgVideoWanted.value = raw !== '0'
+  } catch {
+    bgVideoWanted.value = true
+  }
+  bgVideoActive.value = bgVideoWanted.value
+}
+
+function toggleBgVideo() {
+  const next = !bgVideoWanted.value
+  bgVideoWanted.value = next
+  bgVideoActive.value = next
+  try {
+    localStorage.setItem(BG_VIDEO_LS, next ? '1' : '0')
+  } catch {
+    /* ignore */
+  }
+}
+
 function scrollTo(id: string) {
   scrollToSection(id, 92)
 }
@@ -104,6 +135,7 @@ function onSiteLogoClick() {
 }
 
 onMounted(() => {
+  readBgVideoPref()
   visitStore.initHomeVisit()
   void worksStore.fetchWorksFromBackend()
   if (route.hash) {
@@ -117,6 +149,7 @@ onMounted(() => {
     })
   }
 })
+
 </script>
 
 <template>
@@ -125,9 +158,8 @@ onMounted(() => {
     :class="{ 'dark-theme': isDarkMode }"
     :style="{ '--pointer-x': `${pointerX}%`, '--pointer-y': `${pointerY}%` }"
   >
-    <!-- Video Backgrounds -->
-    <video class="bg-video light-video" autoplay loop muted playsinline src="/videos/light.mp4"></video>
-    <video class="bg-video dark-video" autoplay loop muted playsinline src="/videos/dark.mp4"></video>
+    <!-- 背景 MP4：closed Shadow 挂载，减轻 IDM 等对页面 video 的探测；顶栏 🎬 控制是否加载 -->
+    <SiteBackgroundVideos v-if="bgVideoActive" :is-dark="isDarkMode" />
     <div class="portfolio-bg-scrim" aria-hidden="true" />
     <div class="portfolio-bg-noise" aria-hidden="true" />
     <div class="portfolio-bg-scanline" aria-hidden="true" />
@@ -227,6 +259,17 @@ onMounted(() => {
             @click.prevent="themeStore.toggleTheme()"
           >
             {{ !isDarkMode ? '夜' : '昼' }}
+          </a>
+          <a
+            href="#"
+            class="nav-social-link nav-theme-icon nav-bg-video-icon"
+            :class="{ 'nav-bg-video-icon--on': bgVideoWanted }"
+            :aria-pressed="bgVideoWanted"
+            role="button"
+            :title="bgVideoWanted ? t('home.bgVideoDisableHint') : t('home.bgVideoEnableHint')"
+            @click.prevent="toggleBgVideo()"
+          >
+            <span aria-hidden="true">🎬</span>
           </a>
           <a
             v-if="isAdminUser"
@@ -483,23 +526,6 @@ onMounted(() => {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
-
-.bg-video {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: -2;
-  transition: opacity 0.5s ease, transform 0.6s ease-out;
-  will-change: transform, opacity;
-}
-
-.light-video { opacity: 1; }
-.dark-theme .light-video { opacity: 0; }
-.dark-video { opacity: 0; }
-.dark-theme .dark-video { opacity: 1; }
 
 /* Dark Theme */
 .portfolio-container.dark-theme {

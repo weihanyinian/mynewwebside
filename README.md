@@ -4,7 +4,7 @@
 
 - `backend/` Spring Boot 3 + MySQL 后端（RESTful）
 - `frontend/` Vue 3 + Vite + Element Plus 前端（前台 + 简易后台）
-- `docker/` 仅镜像构建（`backend`、`frontend` 的 Dockerfile 等），**无 compose / .env**；云上编排与变量模板见 **`deploy/README.md`**
+- `docker/` 镜像构建：`backend`、`frontend`、[QQMusicApi](https://github.com/jsososo/QQMusicApi) 封装目录 `qq-music-api/` 等；**无 compose / .env**；编排见 **`deploy/README.md`**
 - `mysql/schema.sql` MySQL 建表语句
 
 ## 后端能力

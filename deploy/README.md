@@ -27,6 +27,7 @@
 | MySQL 8 | `mywebsite-mysql` | 业务库，数据在卷 `mysql_data` |
 | Redis 7 | `mywebsite-redis` | 缓存等，卷 `redis_data` |
 | 网易云增强 API | `mywebsite-ncm-api` | 镜像 `moefurina/ncm-api`（[@neteasecloudmusicapienhanced/api](https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api)），仅内网 |
+| QQ 音乐 API | `mywebsite-qq-music-api` | 自建镜像（[jsososo/QQMusicApi](https://github.com/jsososo/QQMusicApi)），默认 **3300**，仅内网 |
 | 后端 | `mywebsite-backend` | `SPRING_PROFILES_ACTIVE=docker`，**不映射宿主机端口** |
 | 前端 | `mywebsite-frontend` | Nginx 静态资源 + `/api` 反代到后端 |
 

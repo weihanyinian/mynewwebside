@@ -7,6 +7,8 @@ import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongMetaDto;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
 import com.mywebsite.blog.music.netease.proxy.service.NeteaseMusicProxyService;
+import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqSongMetaDto;
+import com.mywebsite.blog.music.qq.service.QqMusicProxyService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,23 +40,56 @@ public class MusicController {
   private final NeteaseBinaryifyClient neteaseBinaryifyClient;
   private final NeteaseMusicProxyService neteaseMusicProxyService;
   private final NeteaseProxyProperties neteaseProxyProperties;
+  private final QqMusicProxyService qqMusicProxyService;
 
   private final ConcurrentHashMap<String, CachedPlaylist> playlistCache = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, CachedPlaylist> hotCache = new ConcurrentHashMap<>();
 
   public MusicController(
       NeteaseBinaryifyClient neteaseBinaryifyClient,
       NeteaseMusicProxyService neteaseMusicProxyService,
-      NeteaseProxyProperties neteaseProxyProperties
+      NeteaseProxyProperties neteaseProxyProperties,
+      QqMusicProxyService qqMusicProxyService
   ) {
     this.neteaseBinaryifyClient = neteaseBinaryifyClient;
     this.neteaseMusicProxyService = neteaseMusicProxyService;
     this.neteaseProxyProperties = neteaseProxyProperties;
+    this.qqMusicProxyService = qqMusicProxyService;
   }
 
   /**
    * 获取歌单曲目列表；省略 {@code id} 时使用配置项 {@code netease.proxy.default-playlist-id}。
    * GET /api/public/music/playlist?id=&shuffle=true
    */
+  /**
+   * 近期热歌：{@code netease} 为云音乐热歌榜歌单；{@code qq} 为 QQ 巅峰榜（默认 topId 见配置）。
+   * GET /api/public/music/hot?source=netease|qq&limit=80
+   */
+  @GetMapping("/hot")
+  public ApiResponse<List<PlaylistTrack>> hot(
+      @RequestParam String source,
+      @RequestParam(defaultValue = "80") int limit
+  ) {
+    int lim = Math.min(Math.max(limit, 1), 200);
+    String key = source + ":" + lim;
+    long now = System.currentTimeMillis();
+    CachedPlaylist cached = hotCache.get(key);
+    if (cached != null && !cached.tracks.isEmpty() && (now - cached.time) < CACHE_TTL_MS) {
+      return ApiResponse.ok(cached.tracks);
+    }
+    List<PlaylistTrack> tracks =
+        switch (source == null ? "" : source.trim().toLowerCase()) {
+          case "qq" -> loadHotQq(lim);
+          case "netease" -> loadHotNetease(lim);
+          default -> Collections.emptyList();
+        };
+    if (tracks.isEmpty()) {
+      return ApiResponse.error(503, "热歌列表暂时不可用");
+    }
+    hotCache.put(key, new CachedPlaylist(Collections.unmodifiableList(new ArrayList<>(tracks)), now));
+    return ApiResponse.ok(tracks);
+  }
+
   @GetMapping("/playlist")
   public ApiResponse<List<PlaylistTrack>> getPlaylist(
       @RequestParam(required = false) String id,
@@ -97,7 +132,7 @@ public class MusicController {
       List<SongMetaDto> metas = neteaseMusicProxyService.parsePlaylistSongs(root);
       List<PlaylistTrack> tracks = new ArrayList<>();
       for (SongMetaDto m : metas) {
-        tracks.add(new PlaylistTrack(m.id(), m.name(), m.artist(), m.cover()));
+        tracks.add(new PlaylistTrack(m.id(), m.name(), m.artist(), m.cover(), null));
       }
       if (!tracks.isEmpty()) {
         playlistCache.put(playlistId, new CachedPlaylist(Collections.unmodifiableList(tracks), now));
@@ -113,10 +148,40 @@ public class MusicController {
     }
   }
 
+  private List<PlaylistTrack> loadHotNetease(int limit) {
+    String pid = neteaseProxyProperties.getHotChartPlaylistId();
+    try {
+      var root = neteaseBinaryifyClient.playlistTrackAll(Long.parseLong(pid), limit, null);
+      List<SongMetaDto> metas = neteaseMusicProxyService.parsePlaylistSongs(root);
+      List<PlaylistTrack> tracks = new ArrayList<>();
+      for (SongMetaDto m : metas) {
+        tracks.add(new PlaylistTrack(m.id(), m.name(), m.artist(), m.cover(), null));
+      }
+      return tracks;
+    } catch (RestClientException | NumberFormatException e) {
+      log.warn("加载网易云热歌榜失败: {}", pid, e);
+      return Collections.emptyList();
+    }
+  }
+
+  private List<PlaylistTrack> loadHotQq(int limit) {
+    try {
+      List<QqSongMetaDto> metas = qqMusicProxyService.hotChartTracks(limit);
+      List<PlaylistTrack> tracks = new ArrayList<>();
+      for (QqSongMetaDto m : metas) {
+        tracks.add(new PlaylistTrack(0L, m.name(), m.artist(), m.cover(), m.songmid()));
+      }
+      return tracks;
+    } catch (Exception e) {
+      log.warn("加载 QQ 热歌榜失败", e);
+      return Collections.emptyList();
+    }
+  }
+
   private record CachedPlaylist(List<PlaylistTrack> tracks, long time) {}
 
   /**
-   * 歌单曲目 DTO。
+   * 歌单曲目 DTO；{@code songmid} 非空时表示 QQ 曲库（网易云曲目为 {@code null}）。
    */
-  public record PlaylistTrack(long id, String name, String artist, String cover) {}
+  public record PlaylistTrack(long id, String name, String artist, String cover, String songmid) {}
 }

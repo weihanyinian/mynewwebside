@@ -29,4 +29,15 @@ public final class NeteaseMusicDtos {
   public record LyricDto(String lrc, String tlyric) {}
 
   public record PlaylistItemDto(long id, String name, String coverUrl, int trackCount) {}
+
+  /**
+   * 统一搜索命中项（网易云 / QQ 前端共用）。
+   * <ul>
+   *   <li>{@code kind}: song | artist | album | playlist</li>
+   *   <li>网易云单曲：{@code id} 为歌曲 id，{@code mid} 可为空</li>
+   *   <li>QQ 单曲：{@code mid} 为 songmid，{@code id} 为 0</li>
+   *   <li>歌手/专辑/歌单：{@code id} 为网易云数字 id；QQ 场景下 {@code mid} 存对方 id（如 dissid）</li>
+   * </ul>
+   */
+  public record MusicSearchHitDto(String kind, long id, String mid, String title, String subtitle, String cover) {}
 }

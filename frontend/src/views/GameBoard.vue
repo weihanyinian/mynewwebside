@@ -16,6 +16,14 @@ import {
   shuffle,
   sortCards,
 } from "../utils/cardUtils"
+import {
+  playCardSound,
+  playBidSound,
+  playPassSound,
+  playWinSound,
+  playDealSound,
+  playHintSound,
+} from "../utils/ddzSound"
 
 const stage = ref("bidding") // bidding | playing | ended
 const players = reactive([
@@ -96,6 +104,7 @@ function startNewGame() {
 
   bidStartIndex.value = Math.floor(Math.random() * 3)
   currentTurn.value = bidStartIndex.value
+  playDealSound()
   runAITurnIfNeeded()
 }
 
@@ -121,12 +130,14 @@ function applyPlay(playerIndex, cards, playInfo) {
   lastPlay.value = playInfo
   trickOwner.value = playerIndex
   passCount.value = 0
+  playCardSound(playInfo.type, cards.length)
 }
 
 function applyPass(playerIndex) {
   tableRows[playerIndex].cards = []
   tableRows[playerIndex].isPass = true
   passCount.value += 1
+  if (playerIndex === 0) playPassSound()
 }
 
 function nextTurn() {
@@ -139,6 +150,7 @@ function checkWin(playerIndex) {
   const landlord = players.find((p) => p.isLandlord)
   const landlordWin = landlord && landlord.id === playerIndex
   winnerSide.value = landlordWin ? "地主胜利" : "农民胜利"
+  playWinSound(landlordWin)
   ElMessageBox.alert(winnerSide.value, "对局结束", {
     confirmButtonText: "再来一局",
     callback: () => startNewGame(),
@@ -191,6 +203,7 @@ function onHint() {
     ElMessage.info("没有可压过的牌")
     return
   }
+  playHintSound()
   selectedIds.value = hintCards.map((c) => c.id)
 }
 
@@ -232,6 +245,7 @@ function bidAction(call) {
   if (stage.value !== "bidding") return
   bidRecords[currentTurn.value] = call ? "call" : "pass"
   bidTurnCount.value += 1
+  playBidSound(call)
   if (call) {
     lockLandlord(currentTurn.value)
     return

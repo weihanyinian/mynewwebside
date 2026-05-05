@@ -11,6 +11,31 @@ export type SongMeta = {
   name: string
   artist: string
   cover: string
+  /** 来自 /api/public/music/hot?source=qq 时为 QQ songmid */
+  songmid?: string
+}
+
+export type QqStatus = {
+  bound: boolean
+  qqUin: string | null
+  qqNickname: string | null
+}
+
+export type QqSongMeta = {
+  songmid: string
+  name: string
+  artist: string
+  cover: string
+}
+
+/** 与后端 MusicSearchHitDto 一致：网易云 / QQ 搜索共用 */
+export type MusicSearchHit = {
+  kind: 'song' | 'artist' | 'album' | 'playlist'
+  id: number
+  mid: string
+  title: string
+  subtitle: string
+  cover: string
 }
 
 export type PlaylistItem = {
@@ -97,5 +122,55 @@ export async function fetchPublicPlaylist(id: string, shuffle = false) {
   const { data } = await http.get<ApiResponse<SongMeta[]>>('/api/public/music/playlist', {
     params: { id, shuffle },
   })
+  return data.data
+}
+
+/** 近期热歌（后端：网易云热歌榜歌单 / QQ 巅峰榜） */
+export async function fetchHotTracks(source: 'netease' | 'qq', limit = 80) {
+  const { data } = await http.get<ApiResponse<SongMeta[]>>('/api/public/music/hot', {
+    params: { source, limit },
+  })
+  return data.data
+}
+
+/** 网易云搜索（cloudsearch）；type: song | artist | album | playlist */
+export async function searchNetease(q: string, limit = 30, type = 'song') {
+  const { data } = await http.get<ApiResponse<MusicSearchHit[]>>('/api/music/search', {
+    params: { q, limit, type },
+  })
+  return data.data
+}
+
+/** QQ 音乐搜索（依赖后端可访问 QQMusicApi）；type 同上 */
+export async function searchQq(q: string, page = 1, pageSize = 20, type = 'song') {
+  const { data } = await http.get<ApiResponse<MusicSearchHit[]>>('/api/music/qq/search', {
+    params: { q, page, pageSize, type },
+  })
+  return data.data
+}
+
+export async function fetchQqStatus() {
+  const { data } = await http.get<ApiResponse<QqStatus>>('/api/music/qq/status')
+  return data.data
+}
+
+export async function qqLoginCookie(cookie: string) {
+  const { data } = await http.post<ApiResponse<QqStatus>>('/api/music/qq/login/cookie', { cookie })
+  return data.data
+}
+
+export async function qqLogout() {
+  await http.post<ApiResponse<void>>('/api/music/qq/logout')
+}
+
+export async function fetchQqSongUrl(songmid: string, type = '128') {
+  const { data } = await http.get<ApiResponse<SongUrlDto>>('/api/music/qq/song/url', {
+    params: { songmid, type },
+  })
+  return data.data
+}
+
+export async function fetchQqLyric(songmid: string) {
+  const { data } = await http.get<ApiResponse<LyricDto>>('/api/music/qq/lyric', { params: { songmid } })
   return data.data
 }

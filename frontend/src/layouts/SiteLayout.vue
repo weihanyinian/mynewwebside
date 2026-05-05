@@ -176,7 +176,6 @@ const mobileTabs = computed(() => [
               @click.prevent="router.push('/albums')"
             >{{ t('breadcrumb.albums') }}</a>
             <a
-              v-if="!isBlogContext"
               href="#"
               class="site-pill site-pill--nav site-pill--keep-mobile"
               :class="{ 'site-pill--active': route.path === '/music' }"

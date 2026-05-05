@@ -143,7 +143,7 @@ watch(
     <div class="fixed bottom-[-10%] right-[20%] w-[50vw] h-[50vw] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none"></div>
 
     <div class="max-w-[1400px] mx-auto min-h-screen flex flex-col lg:flex-row relative z-10">
-      <aside class="w-full lg:w-[320px] lg:h-screen lg:sticky lg:top-0 p-6 lg:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/5 bg-white/[0.02] backdrop-blur-xl z-40">
+      <aside class="w-full lg:w-[320px] lg:h-screen lg:sticky lg:top-0 p-6 lg:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r article-sidebar z-40">
         <div class="flex flex-col items-center lg:items-start text-center lg:text-left mt-4 lg:mt-10">
           <div class="relative group cursor-pointer mb-6" @click="go('/blog')">
             <div class="absolute inset-0 bg-gradient-to-tr from-[#8be6ff] to-[#a78bfa] rounded-full blur-md opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
@@ -151,7 +151,7 @@ watch(
           </div>
 
           <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8be6ff] to-[#a78bfa] mb-2 tracking-wide">维寒一念</h1>
-          <p class="text-sm text-slate-400 mb-10 font-medium tracking-wide">保持热爱，奔赴山海</p>
+          <p class="text-sm mb-10 font-medium tracking-wide article-sidebar-motto">保持热爱，奔赴山海</p>
 
           <!-- 【全站统一】侧栏导航：玻璃 pill + 青蓝/粉高亮（摸鱼） -->
           <nav class="flex lg:flex-col gap-3 w-full overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide">
@@ -193,28 +193,28 @@ watch(
           </button>
         </div>
 
-        <div v-if="loading" class="bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-lg p-8">
-          <div class="h-7 w-2/3 bg-white/10 rounded-xl animate-pulse"></div>
+        <div v-if="loading" class="article-shell article-shell--hero rounded-3xl p-8">
+          <div class="h-7 w-2/3 rounded-xl animate-pulse article-skeleton"></div>
           <div class="mt-6 flex flex-wrap gap-3">
-            <div class="h-4 w-32 bg-white/10 rounded-lg animate-pulse"></div>
-            <div class="h-4 w-24 bg-white/10 rounded-lg animate-pulse"></div>
-            <div class="h-4 w-28 bg-white/10 rounded-lg animate-pulse"></div>
+            <div class="h-4 w-32 rounded-lg animate-pulse article-skeleton"></div>
+            <div class="h-4 w-24 rounded-lg animate-pulse article-skeleton"></div>
+            <div class="h-4 w-28 rounded-lg animate-pulse article-skeleton"></div>
           </div>
-          <div class="mt-8 h-56 bg-white/10 rounded-2xl animate-pulse"></div>
+          <div class="mt-8 h-56 rounded-2xl animate-pulse article-skeleton"></div>
           <div class="mt-8 space-y-4">
-            <div class="h-4 w-full bg-white/10 rounded-lg animate-pulse"></div>
-            <div class="h-4 w-11/12 bg-white/10 rounded-lg animate-pulse"></div>
-            <div class="h-4 w-10/12 bg-white/10 rounded-lg animate-pulse"></div>
+            <div class="h-4 w-full rounded-lg animate-pulse article-skeleton"></div>
+            <div class="h-4 w-11/12 rounded-lg animate-pulse article-skeleton"></div>
+            <div class="h-4 w-10/12 rounded-lg animate-pulse article-skeleton"></div>
           </div>
         </div>
 
         <div v-else-if="article" class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-10">
           <article>
-            <header class="article-shell article-shell--hero bg-white/[0.03] border border-white/10 rounded-3xl overflow-hidden backdrop-blur-lg">
+            <header class="article-shell article-shell--hero rounded-3xl overflow-hidden">
               <div class="p-8 lg:p-10">
-                <h1 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-snug">{{ article.title }}</h1>
+                <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight leading-snug article-title">{{ article.title }}</h1>
 
-                <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-400 font-medium">
+                <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium article-meta">
                   <span v-if="publishedAtText" class="inline-flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                     {{ publishedAtText }}
@@ -250,14 +250,14 @@ watch(
               </div>
             </header>
 
-            <section class="article-shell article-shell--content mt-10 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-lg p-8 lg:p-10">
+            <section class="article-shell article-shell--content mt-10 rounded-3xl p-8 lg:p-10">
               <MarkdownView :content="article.contentMd" @toc="onToc" />
             </section>
           </article>
 
           <aside class="hidden xl:block">
             <div class="sticky top-10">
-              <div class="article-shell article-shell--toc bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-lg p-6">
+              <div class="article-shell article-shell--toc rounded-3xl p-6">
                 <div class="flex items-center justify-between">
                   <div class="text-sm font-semibold text-white">目录</div>
                   <div class="text-xs text-slate-500">{{ toc.length }}</div>
@@ -280,7 +280,7 @@ watch(
           </aside>
         </div>
 
-        <div v-else class="bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-lg p-10 text-center text-slate-400">
+        <div v-else class="article-shell article-shell--hero rounded-3xl p-10 text-center article-notfound">
           文章可能已被删除或不存在
         </div>
       </main>
@@ -301,7 +301,7 @@ watch(
     <transition enter-active-class="transition duration-150 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100" leave-to-class="opacity-0">
       <div v-if="tocOpen" class="fixed inset-0 z-[60] xl:hidden">
         <div class="absolute inset-0 bg-black/60" @click="tocOpen = false"></div>
-        <div class="absolute right-0 top-0 h-full w-[86vw] max-w-[360px] bg-[#111318]/80 border-l border-white/10 backdrop-blur-2xl p-5">
+        <div class="absolute right-0 top-0 h-full w-[86vw] max-w-[360px] article-shell--toc-bg border-l border-white/10 backdrop-blur-2xl p-5">
           <div class="flex items-center justify-between">
             <div class="text-sm font-semibold text-white">目录</div>
             <button type="button" class="site-pill site-pill--icon site-pill--on-dark" aria-label="关闭目录" @click="tocOpen = false">
@@ -328,6 +328,7 @@ watch(
 </template>
 
 <style scoped>
+/* --- Theme backgrounds --- */
 .article-page--dark {
   background: linear-gradient(135deg, #1a1c25 0%, #111318 100%);
 }
@@ -336,6 +337,7 @@ watch(
   background: linear-gradient(135deg, #f2f7ff 0%, #e8f2ff 45%, #edf5ff 100%);
 }
 
+/* --- Pills: light-mode override --- */
 .article-page--light :deep(.site-pill--on-dark) {
   color: #1f2937;
   background: rgba(255, 255, 255, 0.82);
@@ -347,14 +349,80 @@ watch(
   border-color: transparent;
 }
 
+/* --- Article title: responsive color --- */
+.article-title {
+  color: #fff;
+}
+.article-page--light .article-title {
+  color: #0f172a;
+}
+
+/* --- Article meta: responsive color --- */
+.article-meta {
+  color: #94a3b8;
+}
+.article-page--light .article-meta {
+  color: #64748b;
+}
+
+/* --- Article sidebar: responsive bg --- */
+.article-sidebar {
+  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(24px);
+}
+.article-page--light .article-sidebar {
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.article-sidebar-motto {
+  color: #94a3b8;
+}
+.article-page--light .article-sidebar-motto {
+  color: #475569;
+}
+
+/* --- Skeleton: responsive bg --- */
+.article-skeleton {
+  background: rgba(255, 255, 255, 0.1);
+}
+.article-page--light .article-skeleton {
+  background: rgba(148, 163, 184, 0.25);
+}
+
+/* --- Not found text --- */
+.article-notfound {
+  color: #94a3b8;
+}
+.article-page--light .article-notfound {
+  color: #64748b;
+}
+
+/* --- Article shell: glass card base --- */
 .article-shell {
-  background: color-mix(in srgb, var(--surface-2, rgba(255, 255, 255, 0.5)) 44%, transparent);
-  border-color: color-mix(in srgb, var(--glass-border, rgba(255, 255, 255, 0.4)) 70%, var(--accent-cyan, #7ee8ff) 30%);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
   box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+}
+
+.article-page--light .article-shell {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
 }
 
 .article-shell--hero {
   border-radius: 28px;
+}
+
+/* --- Mobile TOC panel --- */
+.article-page--light .article-shell--toc-bg {
+  background: rgba(255, 255, 255, 0.92);
+}
+.article-page--dark .article-shell--toc-bg {
+  background: rgba(17, 19, 24, 0.8);
 }
 
 .article-shell--content {

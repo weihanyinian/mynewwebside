@@ -98,6 +98,8 @@ netease:
     local-fallback-enabled: ${NETEASE_LOCAL_FALLBACK_ENABLED:true}
     fallback-base-url: ${NETEASE_FALLBACK_BASE_URL:https://netease-cloud-music-api-five-roan-58.vercel.app}
     default-playlist-id: ${NETEASE_DEFAULT_PLAYLIST_ID:489057279}
+    # 云音乐热歌榜等公开榜（网页 id=3778678），供 /api/public/music/hot?source=netease
+    hot-chart-playlist-id: ${NETEASE_HOT_CHART_PLAYLIST_ID:3778678}
     # 默认音质码率（bps）：128000 / 192000 / 320000 / 999000
     default-br: ${NETEASE_DEFAULT_BR:320000}
     # 上游失败重试次数（不含首次）
@@ -106,6 +108,13 @@ netease:
 ncm:
   # @neteasecloudmusicapienhanced/api 地址
   base-url: ${NCM_BASE_URL:http://127.0.0.1:3000}
+
+# QQ 音乐第三方 API（Express 服务，见 https://github.com/jsososo/QQMusicApi ；默认端口 3300）
+qq:
+  proxy:
+    base-url: ${QQ_MUSIC_PROXY_BASE_URL:http://127.0.0.1:3300}
+    # QQMusicApi /top/ 的 topId，默认 4（流行指数榜）
+    hot-chart-top-id: ${QQ_HOT_CHART_TOP_ID:4}
   music:
     open:
       enabled: false

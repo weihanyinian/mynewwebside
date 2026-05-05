@@ -11,6 +11,7 @@ import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseCookie
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseLoginRequest;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseStatusDto;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.PlaylistItemDto;
+import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.MusicSearchHitDto;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongMetaDto;
 import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
 import com.mywebsite.blog.music.netease.proxy.service.NeteaseMusicProxyService;
@@ -57,6 +58,24 @@ public class NeteaseMusicUserController {
   @GetMapping("/status")
   public ApiResponse<NeteaseStatusDto> status(Authentication auth) {
     return ApiResponse.ok(sessionService.status(auth.getName()));
+  }
+
+  /**
+   * 网易云搜索（cloudsearch，不依赖网易云账号绑定）。
+   *
+   * @param type song | artist | album | playlist（默认 song）
+   */
+  @GetMapping("/search")
+  public ApiResponse<List<MusicSearchHitDto>> search(
+      @RequestParam String q,
+      @RequestParam(defaultValue = "30") int limit,
+      @RequestParam(defaultValue = "song") String type
+  ) {
+    if (q == null || q.isBlank()) {
+      return ApiResponse.ok(List.of());
+    }
+    int lim = Math.min(Math.max(limit, 1), 50);
+    return ApiResponse.ok(proxyService.searchHits(q.trim(), lim, type));
   }
 
   @PostMapping("/login")

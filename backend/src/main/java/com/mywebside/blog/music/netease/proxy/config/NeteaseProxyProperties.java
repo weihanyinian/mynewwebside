@@ -19,6 +19,11 @@ public class NeteaseProxyProperties {
   private String defaultPlaylistId = "489057279";
 
   /**
+   * 公开「热歌」榜歌单 ID（与网页分享 {@code ?id=} 一致），默认云音乐热歌榜。
+   */
+  private String hotChartPlaylistId = "3778678";
+
+  /**
    * 默认音质码率（单位 bps），常见值：128000/192000/320000/999000（需账号与版权支持）。
    */
   private int defaultBr = 320000;
@@ -52,6 +57,15 @@ public class NeteaseProxyProperties {
 
   public void setDefaultPlaylistId(String defaultPlaylistId) {
     this.defaultPlaylistId = defaultPlaylistId != null ? defaultPlaylistId.trim() : "489057279";
+  }
+
+  public String getHotChartPlaylistId() {
+    return hotChartPlaylistId;
+  }
+
+  public void setHotChartPlaylistId(String hotChartPlaylistId) {
+    this.hotChartPlaylistId =
+        hotChartPlaylistId != null && !hotChartPlaylistId.isBlank() ? hotChartPlaylistId.trim() : "3778678";
   }
 
   public int getDefaultBr() {

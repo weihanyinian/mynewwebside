@@ -136,6 +136,20 @@ public class NeteaseBinaryifyClient {
     return getJson(uri, null);
   }
 
+  /**
+   * 对应 {@code GET /cloudsearch}（<a href="https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api">增强 API</a>）。
+   * type：1 单曲、10 专辑、100 歌手、1000 歌单。
+   */
+  public JsonNode cloudSearch(String keywords, int limit, int searchType) throws RestClientException {
+    String uri = UriComponentsBuilder.fromUriString("/cloudsearch")
+        .queryParam("keywords", keywords)
+        .queryParam("limit", Math.min(Math.max(limit, 1), 100))
+        .queryParam("type", searchType)
+        .build(true)
+        .toUriString();
+    return getJson(uri, null);
+  }
+
   public JsonNode userPlaylist(long uid, int offset, int limit, String cookieHeader) throws RestClientException {
     String uri = UriComponentsBuilder.fromUriString("/user/playlist")
         .queryParam("uid", uid)
