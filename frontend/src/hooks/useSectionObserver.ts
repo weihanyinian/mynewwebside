@@ -35,9 +35,9 @@ export function useSectionObserver(
           const sectionEl = entry.target as HTMLElement
           if (entry.isIntersecting) {
             activeSection.value = sectionEl.id
+            // 只增不减：离开视口时不再移除，否则下方区块（如 #works）在首屏或从 #blog 回滚时
+            // 会长期保持 opacity:0，表现为「作品展示」整段消失。
             sectionEl.classList.add('section--visible')
-          } else {
-            sectionEl.classList.remove('section--visible')
           }
         }
       },
