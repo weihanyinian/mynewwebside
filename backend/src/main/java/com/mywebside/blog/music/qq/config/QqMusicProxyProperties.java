@@ -1,4 +1,4 @@
-package com.mywebsite.blog.music.qq.config;
+package com.mywebside.blog.music.qq.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

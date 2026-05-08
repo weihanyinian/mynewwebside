@@ -1,4 +1,4 @@
-package com.mywebsite.blog.domain;
+package com.mywebside.blog.domain;
 
 /**
  * 留言墙审核状态：仅 {@link #APPROVED} 对访客可见。

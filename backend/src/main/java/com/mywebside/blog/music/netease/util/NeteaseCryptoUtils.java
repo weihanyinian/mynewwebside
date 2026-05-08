@@ -1,4 +1,4 @@
-package com.mywebsite.blog.music.netease.util;
+package com.mywebside.blog.music.netease.util;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;

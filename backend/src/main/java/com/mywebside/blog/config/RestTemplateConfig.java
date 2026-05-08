@@ -1,4 +1,4 @@
-package com.mywebsite.blog.config;
+package com.mywebside.blog.config;
 
 import java.time.Duration;
 import org.springframework.boot.web.client.RestTemplateBuilder;

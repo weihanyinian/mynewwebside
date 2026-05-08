@@ -1,11 +1,11 @@
-package com.mywebsite.blog.controller;
+package com.mywebside.blog.controller;
 
-import com.mywebsite.blog.admin.dto.UserListItemDto;
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.persistence.entity.UserEntity;
-import com.mywebsite.blog.persistence.mapper.UserEntityMapper;
-import com.mywebsite.blog.user.UserRoles;
+import com.mywebside.blog.admin.dto.UserListItemDto;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.persistence.entity.UserEntity;
+import com.mywebside.blog.persistence.mapper.UserEntityMapper;
+import com.mywebside.blog.user.UserRoles;
 import java.time.ZoneId;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;

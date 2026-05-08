@@ -1,9 +1,9 @@
-package com.mywebsite.blog.controller;
+package com.mywebside.blog.controller;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.dto.PortfolioWorkAdminDto;
-import com.mywebsite.blog.dto.PortfolioWorkUpsertRequest;
-import com.mywebsite.blog.service.PortfolioWorkService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.dto.PortfolioWorkAdminDto;
+import com.mywebside.blog.dto.PortfolioWorkUpsertRequest;
+import com.mywebside.blog.service.PortfolioWorkService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;

@@ -1,6 +1,6 @@
-package com.mywebsite.blog.music.netease.proxy.service;
+package com.mywebside.blog.music.netease.proxy.service;
 
-import com.mywebsite.blog.common.BusinessException;
+import com.mywebside.blog.common.BusinessException;
 import jakarta.servlet.http.HttpSession;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

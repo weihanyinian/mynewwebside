@@ -1,4 +1,4 @@
-package com.mywebsite.blog.oj.dto;
+package com.mywebside.blog.oj.dto;
 
 public record OjSubmissionRowDto(
     long id,

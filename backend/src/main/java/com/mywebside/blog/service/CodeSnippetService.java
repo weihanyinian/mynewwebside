@@ -1,10 +1,10 @@
-package com.mywebsite.blog.service;
+package com.mywebside.blog.service;
 
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.domain.CodeSnippet;
-import com.mywebsite.blog.dto.CodeSnippetDto;
-import com.mywebsite.blog.dto.CodeSnippetUpsertRequest;
-import com.mywebsite.blog.repo.CodeSnippetRepository;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.domain.CodeSnippet;
+import com.mywebside.blog.dto.CodeSnippetDto;
+import com.mywebside.blog.dto.CodeSnippetUpsertRequest;
+import com.mywebside.blog.repo.CodeSnippetRepository;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;

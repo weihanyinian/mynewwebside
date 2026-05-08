@@ -1,9 +1,9 @@
-package com.mywebsite.blog.controller;
+package com.mywebside.blog.controller;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.common.PageResponse;
-import com.mywebsite.blog.oj.OjSubmissionService;
-import com.mywebsite.blog.oj.dto.OjSubmissionRowDto;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.common.PageResponse;
+import com.mywebside.blog.oj.OjSubmissionService;
+import com.mywebside.blog.oj.dto.OjSubmissionRowDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

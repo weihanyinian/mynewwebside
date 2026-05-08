@@ -1,7 +1,7 @@
-package com.mywebsite.blog.security;
+package com.mywebside.blog.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mywebsite.blog.common.ApiResponse;
+import com.mywebside.blog.common.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;

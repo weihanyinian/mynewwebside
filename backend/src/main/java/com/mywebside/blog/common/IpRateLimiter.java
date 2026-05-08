@@ -1,4 +1,4 @@
-package com.mywebsite.blog.common;
+package com.mywebside.blog.common;
 
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;

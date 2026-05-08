@@ -1,4 +1,4 @@
-package com.mywebsite.blog.oj.domain;
+package com.mywebside.blog.oj.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;

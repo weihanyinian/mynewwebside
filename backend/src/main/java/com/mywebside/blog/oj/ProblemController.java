@@ -1,10 +1,10 @@
-package com.mywebsite.blog.oj;
+package com.mywebside.blog.oj;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.oj.domain.Problem;
-import com.mywebsite.blog.oj.dto.ProblemDetailDto;
-import com.mywebsite.blog.oj.dto.ProblemListItemDto;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.oj.domain.Problem;
+import com.mywebside.blog.oj.dto.ProblemDetailDto;
+import com.mywebside.blog.oj.dto.ProblemListItemDto;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.web.bind.annotation.GetMapping;

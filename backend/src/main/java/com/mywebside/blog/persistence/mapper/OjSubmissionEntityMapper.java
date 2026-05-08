@@ -1,6 +1,6 @@
-package com.mywebsite.blog.persistence.mapper;
+package com.mywebside.blog.persistence.mapper;
 
-import com.mywebsite.blog.persistence.entity.OjSubmissionEntity;
+import com.mywebside.blog.persistence.entity.OjSubmissionEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

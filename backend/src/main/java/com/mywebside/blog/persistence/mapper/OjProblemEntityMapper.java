@@ -1,6 +1,6 @@
-package com.mywebsite.blog.persistence.mapper;
+package com.mywebside.blog.persistence.mapper;
 
-import com.mywebsite.blog.persistence.entity.OjProblemEntity;
+import com.mywebside.blog.persistence.entity.OjProblemEntity;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 

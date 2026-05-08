@@ -1,9 +1,9 @@
-package com.mywebsite.blog.oj;
+package com.mywebside.blog.oj;
 
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.oj.domain.JudgeResult;
-import com.mywebsite.blog.oj.domain.Problem;
-import com.mywebsite.blog.oj.dto.JudgeRequest;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.oj.domain.JudgeResult;
+import com.mywebside.blog.oj.domain.Problem;
+import com.mywebside.blog.oj.dto.JudgeRequest;
 import org.springframework.stereotype.Service;
 
 /**

@@ -1,10 +1,10 @@
-package com.mywebsite.blog.controller;
+package com.mywebside.blog.controller;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.dto.CodeSnippetDto;
-import com.mywebsite.blog.dto.CodeSnippetUpsertRequest;
-import com.mywebsite.blog.service.CodeSnippetService;
-import com.mywebsite.blog.service.UserAccountService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.dto.CodeSnippetDto;
+import com.mywebside.blog.dto.CodeSnippetUpsertRequest;
+import com.mywebside.blog.service.CodeSnippetService;
+import com.mywebside.blog.service.UserAccountService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.core.Authentication;

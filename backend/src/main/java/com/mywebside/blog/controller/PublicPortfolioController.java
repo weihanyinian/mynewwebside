@@ -1,9 +1,9 @@
-package com.mywebsite.blog.controller;
+package com.mywebside.blog.controller;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.dto.PortfolioWorkDetailDto;
-import com.mywebsite.blog.dto.PortfolioWorkPublicDto;
-import com.mywebsite.blog.service.PortfolioWorkService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.dto.PortfolioWorkDetailDto;
+import com.mywebside.blog.dto.PortfolioWorkPublicDto;
+import com.mywebside.blog.service.PortfolioWorkService;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

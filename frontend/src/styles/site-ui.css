@@ -501,8 +501,7 @@
     padding-right: 14px;
   }
 
-  .glass-nav .site-nav-links.is-open .nav-social-link.nav-theme-icon,
-  .glass-nav .site-nav-links.is-open .nav-social-link.nav-bg-video-icon {
+  .glass-nav .site-nav-links.is-open .nav-social-link.nav-theme-icon {
     justify-content: center;
     width: 100% !important;
     min-width: 0 !important;
@@ -528,23 +527,13 @@
   flex-shrink: 0;
 }
 
-.glass-nav .site-nav-links .nav-social-link.nav-theme-icon,
-.glass-nav .site-nav-links .nav-social-link.nav-bg-video-icon {
+.glass-nav .site-nav-links .nav-social-link.nav-theme-icon {
   font-size: 0.95rem;
   line-height: 1;
   padding: 5px 12px;
   min-width: auto;
   border: 1px solid rgba(255, 255, 255, 0.45);
   user-select: none;
-}
-
-.glass-nav .site-nav-links .nav-social-link.nav-bg-video-icon {
-  opacity: 0.55;
-}
-
-.glass-nav .site-nav-links .nav-social-link.nav-bg-video-icon.nav-bg-video-icon--on {
-  opacity: 1;
-  border-color: rgba(102, 217, 255, 0.65);
 }
 
 /* ---------- 顶栏「更多」下拉（摸鱼等非核心入口） ---------- */

@@ -76,7 +76,7 @@ SELECT
     '### 1. 分包策略\n\n',
     '后端采用按业务领域分包的策略，每个模块自包含 Controller、Service、Repository：\n\n',
     '```\n',
-    'com.mywebsite.blog\n',
+    'com.mywebside.blog\n',
     '├── controller/          # 公共接口（博客、留言、作品展示）\n',
     '├── config/              # Security、CORS、Cache 配置\n',
     '├── domain/              # JPA 实体（Article、Category、Tag）\n',

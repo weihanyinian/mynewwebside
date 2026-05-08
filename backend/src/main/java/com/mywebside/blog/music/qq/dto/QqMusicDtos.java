@@ -1,4 +1,4 @@
-package com.mywebsite.blog.music.qq.dto;
+package com.mywebside.blog.music.qq.dto;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,14 +1,14 @@
-package com.mywebsite.blog.music.netease.proxy.service;
+package com.mywebside.blog.music.netease.proxy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.music.netease.proxy.config.NeteaseProxyProperties;
-import com.mywebsite.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.MusicSearchHitDto;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.PlaylistItemDto;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongMetaDto;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
+import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.MusicSearchHitDto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.PlaylistItemDto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongMetaDto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;

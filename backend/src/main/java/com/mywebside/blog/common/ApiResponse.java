@@ -1,4 +1,4 @@
-package com.mywebsite.blog.common;
+package com.mywebside.blog.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

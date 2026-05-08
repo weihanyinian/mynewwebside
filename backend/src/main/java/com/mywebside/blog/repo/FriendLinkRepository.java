@@ -1,6 +1,6 @@
-package com.mywebsite.blog.repo;
+package com.mywebside.blog.repo;
 
-import com.mywebsite.blog.domain.FriendLink;
+import com.mywebside.blog.domain.FriendLink;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 

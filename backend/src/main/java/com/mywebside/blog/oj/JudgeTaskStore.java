@@ -1,6 +1,6 @@
-package com.mywebsite.blog.oj;
+package com.mywebside.blog.oj;
 
-import com.mywebsite.blog.oj.domain.JudgeResult;
+import com.mywebside.blog.oj.domain.JudgeResult;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.springframework.scheduling.annotation.Scheduled;

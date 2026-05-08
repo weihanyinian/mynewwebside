@@ -1,7 +1,7 @@
-package com.mywebsite.blog.service;
+package com.mywebside.blog.service;
 
-import com.mywebsite.blog.config.AppProperties;
-import com.mywebsite.blog.dto.DailyQuoteDto;
+import com.mywebside.blog.config.AppProperties;
+import com.mywebside.blog.dto.DailyQuoteDto;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;

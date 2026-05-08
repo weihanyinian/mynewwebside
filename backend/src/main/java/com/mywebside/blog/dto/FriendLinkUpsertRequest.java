@@ -1,4 +1,4 @@
-package com.mywebsite.blog.dto;
+package com.mywebside.blog.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

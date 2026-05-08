@@ -1,15 +1,15 @@
-package com.mywebsite.blog.service;
+package com.mywebside.blog.service;
 
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.common.PageResponse;
-import com.mywebsite.blog.domain.Article;
-import com.mywebsite.blog.domain.Comment;
-import com.mywebsite.blog.dto.AdminCommentListItemDto;
-import com.mywebsite.blog.dto.CommentCreateRequest;
-import com.mywebsite.blog.dto.CommentDto;
-import com.mywebsite.blog.dto.CommentUpdateRequest;
-import com.mywebsite.blog.repo.ArticleRepository;
-import com.mywebsite.blog.repo.CommentRepository;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.common.PageResponse;
+import com.mywebside.blog.domain.Article;
+import com.mywebside.blog.domain.Comment;
+import com.mywebside.blog.dto.AdminCommentListItemDto;
+import com.mywebside.blog.dto.CommentCreateRequest;
+import com.mywebside.blog.dto.CommentDto;
+import com.mywebside.blog.dto.CommentUpdateRequest;
+import com.mywebside.blog.repo.ArticleRepository;
+import com.mywebside.blog.repo.CommentRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;

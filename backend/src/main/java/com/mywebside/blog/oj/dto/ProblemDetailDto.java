@@ -1,6 +1,6 @@
-package com.mywebsite.blog.oj.dto;
+package com.mywebside.blog.oj.dto;
 
-import com.mywebsite.blog.oj.domain.Problem;
+import com.mywebside.blog.oj.domain.Problem;
 import java.util.List;
 import java.util.Map;
 

@@ -1,11 +1,11 @@
-package com.mywebsite.blog.controller;
+package com.mywebside.blog.controller;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.common.PageResponse;
-import com.mywebsite.blog.dto.WallMessageCreateRequest;
-import com.mywebsite.blog.dto.WallMessagePublicDto;
-import com.mywebsite.blog.dto.WallMessageSubmitVo;
-import com.mywebsite.blog.service.WallMessageService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.common.PageResponse;
+import com.mywebside.blog.dto.WallMessageCreateRequest;
+import com.mywebside.blog.dto.WallMessagePublicDto;
+import com.mywebside.blog.dto.WallMessageSubmitVo;
+import com.mywebside.blog.service.WallMessageService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

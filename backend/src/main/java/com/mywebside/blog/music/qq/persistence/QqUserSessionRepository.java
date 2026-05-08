@@ -1,4 +1,4 @@
-package com.mywebsite.blog.music.qq.persistence;
+package com.mywebside.blog.music.qq.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

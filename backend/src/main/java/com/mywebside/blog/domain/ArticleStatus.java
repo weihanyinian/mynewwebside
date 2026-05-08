@@ -1,4 +1,4 @@
-package com.mywebsite.blog.domain;
+package com.mywebside.blog.domain;
 
 public enum ArticleStatus {
   DRAFT,

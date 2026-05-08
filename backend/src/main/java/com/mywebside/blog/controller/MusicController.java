@@ -1,14 +1,14 @@
-package com.mywebsite.blog.controller;
+package com.mywebside.blog.controller;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
-import com.mywebsite.blog.music.netease.proxy.config.NeteaseProxyProperties;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongMetaDto;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
-import com.mywebsite.blog.music.netease.proxy.service.NeteaseMusicProxyService;
-import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqSongMetaDto;
-import com.mywebsite.blog.music.qq.service.QqMusicProxyService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
+import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongMetaDto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
+import com.mywebside.blog.music.netease.proxy.service.NeteaseMusicProxyService;
+import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqSongMetaDto;
+import com.mywebside.blog.music.qq.service.QqMusicProxyService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

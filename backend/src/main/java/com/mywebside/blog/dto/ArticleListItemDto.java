@@ -1,4 +1,4 @@
-package com.mywebsite.blog.dto;
+package com.mywebside.blog.dto;
 
 import java.time.Instant;
 import java.util.List;

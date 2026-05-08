@@ -1,4 +1,4 @@
-package com.mywebsite.blog.music.qq.persistence;
+package com.mywebside.blog.music.qq.persistence;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

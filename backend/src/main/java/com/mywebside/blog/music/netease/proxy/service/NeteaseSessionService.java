@@ -1,13 +1,13 @@
-package com.mywebsite.blog.music.netease.proxy.service;
+package com.mywebside.blog.music.netease.proxy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
-import com.mywebsite.blog.music.netease.proxy.config.NeteaseProxyProperties;
-import com.mywebsite.blog.music.netease.proxy.crypto.NeteaseSessionCrypto;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseStatusDto;
-import com.mywebsite.blog.music.netease.proxy.persistence.NeteaseUserSessionEntity;
-import com.mywebsite.blog.music.netease.proxy.persistence.NeteaseUserSessionRepository;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
+import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
+import com.mywebside.blog.music.netease.proxy.crypto.NeteaseSessionCrypto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.NeteaseStatusDto;
+import com.mywebside.blog.music.netease.proxy.persistence.NeteaseUserSessionEntity;
+import com.mywebside.blog.music.netease.proxy.persistence.NeteaseUserSessionRepository;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Locale;

@@ -1,6 +1,6 @@
-package com.mywebsite.blog.music.netease.proxy.crypto;
+package com.mywebside.blog.music.netease.proxy.crypto;
 
-import com.mywebsite.blog.config.AppProperties;
+import com.mywebside.blog.config.AppProperties;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

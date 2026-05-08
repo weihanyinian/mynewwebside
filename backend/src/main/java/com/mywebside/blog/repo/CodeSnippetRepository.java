@@ -1,6 +1,6 @@
-package com.mywebsite.blog.repo;
+package com.mywebside.blog.repo;
 
-import com.mywebsite.blog.domain.CodeSnippet;
+import com.mywebside.blog.domain.CodeSnippet;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

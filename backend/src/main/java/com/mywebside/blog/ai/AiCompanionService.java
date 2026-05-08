@@ -1,8 +1,8 @@
-package com.mywebsite.blog.ai;
+package com.mywebside.blog.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mywebsite.blog.common.BusinessException;
+import com.mywebside.blog.common.BusinessException;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.List;

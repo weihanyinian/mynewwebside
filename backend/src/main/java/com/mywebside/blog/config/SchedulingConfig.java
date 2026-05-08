@@ -1,6 +1,6 @@
-package com.mywebsite.blog.config;
+package com.mywebside.blog.config;
 
-import com.mywebsite.blog.common.IpRateLimiter;
+import com.mywebside.blog.common.IpRateLimiter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;

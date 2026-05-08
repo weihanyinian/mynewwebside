@@ -1,4 +1,4 @@
-package com.mywebsite.blog.domain;
+package com.mywebside.blog.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

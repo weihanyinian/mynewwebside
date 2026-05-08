@@ -1,4 +1,4 @@
-package com.mywebsite.blog.music.netease.proxy.persistence;
+package com.mywebside.blog.music.netease.proxy.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

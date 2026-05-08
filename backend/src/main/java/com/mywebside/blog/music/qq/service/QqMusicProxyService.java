@@ -1,12 +1,12 @@
-package com.mywebsite.blog.music.qq.service;
+package com.mywebside.blog.music.qq.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.MusicSearchHitDto;
-import com.mywebsite.blog.music.qq.client.QqMusicApiClient;
-import com.mywebsite.blog.music.qq.config.QqMusicProxyProperties;
-import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqLyricDto;
-import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqSongMetaDto;
-import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqSongUrlDto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.MusicSearchHitDto;
+import com.mywebside.blog.music.qq.client.QqMusicApiClient;
+import com.mywebside.blog.music.qq.config.QqMusicProxyProperties;
+import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqLyricDto;
+import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqSongMetaDto;
+import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqSongUrlDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;

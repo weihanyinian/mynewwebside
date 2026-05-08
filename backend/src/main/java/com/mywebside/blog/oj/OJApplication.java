@@ -1,6 +1,6 @@
-package com.mywebsite.blog.oj;
+package com.mywebside.blog.oj;
 
-import com.mywebsite.blog.BlogBackendApplication;
+import com.mywebside.blog.BlogBackendApplication;
 
 /**
  * OJ 模块不单独启动：与 {@link BlogBackendApplication} 同一进程运行。

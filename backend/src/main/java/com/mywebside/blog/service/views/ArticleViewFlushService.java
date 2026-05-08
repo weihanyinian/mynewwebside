@@ -1,6 +1,6 @@
-package com.mywebsite.blog.service.views;
+package com.mywebside.blog.service.views;
 
-import com.mywebsite.blog.repo.ArticleRepository;
+import com.mywebside.blog.repo.ArticleRepository;
 import java.util.Collections;
 import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

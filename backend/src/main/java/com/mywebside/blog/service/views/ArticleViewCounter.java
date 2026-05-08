@@ -1,4 +1,4 @@
-package com.mywebsite.blog.service.views;
+package com.mywebside.blog.service.views;
 
 /** 文章阅读量：默认同步写库；开启 Redis 时仅 INCR 缓存并定时刷库。 */
 public interface ArticleViewCounter {

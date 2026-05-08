@@ -1,8 +1,8 @@
-package com.mywebsite.blog.controller;
+package com.mywebside.blog.controller;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.dto.FriendLinkPublicDto;
-import com.mywebsite.blog.service.FriendLinkService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.dto.FriendLinkPublicDto;
+import com.mywebside.blog.service.FriendLinkService;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

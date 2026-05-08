@@ -1,15 +1,15 @@
-package com.mywebsite.blog.music.qq.controller;
+package com.mywebside.blog.music.qq.controller;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.common.IpRateLimiter;
-import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqCookieLoginRequest;
-import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqLyricDto;
-import com.mywebsite.blog.music.netease.proxy.dto.NeteaseMusicDtos.MusicSearchHitDto;
-import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqSongUrlDto;
-import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqStatusDto;
-import com.mywebsite.blog.music.qq.service.QqMusicProxyService;
-import com.mywebsite.blog.music.qq.service.QqSessionService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.common.IpRateLimiter;
+import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqCookieLoginRequest;
+import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqLyricDto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.MusicSearchHitDto;
+import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqSongUrlDto;
+import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqStatusDto;
+import com.mywebside.blog.music.qq.service.QqMusicProxyService;
+import com.mywebside.blog.music.qq.service.QqSessionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;

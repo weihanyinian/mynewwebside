@@ -1,8 +1,8 @@
-package com.mywebsite.blog.bootstrap;
+package com.mywebside.blog.bootstrap;
 
-import com.mywebsite.blog.config.AppProperties;
-import com.mywebsite.blog.persistence.entity.UserEntity;
-import com.mywebsite.blog.persistence.mapper.UserEntityMapper;
+import com.mywebside.blog.config.AppProperties;
+import com.mywebside.blog.persistence.entity.UserEntity;
+import com.mywebside.blog.persistence.mapper.UserEntityMapper;
 import java.time.LocalDateTime;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;

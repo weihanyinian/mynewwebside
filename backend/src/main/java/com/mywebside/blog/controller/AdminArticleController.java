@@ -1,11 +1,11 @@
-package com.mywebsite.blog.controller;
+package com.mywebside.blog.controller;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.common.PageResponse;
-import com.mywebsite.blog.dto.AdminArticleListItemDto;
-import com.mywebsite.blog.dto.ArticleDetailDto;
-import com.mywebsite.blog.dto.ArticleUpsertRequest;
-import com.mywebsite.blog.service.ArticleService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.common.PageResponse;
+import com.mywebside.blog.dto.AdminArticleListItemDto;
+import com.mywebside.blog.dto.ArticleDetailDto;
+import com.mywebside.blog.dto.ArticleUpsertRequest;
+import com.mywebside.blog.service.ArticleService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;

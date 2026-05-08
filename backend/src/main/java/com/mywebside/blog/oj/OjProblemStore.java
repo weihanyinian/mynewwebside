@@ -1,11 +1,11 @@
-package com.mywebsite.blog.oj;
+package com.mywebside.blog.oj;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.oj.domain.Problem;
-import com.mywebsite.blog.persistence.entity.OjProblemEntity;
-import com.mywebsite.blog.persistence.mapper.OjProblemEntityMapper;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.oj.domain.Problem;
+import com.mywebside.blog.persistence.entity.OjProblemEntity;
+import com.mywebside.blog.persistence.mapper.OjProblemEntityMapper;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;

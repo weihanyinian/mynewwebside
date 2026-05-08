@@ -1,8 +1,8 @@
-package com.mywebsite.blog.music.netease.proxy.client;
+package com.mywebside.blog.music.netease.proxy.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mywebsite.blog.music.netease.proxy.config.NeteaseProxyProperties;
+import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.net.http.HttpClient;

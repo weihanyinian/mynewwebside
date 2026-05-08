@@ -1,9 +1,9 @@
-package com.mywebsite.blog.auth;
+package com.mywebside.blog.auth;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.common.IpRateLimiter;
-import com.mywebsite.blog.service.UserAccountService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.common.IpRateLimiter;
+import com.mywebside.blog.service.UserAccountService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -24,7 +24,7 @@ const router = useRouter()
 const route = useRoute()
 const { t, locale } = useI18n()
 
-/** 【主题】与 SiteLayout 共用 Pinia，首页仅负责视频/局部 dark-theme 类 */
+/** 【主题】与 SiteLayout 共用 Pinia，首页仅负责局部 dark-theme 类 */
 const themeStore = useThemeStore()
 const { isDarkMode } = storeToRefs(themeStore)
 
@@ -60,36 +60,6 @@ const { isHashActive, scrollToSection } = useSectionObserver(
   HOME_SECTION_IDS,
 )
 const { heroParallaxY, isNavScrolled, pointerX, pointerY } = useHeroMotion()
-
-const BG_VIDEO_LS = 'portfolio_bg_mp4_v1'
-
-/**
- * 背景 MP4：默认开启；仅当用户在顶栏 🎬 明确关闭时写入 localStorage '0'。
- * 视频挂在 Shadow DOM 内，减轻 IDM 等扩展浮条；不再需要「首次点击后才加载」。
- */
-const bgVideoWanted = ref(true)
-const bgVideoActive = ref(true)
-
-function readBgVideoPref() {
-  try {
-    const raw = localStorage.getItem(BG_VIDEO_LS)
-    bgVideoWanted.value = raw !== '0'
-  } catch {
-    bgVideoWanted.value = true
-  }
-  bgVideoActive.value = bgVideoWanted.value
-}
-
-function toggleBgVideo() {
-  const next = !bgVideoWanted.value
-  bgVideoWanted.value = next
-  bgVideoActive.value = next
-  try {
-    localStorage.setItem(BG_VIDEO_LS, next ? '1' : '0')
-  } catch {
-    /* ignore */
-  }
-}
 
 function scrollTo(id: string) {
   scrollToSection(id, 92)
@@ -135,7 +105,6 @@ function onSiteLogoClick() {
 }
 
 onMounted(() => {
-  readBgVideoPref()
   visitStore.initHomeVisit()
   void worksStore.fetchWorksFromBackend()
   if (route.hash) {
@@ -158,8 +127,8 @@ onMounted(() => {
     :class="{ 'dark-theme': isDarkMode }"
     :style="{ '--pointer-x': `${pointerX}%`, '--pointer-y': `${pointerY}%` }"
   >
-    <!-- 背景 MP4：closed Shadow 挂载，减轻 IDM 等对页面 video 的探测；顶栏 🎬 控制是否加载 -->
-    <SiteBackgroundVideos v-if="bgVideoActive" :is-dark="isDarkMode" />
+    <!-- 背景 MP4：Shadow 内挂载，减轻 IDM 等对页面 video 的探测 -->
+    <SiteBackgroundVideos :is-dark="isDarkMode" />
     <div class="portfolio-bg-scrim" aria-hidden="true" />
     <div class="portfolio-bg-noise" aria-hidden="true" />
     <div class="portfolio-bg-scanline" aria-hidden="true" />
@@ -259,17 +228,6 @@ onMounted(() => {
             @click.prevent="themeStore.toggleTheme()"
           >
             {{ !isDarkMode ? '夜' : '昼' }}
-          </a>
-          <a
-            href="#"
-            class="nav-social-link nav-theme-icon nav-bg-video-icon"
-            :class="{ 'nav-bg-video-icon--on': bgVideoWanted }"
-            :aria-pressed="bgVideoWanted"
-            role="button"
-            :title="bgVideoWanted ? t('home.bgVideoDisableHint') : t('home.bgVideoEnableHint')"
-            @click.prevent="toggleBgVideo()"
-          >
-            <span aria-hidden="true">🎬</span>
           </a>
           <a
             v-if="isAdminUser"

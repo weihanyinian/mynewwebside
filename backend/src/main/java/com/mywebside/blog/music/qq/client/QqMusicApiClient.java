@@ -1,8 +1,8 @@
-package com.mywebsite.blog.music.qq.client;
+package com.mywebside.blog.music.qq.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mywebsite.blog.music.qq.config.QqMusicProxyProperties;
+import com.mywebside.blog.music.qq.config.QqMusicProxyProperties;
 import java.time.Duration;
 import java.net.http.HttpClient;
 import org.springframework.http.HttpHeaders;

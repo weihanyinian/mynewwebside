@@ -1,4 +1,4 @@
-package com.mywebsite.blog.service.views;
+package com.mywebside.blog.service.views;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;

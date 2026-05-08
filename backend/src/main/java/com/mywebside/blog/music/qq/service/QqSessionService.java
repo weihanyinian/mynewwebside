@@ -1,12 +1,12 @@
-package com.mywebsite.blog.music.qq.service;
+package com.mywebside.blog.music.qq.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.music.netease.proxy.crypto.NeteaseSessionCrypto;
-import com.mywebsite.blog.music.qq.client.QqMusicApiClient;
-import com.mywebsite.blog.music.qq.dto.QqMusicDtos.QqStatusDto;
-import com.mywebsite.blog.music.qq.persistence.QqUserSessionEntity;
-import com.mywebsite.blog.music.qq.persistence.QqUserSessionRepository;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.music.netease.proxy.crypto.NeteaseSessionCrypto;
+import com.mywebside.blog.music.qq.client.QqMusicApiClient;
+import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqStatusDto;
+import com.mywebside.blog.music.qq.persistence.QqUserSessionEntity;
+import com.mywebside.blog.music.qq.persistence.QqUserSessionRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.regex.Matcher;

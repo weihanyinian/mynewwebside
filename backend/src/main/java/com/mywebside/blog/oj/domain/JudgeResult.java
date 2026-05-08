@@ -1,4 +1,4 @@
-package com.mywebsite.blog.oj.domain;
+package com.mywebside.blog.oj.domain;
 
 /**
  * 统一判题/运行结果，供控制器序列化为 JSON。

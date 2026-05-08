@@ -1,9 +1,9 @@
-package com.mywebsite.blog.oj;
+package com.mywebside.blog.oj;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mywebsite.blog.common.BusinessException;
-import com.mywebsite.blog.oj.domain.Problem;
+import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.oj.domain.Problem;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.LinkedHashMap;

@@ -1,9 +1,9 @@
-package com.mywebsite.blog.oj;
+package com.mywebside.blog.oj;
 
-import com.mywebsite.blog.common.ApiResponse;
-import com.mywebsite.blog.common.PageResponse;
-import com.mywebsite.blog.oj.dto.OjSubmissionRowDto;
-import com.mywebsite.blog.service.UserAccountService;
+import com.mywebside.blog.common.ApiResponse;
+import com.mywebside.blog.common.PageResponse;
+import com.mywebside.blog.oj.dto.OjSubmissionRowDto;
+import com.mywebside.blog.service.UserAccountService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

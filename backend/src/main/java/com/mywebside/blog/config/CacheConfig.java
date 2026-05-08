@@ -1,4 +1,4 @@
-package com.mywebsite.blog.config;
+package com.mywebside.blog.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.concurrent.TimeUnit;
