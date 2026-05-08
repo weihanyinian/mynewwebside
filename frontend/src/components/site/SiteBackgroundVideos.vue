@@ -3,16 +3,18 @@
  * 全屏背景 MP4，放在 closed Shadow DOM 内，减轻 IDM 等扩展对 document 内 video 的扫描与「下载视频」浮条。
  * 无法 100% 禁止浏览器扩展，但对多数按 DOM 挂钩的下载器有效。
  *
- * 默认使用 MDN CC0 示例片（仓库未提交大体积 mp4）。若需自有素材：将 light.mp4 / dark.mp4 放到
- * `public/videos/` 并在父组件传入 :light-src="/videos/light.mp4" :dark-src="/videos/dark.mp4"。
+ * 默认优先加载 `public/videos/light.mp4` 与 `dark.mp4`（与历史行为一致，大文件通常不进 Git）。
+ * 若本地文件缺失（404），自动回退到 MDN CC0 示例片，避免整页纯黑。也可通过 props 覆盖地址。
  */
 import { onMounted, ref, watch } from 'vue'
 
-/** 公网可直连的占位片，避免本地未放置 public/videos/*.mp4 时背景全黑 */
-const DEFAULT_LIGHT =
+const LOCAL_LIGHT = '/videos/light.mp4'
+const LOCAL_DARK = '/videos/dark.mp4'
+
+/** 仅作本地源加载失败时的兜底，不是你的正式素材 */
+const FALLBACK_LIGHT =
   'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
-const DEFAULT_DARK =
-  'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4'
+const FALLBACK_DARK = FALLBACK_LIGHT
 
 const props = withDefaults(
   defineProps<{
@@ -21,8 +23,8 @@ const props = withDefaults(
     darkSrc?: string
   }>(),
   {
-    lightSrc: DEFAULT_LIGHT,
-    darkSrc: DEFAULT_DARK,
+    lightSrc: LOCAL_LIGHT,
+    darkSrc: LOCAL_DARK,
   },
 )
 
@@ -68,7 +70,7 @@ function mountShadow() {
     :host([data-theme="dark"]) .dark-video { opacity: 1; }
   `
 
-  const mkVideo = (className: string, src: string) => {
+  const mkVideo = (className: string, primarySrc: string, fallbackSrc: string) => {
     const v = document.createElement('video')
     v.className = className
     v.autoplay = true
@@ -78,12 +80,20 @@ function mountShadow() {
     v.preload = 'metadata'
     v.disableRemotePlayback = true
     v.setAttribute('controlsList', 'nodownload noremoteplayback nofullscreen')
-    v.src = src
+    v.src = primarySrc
+    v.addEventListener('error', function onErr() {
+      const cur = v.currentSrc || v.src || ''
+      if (cur.includes('mdn.mozilla.net') || cur === fallbackSrc) return
+      v.removeEventListener('error', onErr)
+      v.src = fallbackSrc
+      void v.load()
+      void v.play().catch(() => {})
+    })
     return v
   }
 
-  const light = mkVideo('light-video', props.lightSrc)
-  const dark = mkVideo('dark-video', props.darkSrc)
+  const light = mkVideo('light-video', props.lightSrc, FALLBACK_LIGHT)
+  const dark = mkVideo('dark-video', props.darkSrc, FALLBACK_DARK)
   shadowRoot.append(style, light, dark)
   syncTheme()
   for (const v of [light, dark]) {
