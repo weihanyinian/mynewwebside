@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -36,6 +36,19 @@ const visitStore = useVisitStore()
 
 const githubRepo =
   import.meta.env.VITE_PUBLIC_GITHUB_REPO || 'https://github.com/weihanyinian/website'
+
+/** 与 `frontend/public/videos/` 下文件名完全一致（含扩展名）；特殊字符由 encodeURIComponent 处理 */
+function publicVideoUrl(filename: string) {
+  return `/videos/${encodeURIComponent(filename)}`
+}
+
+/** 日间背景：本地文件需放入 public/videos */
+const HOME_BG_LIGHT_FILE = 'livetune feat 初音ミク「Redial」Music Video_final_ver.mp4'
+/** 夜间背景：第二支本地视频的文件名（请改成与你磁盘上第二个 mp4 完全一致） */
+const HOME_BG_DARK_FILE = '初音ミク.mp4'
+
+const homeBgLightSrc = publicVideoUrl(HOME_BG_LIGHT_FILE)
+const homeBgDarkSrc = publicVideoUrl(HOME_BG_DARK_FILE)
 
 function logout() {
   userStore.logout()
@@ -127,8 +140,12 @@ onMounted(() => {
     :class="{ 'dark-theme': isDarkMode }"
     :style="{ '--pointer-x': `${pointerX}%`, '--pointer-y': `${pointerY}%` }"
   >
-    <!-- 背景 MP4：Shadow 内挂载，减轻 IDM 等对页面 video 的探测 -->
-    <SiteBackgroundVideos :is-dark="isDarkMode" />
+    <!-- 背景 MP4：Shadow 内挂载；片名见 script 中 HOME_BG_* -->
+    <SiteBackgroundVideos
+      :is-dark="isDarkMode"
+      :light-src="homeBgLightSrc"
+      :dark-src="homeBgDarkSrc"
+    />
     <div class="portfolio-bg-scrim" aria-hidden="true" />
     <div class="portfolio-bg-noise" aria-hidden="true" />
     <div class="portfolio-bg-scanline" aria-hidden="true" />
