@@ -32,19 +32,38 @@
 - 美股: `AAPL`, `TSLA`, `MSFT`
 - 港股: `0700.HK`, `9988.HK`
 
-### 2.2 K线图 (日K/周K/月K)
+### 2.2 分时图 + K线图 (实时更新)
 
-**图表库:** ECharts (已随 Element Plus 引入项目)
+**图表库:** ECharts (已随 Element Plus 引入)
 
-**数据:**
-- 日K: Yahoo Finance `range=1mo&interval=1d`
+**分时图 (Time-sharing):**
+- A股: 腾讯 `ifzq.gtimg.cn/appstock/app/minute/query` (分钟级实时)
+- 美股/港股: Yahoo Finance `interval=5m` (5分钟K线代理分时)
+- 展示: 价格线 + 均价线 + 成交量柱
+- 实时更新: 每10秒轮询最新数据
+
+**K线图:**
+- 日K: Yahoo Finance `range=3mo&interval=1d`
 - 周K: Yahoo Finance `range=6mo&interval=1wk`
 - 月K: Yahoo Finance `range=2y&interval=1mo`
-
-**功能:**
 - 蜡烛图 (candlestick) + 成交量柱状图
-- MA5/MA10/MA20 均线
-- 点击股票持仓 → 跳转股票详情页 (含K线图)
+- MA5/MA10/MA20 均线叠加
+- Tab切换日K/周K/月K
+
+### 2.3 热门股票模块
+
+**数据源:**
+- A股热门: 东方财富 `push2.eastmoney.com/api/qt/clist/get` (涨幅榜/跌幅榜)
+- 美股热门: Yahoo Finance trending/suggestions
+
+**前端展示:**
+- 炒股主页顶部: 热门股票横向滚动卡片 (代码/名称/现价/涨跌幅)
+- 涨幅榜: 当日涨幅前10
+- 跌幅榜: 当日跌幅前10
+- 点击跳转股票详情页
+- 颜色: 红涨绿跌 (A股惯例) / 绿涨红跌 (美股惯例可切换)
+
+### 2.4 委托订单系统
 
 ### 2.3 委托订单系统
 

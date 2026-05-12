@@ -209,7 +209,10 @@ onUnmounted(() => {
         </thead>
         <tbody>
           <tr v-for="h in portfolio.holdings" :key="h.code">
-            <td>{{ h.realName || h.name }}<br><span class="code">{{ h.code }}</span></td>
+            <td>
+              <a class="stock-link" @click="router.push(`/tools/stock/${h.code}`)">{{ h.realName || h.name }}</a>
+              <br><span class="code">{{ h.code }}</span>
+            </td>
             <td>{{ h.shares }} 股</td>
             <td>{{ fmt(h.avgCost) }}</td>
             <td :class="h.currentPrice ? '' : 'muted'">{{ h.currentPrice ? fmt(h.currentPrice) : '--' }}</td>
@@ -398,6 +401,9 @@ th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--gl
 th { color: var(--text-muted); font-weight: 600; }
 td { color: var(--text-color); }
 .code { color: var(--text-muted); font-size: 0.75rem; }
+
+.stock-link { color: var(--primary-color); cursor: pointer; font-weight: 600; text-decoration: none; }
+.stock-link:hover { text-decoration: underline; }
 
 .mini-btn { padding: 4px 10px; border-radius: 6px; border: none; font-size: 0.75rem; cursor: pointer; }
 .mini-btn.sell { background: rgba(34, 197, 94, 0.15); color: #16a34a; }

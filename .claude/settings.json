@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch",
+      "Skill",
+      "Agent",
+      "AskUserQuestion",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskGet",
+      "TaskList",
+      "TaskOutput",
+      "TaskStop",
+      "CronCreate",
+      "CronDelete",
+      "CronList",
+      "ScheduleWakeup",
+      "EnterPlanMode",
+      "ExitPlanMode",
+      "EnterWorktree",
+      "ExitWorktree",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "NotebookEdit",
+      "Bash(*)",
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(mvn:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(powershell:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(dir:*)",
+      "Bash(cd:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(copy:*)",
+      "Bash(type:*)",
+      "Bash(cat:*)"
+    ]
+  },
+  "trustedDirectories": [
+    "E:\\mywebside",
+    "E:\\skills"
+  ]
+}

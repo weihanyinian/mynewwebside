@@ -19,45 +19,44 @@ public class StockService {
 
   private final StockPortfolioRepository portfolioRepo;
   private final StockTradeRepository tradeRepo;
+  private final StockDataService dataService;
   private final RestClient restClient;
 
-  public StockService(StockPortfolioRepository portfolioRepo, StockTradeRepository tradeRepo, RestClient.Builder rb) {
+  public StockService(StockPortfolioRepository portfolioRepo, StockTradeRepository tradeRepo,
+                      StockDataService dataService, RestClient.Builder rb) {
     this.portfolioRepo = portfolioRepo;
     this.tradeRepo = tradeRepo;
+    this.dataService = dataService;
     this.restClient = rb.build();
   }
 
-  /** Fetch real-time quote from Sina. Returns null if unavailable. */
-  public StockQuote fetchQuote(String rawCode) {
-    String code = normalizeCode(rawCode);
-    String sinaCode = toSinaCode(code);
-    try {
-      String body = restClient.get()
-          .uri("https://hq.sinajs.cn/list=" + sinaCode)
-          .header("Referer", "https://finance.sina.com.cn")
-          .retrieve().body(String.class);
-      if (body == null || body.isBlank() || body.contains("\"\"")) return null;
-      return parseSina(body, code);
-    } catch (Exception e) {
-      log.warn("Failed to fetch quote for {}", code, e);
-      return null;
-    }
+  /** Fetch real-time quote. */
+  public StockDataService.Quote fetchQuote(String rawCode) {
+    return dataService.fetchQuote(normalizeCode(rawCode));
   }
 
-  /** Search stocks by keyword via Tencent smartbox. */
+  /** Search stocks by keyword (A-shares via Tencent, US via Yahoo). */
   public List<StockSearchResult> search(String keyword) {
     if (keyword == null || keyword.isBlank()) return Collections.emptyList();
+    List<StockSearchResult> results = new ArrayList<>();
+
+    // A-share search via Tencent smartbox
     try {
       String body = restClient.get()
-          .uri("https://smartbox.gtimg.cn/s3/?q=" + keyword.trim() + "&t=all&c=30")
-          .header("Referer", "https://finance.qq.com")
-          .retrieve().body(String.class);
-      if (body == null || body.isBlank()) return Collections.emptyList();
-      return parseSearchResult(body);
-    } catch (Exception e) {
-      log.warn("Search failed for keyword={}", keyword, e);
-      return Collections.emptyList();
-    }
+          .uri("https://smartbox.gtimg.cn/s3/?q=" + keyword.trim() + "&t=all&c=20")
+          .header("Referer", "https://finance.qq.com").retrieve().body(String.class);
+      if (body != null && !body.isBlank()) results.addAll(parseSearchResult(body));
+    } catch (Exception e) { log.debug("Tencent search failed: {}", e.getMessage()); }
+
+    // US/HK stock search via Yahoo
+    try {
+      String yahooBody = restClient.get()
+          .uri("https://query1.finance.yahoo.com/v1/finance/search?q=" + keyword.trim() + "&quotesCount=10")
+          .header("User-Agent", "Mozilla/5.0").retrieve().body(String.class);
+      if (yahooBody != null && !yahooBody.isBlank()) results.addAll(parseYahooSearch(yahooBody));
+    } catch (Exception e) { log.debug("Yahoo search failed: {}", e.getMessage()); }
+
+    return results;
   }
 
   public PortfolioSummary getPortfolio(Long userId) {
@@ -67,20 +66,20 @@ public class StockService {
     List<HoldingDto> items = new ArrayList<>();
 
     for (StockPortfolio h : holdings) {
-      StockQuote q = fetchQuote(h.getStockCode());
+      StockDataService.Quote q = dataService.fetchQuote(h.getStockCode());
       BigDecimal cost = h.getAvgCost().multiply(BigDecimal.valueOf(h.getShares()));
       totalCost = totalCost.add(cost);
-      if (q != null && q.price.compareTo(BigDecimal.ZERO) > 0) {
-        BigDecimal market = q.price.multiply(BigDecimal.valueOf(h.getShares()));
+      if (q.price().compareTo(BigDecimal.ZERO) > 0) {
+        BigDecimal market = q.price().multiply(BigDecimal.valueOf(h.getShares()));
         totalMarket = totalMarket.add(market);
         BigDecimal pnl = market.subtract(cost);
         BigDecimal pnlPct = pnl.divide(cost, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
-        items.add(new HoldingDto(h.getStockCode(), h.getStockName(), q.name, h.getShares(),
-            h.getAvgCost(), q.price, pnl, pnlPct));
+        items.add(new HoldingDto(h.getStockCode(), h.getStockName(), q.name(), h.getShares(),
+            h.getAvgCost(), q.price(), pnl, pnlPct));
       } else {
         totalMarket = totalMarket.add(cost);
         items.add(new HoldingDto(h.getStockCode(), h.getStockName(),
-            q != null ? q.name : h.getStockName(), h.getShares(), h.getAvgCost(), null,
+            q.name().isEmpty() ? h.getStockName() : q.name(), h.getShares(), h.getAvgCost(), null,
             BigDecimal.ZERO, BigDecimal.ZERO));
       }
     }
@@ -118,11 +117,10 @@ public class StockService {
   @Transactional
   public TradeResultDto buy(Long userId, String rawCode, int shares) {
     if (shares <= 0) throw new BusinessException(400, "买入股数必须大于0");
-    StockQuote q = fetchQuote(rawCode);
-    if (q == null) throw new BusinessException(502, "获取股票行情失败，请稍后再试");
-    if (q.price.compareTo(BigDecimal.ZERO) <= 0) throw new BusinessException(400, "该股票暂不支持交易");
+    StockDataService.Quote q = dataService.fetchQuote(normalizeCode(rawCode));
+    if (q.price().compareTo(BigDecimal.ZERO) <= 0) throw new BusinessException(502, "获取股票行情失败");
 
-    BigDecimal cost = q.price.multiply(BigDecimal.valueOf(shares));
+    BigDecimal cost = q.price().multiply(BigDecimal.valueOf(shares));
     BigDecimal fee = cost.multiply(FEE_RATE).setScale(3, RoundingMode.HALF_UP);
     if (fee.compareTo(new BigDecimal("5")) < 0) fee = new BigDecimal("5");
     BigDecimal total = cost.add(fee);
@@ -138,19 +136,19 @@ public class StockService {
       BigDecimal newAvg = oldTotal.add(cost).divide(BigDecimal.valueOf(newShares), 3, RoundingMode.HALF_UP);
       holding.setShares(newShares);
       holding.setAvgCost(newAvg);
-      holding.setStockName(q.name);
+      holding.setStockName(q.name());
       holding.setUpdatedAt(Instant.now());
       portfolioRepo.save(holding);
     } else {
-      holding = new StockPortfolio(userId, code, q.name, shares, q.price);
+      holding = new StockPortfolio(userId, code, q.name(), shares, q.price());
       portfolioRepo.save(holding);
     }
 
-    StockTrade trade = new StockTrade(userId, code, q.name, StockTrade.TradeType.BUY, shares, q.price, fee);
+    StockTrade trade = new StockTrade(userId, code, q.name(), StockTrade.TradeType.BUY, shares, q.price(), fee);
     tradeRepo.save(trade);
 
     BigDecimal remaining = cash.subtract(total);
-    return new TradeResultDto("BUY", code, q.name, shares, q.price, fee, remaining);
+    return new TradeResultDto("BUY", code, q.name(), shares, q.price(), fee, remaining);
   }
 
   @Transactional
@@ -161,11 +159,10 @@ public class StockService {
         .orElseThrow(() -> new BusinessException(400, "未持有该股票"));
     if (holding.getShares() < shares) throw new BusinessException(400, "持仓不足");
 
-    StockQuote q = fetchQuote(code);
-    if (q == null) throw new BusinessException(502, "获取股票行情失败");
-    if (q.price.compareTo(BigDecimal.ZERO) <= 0) throw new BusinessException(400, "该股票暂不支持交易");
+    StockDataService.Quote q = dataService.fetchQuote(code);
+    if (q.price().compareTo(BigDecimal.ZERO) <= 0) throw new BusinessException(502, "获取股票行情失败");
 
-    BigDecimal revenue = q.price.multiply(BigDecimal.valueOf(shares));
+    BigDecimal revenue = q.price().multiply(BigDecimal.valueOf(shares));
     BigDecimal fee = revenue.multiply(FEE_RATE).setScale(3, RoundingMode.HALF_UP);
     if (fee.compareTo(new BigDecimal("5")) < 0) fee = new BigDecimal("5");
     BigDecimal total = revenue.subtract(fee);
@@ -182,11 +179,11 @@ public class StockService {
     }
 
     BigDecimal cash = getCash(userId);
-    StockTrade trade = new StockTrade(userId, code, q.name, StockTrade.TradeType.SELL, shares, q.price, fee);
+    StockTrade trade = new StockTrade(userId, code, q.name(), StockTrade.TradeType.SELL, shares, q.price(), fee);
     trade.setProfitLoss(profitLoss);
     tradeRepo.save(trade);
 
-    return new TradeResultDto("SELL", code, q.name, shares, q.price, fee, cash.add(total));
+    return new TradeResultDto("SELL", code, q.name(), shares, q.price(), fee, cash.add(total));
   }
 
   private BigDecimal getCash(Long userId) {
@@ -212,17 +209,6 @@ public class StockService {
     return s;
   }
 
-  static String toSinaCode(String normalized) { return normalized; }
-
-  static StockQuote parseSina(String body, String code) {
-    int start = body.indexOf("\"");
-    int end = body.lastIndexOf("\"");
-    if (start < 0 || end <= start) return null;
-    String[] parts = body.substring(start + 1, end).split(",");
-    if (parts.length < 4) return null;
-    return new StockQuote(code, parts[0], new BigDecimal(parts[3]));
-  }
-
   static List<StockSearchResult> parseSearchResult(String body) {
     List<StockSearchResult> list = new ArrayList<>();
     String[] items = body.split("\\^");
@@ -241,6 +227,26 @@ public class StockService {
       }
       if (list.size() >= 10) break;
     }
+    return list;
+  }
+
+  static List<StockSearchResult> parseYahooSearch(String body) {
+    List<StockSearchResult> list = new ArrayList<>();
+    try {
+      com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
+      com.fasterxml.jackson.databind.JsonNode root = om.readTree(body);
+      com.fasterxml.jackson.databind.JsonNode quotes = root.path("quotes");
+      if (!quotes.isArray()) return list;
+      for (com.fasterxml.jackson.databind.JsonNode q : quotes) {
+        String symbol = q.path("symbol").asText();
+        String name = q.path("shortname").asText();
+        String type = q.path("quoteType").asText();
+        if (symbol.isBlank() || name.isBlank()) continue;
+        if (!"EQUITY".equals(type) && !"ETF".equals(type)) continue;
+        list.add(new StockSearchResult(symbol, symbol, name));
+        if (list.size() >= 10) break;
+      }
+    } catch (Exception e) { log.debug("Yahoo search parse failed"); }
     return list;
   }
 
