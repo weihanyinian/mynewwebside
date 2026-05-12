@@ -30,6 +30,8 @@ const cards = computed(() =>
                   ? '🔢'
                   : card.icon === 'oj'
                     ? '⌨️'
+                    : card.icon === 'stock'
+                      ? '📈'
                 : '💻',
     titleKey: card.titleKey,
     descKey: card.descKey,

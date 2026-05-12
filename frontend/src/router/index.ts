@@ -50,6 +50,7 @@ const GameDoudizhu = () => import('../views/GameBoard.vue')
 const MemoriesPage = () => import('../pages/public/MemoriesPage.vue')
 const WorksShowcasePage = () => import('../pages/public/WorksShowcasePage.vue')
 const WorksDetailPage = () => import('../pages/public/WorksDetailPage.vue')
+const ToolStockPage = () => import('../pages/tools/ToolStockPage.vue')
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -92,6 +93,7 @@ export const router = createRouter({
     { path: '/tools/cps', component: ToolCpsPage },
     { path: '/tools/pomodoro', component: ToolPomodoroPage },
     { path: '/tools/schulte', component: ToolSchultePage },
+    { path: '/tools/stock', component: ToolStockPage, meta: { requiresAuth: true } },
     {
       path: '/tools/oj',
       component: OjView,

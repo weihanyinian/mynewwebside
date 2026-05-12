@@ -290,7 +290,9 @@ const messages = {
       cardPasswordDesc: '本地生成随机强密码，一键复制。',
       cardBase64Desc: '文本 Base64 加密与解密（UTF-8）。',
       cardMbtiTitle: 'MBTI 测试',
-      cardMbtiDesc: '32 道题解读 16 种人格，发现真实的自己。'
+      cardMbtiDesc: '32 道题解读 16 种人格，发现真实的自己。',
+      cardStockTitle: '模拟炒股',
+      cardStockDesc: '虚拟资金 100 万，实时行情模拟交易，支持排行榜。'
     },
     messageWall: {
       title: '公共留言墙',
@@ -619,7 +621,9 @@ const messages = {
       cardPasswordDesc: 'Generate strong passwords locally.',
       cardBase64Desc: 'UTF-8 Base64 encode & decode.',
       cardMbtiTitle: 'MBTI Test',
-      cardMbtiDesc: '32 questions, 16 personalities — discover yourself.'
+      cardMbtiDesc: '32 questions, 16 personalities — discover yourself.',
+      cardStockTitle: 'Stock Sim',
+      cardStockDesc: 'Virtual ¥1,000,000, real-time quotes, leaderboard.'
     },
     messageWall: {
       title: 'Message Wall',

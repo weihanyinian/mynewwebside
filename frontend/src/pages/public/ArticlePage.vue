@@ -3,8 +3,9 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useThemeStore } from '../../stores/theme'
-import { getPublicArticle, type ArticleDetail } from '../../api/blog'
+import { getPublicArticle, getPublicArticles, type ArticleDetail, type ArticleListItem } from '../../api/blog'
 import MarkdownView from '../../components/MarkdownView.vue'
+import SiteBackToTop from '../../components/site/SiteBackToTop.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -24,6 +25,8 @@ const toc = ref<TocItem[]>([])
 const activeTocId = ref<string>('')
 const tocOpen = ref(false)
 const showBackTop = ref(false)
+const readProgress = ref(0)
+const relatedPosts = ref<ArticleListItem[]>([])
 const isDarkMode = computed(() => themeStore.isDarkMode)
 
 const navItems = computed(() => [
@@ -91,6 +94,8 @@ async function setupTocObserver() {
 
 function onScroll() {
   showBackTop.value = window.scrollY > 700
+  const scrollH = document.documentElement.scrollHeight - window.innerHeight
+  readProgress.value = scrollH > 0 ? Math.min(100, (window.scrollY / scrollH) * 100) : 0
 }
 
 function onToc(items: TocItem[]) {
@@ -101,9 +106,15 @@ async function loadArticle() {
   loading.value = true
   toc.value = []
   activeTocId.value = ''
+  relatedPosts.value = []
   try {
     const id = Number(route.params.id)
     article.value = await getPublicArticle(id)
+    if (article.value?.tags?.length) {
+      const tagId = article.value.tags[0].id
+      const res = await getPublicArticles({ tagId, size: 3 })
+      relatedPosts.value = res.items.filter((p) => p.id !== article.value!.id).slice(0, 3)
+    }
   } catch {
     article.value = null
   } finally {
@@ -139,6 +150,10 @@ watch(
     class="article-page min-h-screen font-sans selection:bg-purple-500/30 selection:text-white relative overflow-x-hidden"
     :class="isDarkMode ? 'article-page--dark text-slate-200' : 'article-page--light text-slate-800'"
   >
+    <div class="fixed top-0 left-0 w-full h-[3px] z-[9999] pointer-events-none">
+      <div class="h-full bg-gradient-to-r from-blue-400 via-purple-500 to-pink-400 transition-[width] duration-150 ease-out" :style="{ width: readProgress + '%' }"></div>
+    </div>
+
     <div class="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-blue-500/10 blur-[120px] pointer-events-none"></div>
     <div class="fixed bottom-[-10%] right-[20%] w-[50vw] h-[50vw] rounded-full bg-purple-600/10 blur-[150px] pointer-events-none"></div>
 
@@ -253,6 +268,20 @@ watch(
             <section class="article-shell article-shell--content mt-10 rounded-3xl p-8 lg:p-10">
               <MarkdownView :content="article.contentMd" @toc="onToc" />
             </section>
+
+            <section v-if="relatedPosts.length" class="mt-10">
+              <h3 class="text-lg font-bold mb-4">相关推荐</h3>
+              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div v-for="rp in relatedPosts" :key="rp.id" class="article-shell article-shell--content rounded-2xl p-5 cursor-pointer hover:scale-[1.02] transition-transform" @click="router.push(`/article/${rp.id}`)">
+                  <h4 class="font-semibold text-sm line-clamp-2 mb-2">{{ rp.title }}</h4>
+                  <p class="text-xs text-slate-500 line-clamp-2 mb-3">{{ rp.summary }}</p>
+                  <div class="flex items-center gap-2 text-xs text-slate-500">
+                    <span>{{ rp.views }} 阅读</span>
+                    <span v-if="rp.category">· {{ rp.category.name }}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
           </article>
 
           <aside class="hidden xl:block">
@@ -286,17 +315,7 @@ watch(
       </main>
     </div>
 
-    <transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 translate-y-2" enter-to-class="opacity-100 translate-y-0" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 translate-y-2">
-      <button
-        v-if="showBackTop"
-        type="button"
-        class="site-pill site-pill--active fixed bottom-8 right-24 md:right-28 z-50 inline-flex items-center gap-2"
-        @click="backToTop"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-        <span class="text-sm font-semibold">顶部</span>
-      </button>
-    </transition>
+    <SiteBackToTop />
 
     <transition enter-active-class="transition duration-150 ease-out" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100" leave-to-class="opacity-0">
       <div v-if="tocOpen" class="fixed inset-0 z-[60] xl:hidden">

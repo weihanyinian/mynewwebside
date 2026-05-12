@@ -59,6 +59,7 @@ public class SecurityConfig {
         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
         .requestMatchers("/api/snippets/**").authenticated()
         .requestMatchers("/api/oj/**").authenticated()
+        .requestMatchers("/api/stock/**").authenticated()
         .requestMatchers("/api/admin/**").hasRole("ADMIN")
         .anyRequest().denyAll()
     );
