@@ -1,0 +1,15 @@
+{
+  "name": "mywebside-ncm-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "本机启动 @neteasecloudmusicapienhanced/api，供 Spring Boot netease.proxy.base-url / ncm.base-url 使用",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node ./node_modules/@neteasecloudmusicapienhanced/api/app.js"
+  },
+  "dependencies": {
+    "@neteasecloudmusicapienhanced/api": "^4.32.0"
+  }
+}

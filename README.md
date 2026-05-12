@@ -4,6 +4,7 @@
 
 - `backend/` Spring Boot 3 + MySQL 后端（RESTful）
 - `frontend/` Vue 3 + Vite + Element Plus 前端（前台 + 简易后台）
+- `ncm-api/` 本机启动 [@neteasecloudmusicapienhanced/api](https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api)（默认端口 3000），供音乐模块上游使用
 - `docker/` 镜像构建：`backend`、`frontend`、[QQMusicApi](https://github.com/jsososo/QQMusicApi) 封装目录 `qq-music-api/` 等；**无 compose / .env**；编排见 **`deploy/README.md`**
 - `mysql/schema.sql` MySQL 建表语句
 
@@ -44,25 +45,29 @@
 
 ## 网易云音乐 API 接入说明（增强版）
 
-### 1) 启动第三方 API 服务（本机 Node 方式）
+### 1) 启动第三方 API 服务（本机 Node 方式，推荐仓库内 `ncm-api`）
 
 ```bash
-npm i -g @neteasecloudmusicapienhanced/api
-netease-cloud-music-api-enhanced
+cd ncm-api
+npm install
+npm start
 ```
 
-默认端口 `3000`，可通过环境变量指定：
+npm 包入口为 `app.js`，全局安装时提供的命令名为 **`api`**（非旧文档里的 `netease-cloud-music-api-enhanced`）。默认端口 `3000`，可通过环境变量指定：
 
 ```bash
-PORT=3001 netease-cloud-music-api-enhanced
+PORT=3001 npm start
 ```
 
 Windows PowerShell：
 
 ```powershell
+cd ncm-api
 $env:PORT=3001
-netease-cloud-music-api-enhanced
+npm start
 ```
+
+也可全局安装后执行：`npm i -g @neteasecloudmusicapienhanced/api`，再运行 **`api`**（见包内 `package.json` 的 `bin`）。
 
 ### 2) 启动第三方 API 服务（Docker 方式，增强版镜像）
 
@@ -75,7 +80,7 @@ docker run -d --name ncm-api -p 3000:3000 \
   moefurina/ncm-api:latest
 ```
 
-（若宿主设置了不可用代理，可按文档清空上述变量；也可直接 `docker compose` 使用仓库内 `ncm-api` 服务。）
+（若宿主设置了不可用代理，可按文档清空上述变量；也可直接 `docker compose -f deploy/docker-compose.ncm-only.example.yml up -d`。）
 
 健康检查（任选其一）：
 
@@ -84,7 +89,7 @@ curl "http://127.0.0.1:3000/login/status"
 curl "http://127.0.0.1:3000/song/url?id=33894312"
 ```
 
-**本地 `localhost:5173` 音乐组件报 502：** 多数是 **Spring Boot 未在 8080 启动**（Vite 反代失败）或 **3000 未起**（可只起 NCM：`docker compose -f deploy/docker-compose.ncm-only.example.yml up -d`）。可在项目根运行 `powershell -File scripts/check-local-dev.ps1` 查看 8080/3000/5173 端口。后端对 `127.0.0.1:3000` 不可达时会尝试 **公网回退**（见 `application.example.yml` 中 `local-fallback-enabled`），但 **必须先保证 8080 后端已运行**。
+**本地 `localhost:5173` 音乐组件报 502：** 多数是 **Spring Boot 未在 8080 启动**（Vite 反代失败）或 **3000 未起**（可先起 Node：`cd ncm-api && npm install && npm start`，或 Docker：`docker compose -f deploy/docker-compose.ncm-only.example.yml up -d`）。可在项目根运行 `powershell -File scripts/check-local-dev.ps1` 查看 8080/3000/5173 端口。后端对 `127.0.0.1:3000` 不可达时会尝试 **公网回退**（见 `application.example.yml` 中 `local-fallback-enabled`），但 **必须先保证 8080 后端已运行**。
 
 ### 3) 后端配置（Spring Boot）
 

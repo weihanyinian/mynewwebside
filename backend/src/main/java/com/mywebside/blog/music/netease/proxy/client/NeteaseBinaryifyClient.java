@@ -61,8 +61,8 @@ public class NeteaseBinaryifyClient {
         .connectTimeout(Duration.ofSeconds(3))
         .build();
     JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
-    // 避免上游不稳定时前端 15s 超时；优先快速失败并走自动换曲/错误提示。
-    factory.setReadTimeout(Duration.ofSeconds(5));
+    // 增强版上游（解灰 / enhance player）偶发较慢；略放宽读超时，仍明显短于前端 axios 15s。
+    factory.setReadTimeout(Duration.ofSeconds(12));
     return factory;
   }
 
