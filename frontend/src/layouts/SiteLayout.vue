@@ -53,11 +53,6 @@ const liftAboveMascot = computed(() => {
   )
 })
 
-const isBlogContext = computed(() => {
-  const p = route.path
-  return p.startsWith('/blog') || p.startsWith('/article') || p === '/categories' || p === '/tags'
-})
-
 function goHome(hash: string) {
   router.push({ path: '/', hash: hash })
 }

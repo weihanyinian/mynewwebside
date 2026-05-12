@@ -2,8 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { getToken } from '../utils/token'
 import { getSafeInternalPath } from '../utils/safeRedirect'
 import { useUserStore } from '../stores/user'
+/** 首页同步进主包，避免懒加载失败或挂起时出现「只有背景 + 浮标、中间全空」 */
+import HomePageView from '../views/home/HomePage.vue'
 
-const PortfolioPage = () => import('../views/home/HomePage.vue')
+const PortfolioPage = HomePageView
 const HomePage = () => import('../pages/public/BlogHome.vue')
 const ArticlePage = () => import('../pages/public/ArticlePage.vue')
 const CategoriesPage = () => import('../pages/public/CategoriesPage.vue')

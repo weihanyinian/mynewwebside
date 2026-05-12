@@ -50,12 +50,26 @@ export function useSectionObserver(
     }
   }
 
+  /** IO 的 rootMargin 较严时，首屏可能永远不触发 intersect，区块会一直保持 opacity:0 */
+  function revealSectionsTouchingViewport() {
+    const vh = window.innerHeight
+    for (const id of sectionIds) {
+      const el = document.getElementById(id)
+      if (!el) continue
+      const r = el.getBoundingClientRect()
+      if (r.top < vh && r.bottom > 0) el.classList.add('section--visible')
+    }
+  }
+
   watch(routeFullPath, () => {
     activeSection.value = routeHash.value ? routeHash.value.replace(/^#/, '') : ''
   })
 
   onMounted(() => {
     setupSectionObserver()
+    requestAnimationFrame(() => {
+      revealSectionsTouchingViewport()
+    })
   })
 
   onUnmounted(() => {

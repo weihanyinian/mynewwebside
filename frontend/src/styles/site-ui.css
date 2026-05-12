@@ -534,6 +534,25 @@
   min-width: auto;
   border: 1px solid rgba(255, 255, 255, 0.45);
   user-select: none;
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+:root[data-theme='light'] .glass-nav .site-nav-links .nav-social-link.nav-theme-icon {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(59, 130, 246, 0.42);
+  color: #0f2942;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset;
+}
+
+:root[data-theme='dark'] .glass-nav .site-nav-links .nav-social-link.nav-theme-icon {
+  background: rgba(15, 23, 42, 0.62);
+  border-color: rgba(196, 181, 253, 0.55);
+  color: #ede9fe;
+  box-shadow: 0 0 22px rgba(99, 102, 241, 0.22);
 }
 
 /* ---------- 顶栏「更多」下拉（摸鱼等非核心入口） ---------- */

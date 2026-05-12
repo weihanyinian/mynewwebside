@@ -19,6 +19,7 @@ import HomeWorksSection from '../../components/home/HomeWorksSection.vue'
 import { useHeroMotion } from '../../hooks/useHeroMotion'
 import { useSectionObserver } from '../../hooks/useSectionObserver'
 import { HOME_SECTION_IDS, type HomeWorkItem } from '../../types/home'
+import { HOME_BG_LIGHT_SRC, HOME_BG_DARK_SRC } from '../../config/homeBackgroundVideos'
 
 const router = useRouter()
 const route = useRoute()
@@ -37,18 +38,9 @@ const visitStore = useVisitStore()
 const githubRepo =
   import.meta.env.VITE_PUBLIC_GITHUB_REPO || 'https://github.com/weihanyinian/website'
 
-/** 与 `frontend/public/videos/` 下文件名完全一致（含扩展名）；特殊字符由 encodeURIComponent 处理 */
-function publicVideoUrl(filename: string) {
-  return `/videos/${encodeURIComponent(filename)}`
-}
-
-/** 日间背景：本地文件需放入 public/videos */
-const HOME_BG_LIGHT_FILE = 'livetune feat 初音ミク「Redial」Music Video_final_ver.mp4'
-/** 夜间背景：第二支本地视频的文件名（请改成与你磁盘上第二个 mp4 完全一致） */
-const HOME_BG_DARK_FILE = '初音ミク.mp4'
-
-const homeBgLightSrc = publicVideoUrl(HOME_BG_LIGHT_FILE)
-const homeBgDarkSrc = publicVideoUrl(HOME_BG_DARK_FILE)
+/** 日间浅色 / 夜间深色，片名见 `config/homeBackgroundVideos.ts` */
+const homeBgLightSrc = HOME_BG_LIGHT_SRC
+const homeBgDarkSrc = HOME_BG_DARK_SRC
 
 function logout() {
   userStore.logout()
@@ -384,10 +376,19 @@ onMounted(() => {
   /* 底层几乎透明，主视觉交给背景视频 */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(230, 242, 255, 0.04) 100%);
   color: #0f172a;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif;
   overflow-x: hidden;
   transition: background 0.5s ease, color 0.5s ease;
   position: relative;
+  /* 与 body 背景分层：避免内部 z-index:-1/-2 与整页主内容叠乱导致「像全空白」 */
+  isolation: isolate;
+  z-index: 0;
 }
 
 @media (max-width: 900px) {
@@ -478,59 +479,61 @@ onMounted(() => {
   100% { transform: translate3d(0, 0, 0); }
 }
 
-/* 日间：仅 5%–10% 量级浅色渐变叠在视频上，不糊化画面，保留动态感 */
+/* 日间：轻提亮叠层，画面更通透 */
 .portfolio-container:not(.dark-theme) .portfolio-bg-scrim {
   background: linear-gradient(
     165deg,
-    rgba(110, 231, 255, 0.06) 0%,
-    rgba(249, 168, 212, 0.05) 45%,
-    rgba(155, 143, 212, 0.05) 100%
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(186, 230, 253, 0.1) 42%,
+    rgba(233, 213, 255, 0.09) 100%
   );
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
-/* 夜间：对应轻暗角 + 极轻模糊，通透不闷 */
+/* 夜间：明显压暗 + 轻模糊，与日间一眼区分 */
 .portfolio-container.dark-theme .portfolio-bg-scrim {
   background: linear-gradient(
     165deg,
-    rgba(15, 23, 42, 0.12) 0%,
-    rgba(30, 27, 58, 0.08) 50%,
-    rgba(15, 23, 42, 0.14) 100%
+    rgba(2, 6, 23, 0.55) 0%,
+    rgba(15, 23, 42, 0.42) 48%,
+    rgba(30, 27, 75, 0.48) 100%
   );
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 /* Dark Theme */
 .portfolio-container.dark-theme {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.12) 0%, rgba(30, 27, 50, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(2, 6, 23, 0.55) 0%, rgba(15, 23, 42, 0.42) 100%);
   color: #e2e8f0;
 }
 
-/* Typography：标题加重、辅文轻量化、阅读节奏 */
+/* Typography：清晰易读，少用装饰性字距 */
 h1, h2, h3 {
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: 1rem;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  letter-spacing: 0.01em;
+  line-height: 1.28;
 }
 h2 {
-  font-size: clamp(1.58rem, 2.45vw, 2rem);
+  font-size: clamp(1.45rem, 2.2vw, 1.85rem);
   text-align: center;
   margin-bottom: 2rem;
-  font-weight: 850;
-  background: linear-gradient(to right, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+  color: #1e3a8a;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  background-clip: unset;
+  -webkit-background-clip: unset;
+  text-shadow: none;
 }
 .dark-theme h2 {
-  background: linear-gradient(to right, #a18cd1, #fbc2eb);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #e9d5ff;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  background-clip: unset;
+  -webkit-background-clip: unset;
 }
 
 /* 顶栏：略强于内容区，保证导航可读 */
@@ -548,19 +551,19 @@ h2 {
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
 }
 
-/* 内容玻璃卡片：≈10% 不透明 + blur(5px)，悬浮于视频之上 */
+/* 内容玻璃：略提高不透明度 + 模糊，正文更易辨认 */
 .glass-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.42);
-  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.07);
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(14px) saturate(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
   transition: transform 0.32s ease, box-shadow 0.32s ease, background 0.3s ease;
 }
 .dark-theme .glass-card {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.52);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
 }
 
 /* Navigation */
@@ -656,19 +659,18 @@ h2 {
 }
 .brand-logo__text {
   font-size: clamp(1rem, 2.2vw, 1.35rem);
-  font-weight: 800;
-  letter-spacing: -0.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   flex-shrink: 0;
-  background: linear-gradient(to right, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #0f172a;
+  -webkit-text-fill-color: currentColor;
+  background: none;
 }
 .dark-theme .brand-logo__text {
-  background: linear-gradient(to right, #a18cd1, #fbc2eb);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #f1f5f9;
+  -webkit-text-fill-color: currentColor;
+  background: none;
 }
 .links {
   display: flex;
@@ -721,16 +723,22 @@ h2 {
   margin: 0 auto 0.95rem;
   padding: 0.48rem 1.05rem;
   border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--primary-color, #4a90e2) 34%, rgba(255, 255, 255, 0.7));
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.16));
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  color: color-mix(in srgb, var(--primary-color, #4a90e2) 62%, #1e293b 38%);
+  color: #1e3a8a;
   -webkit-text-fill-color: currentColor;
   background-clip: border-box;
   -webkit-background-clip: border-box;
-  text-shadow: 0 1px 10px rgba(74, 144, 226, 0.16);
-  box-shadow: 0 8px 26px rgba(74, 144, 226, 0.1);
+  text-shadow: none;
+  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.08);
+}
+.dark-theme .section-title-pill {
+  border-color: rgba(196, 181, 253, 0.35);
+  background: rgba(15, 23, 42, 0.45);
+  color: #e9d5ff;
+  -webkit-text-fill-color: currentColor;
 }
 .section-lead-pill {
   width: fit-content;
@@ -798,47 +806,32 @@ h2 {
   position: relative;
   padding: clamp(28px, 4.2vw, 46px) clamp(22px, 4vw, 56px);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid color-mix(in srgb, #7dd3fc 40%, rgba(255, 255, 255, 0.5));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
   box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
 }
 .dark-theme .hero-glass-card {
-  background: rgba(15, 23, 42, 0.22);
-  border-color: color-mix(in srgb, #93c5fd 45%, rgba(255, 255, 255, 0.22));
+  background: rgba(15, 23, 42, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow:
     0 16px 40px rgba(0, 0, 0, 0.4),
     0 0 26px color-mix(in srgb, #a78bfa 22%, transparent);
 }
 .hero-title {
   position: relative;
-  font-size: clamp(1.86rem, 5.2vw, 3.22rem);
-  letter-spacing: -0.03em;
-  line-height: 1.12;
+  font-size: clamp(1.75rem, 4.8vw, 2.85rem);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
   margin-bottom: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   color: #0f172a;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.55),
-    0 0 30px rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 .hero-title::before,
 .hero-title::after {
-  content: attr(data-shadow);
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0.22;
-}
-.hero-title::before {
-  transform: translate3d(-2px, -2px, 0);
-  color: rgba(110, 231, 255, 0.6);
-}
-.hero-title::after {
-  transform: translate3d(2px, 2px, 0);
-  color: rgba(167, 139, 250, 0.55);
+  display: none;
 }
 .hero-title--animate {
   animation: hero-title-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
@@ -849,39 +842,37 @@ h2 {
   to { opacity: 1; transform: translateY(0); }
 }
 .dark-theme .hero-title {
-  color: #f0f4f8;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  color: #f8fafc;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 .hero-name-float {
   display: inline-block;
-  background: linear-gradient(to right, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1d4ed8;
+  font-weight: 800;
+  -webkit-text-fill-color: currentColor;
+  background: none;
   text-shadow: none;
   animation: hero-name-float 4.8s ease-in-out infinite;
   animation-delay: 0.4s;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.48);
-  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--primary-color) 32%, transparent));
-  transition: filter 0.3s ease;
+  -webkit-text-stroke: 0;
+  filter: none;
 }
 .dark-theme .hero-name-float {
-  background: linear-gradient(to right, #a18cd1, #fbc2eb);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+  color: #d8b4fe;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  -webkit-text-stroke: 0;
 }
 .hero-title:hover .hero-name-float {
   animation: hero-name-float 4.8s ease-in-out infinite;
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--primary-color) 34%, transparent));
+  color: #1e40af;
+}
+.dark-theme .hero-title:hover .hero-name-float {
+  color: #e9d5ff;
 }
 @keyframes hero-name-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-7px); }
-}
-@keyframes hero-name-flow {
-  0% { filter: hue-rotate(0deg) drop-shadow(0 0 12px color-mix(in srgb, var(--primary-color) 38%, transparent)); }
-  100% { filter: hue-rotate(45deg) drop-shadow(0 0 14px color-mix(in srgb, var(--secondary-color) 44%, transparent)); }
 }
 .hero-actions {
   display: flex;
@@ -1049,7 +1040,8 @@ h2 {
 .about-text { flex: 1; }
 .about-card p {
   font-weight: 400;
-  color: rgba(15, 23, 42, 0.88);
+  color: rgba(15, 23, 42, 0.92);
+  line-height: 1.75;
 }
 .dark-theme .about-card p {
   color: #e2e8f0;

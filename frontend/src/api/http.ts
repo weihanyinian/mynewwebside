@@ -1,4 +1,4 @@
-import axios, { type AxiosError } from 'axios'
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { clearToken, getToken } from '../utils/token'
 
 export type ApiResponse<T> = {
@@ -24,7 +24,7 @@ function resolveApiBaseUrl(): string {
 }
 
 /** 短时间内同一 GET 请求去重，避免页面挂载时重复调用 */
-const inflight = new Map<string, Promise<unknown>>()
+const inflight = new Map<string, Promise<InternalAxiosRequestConfig>>()
 const DEDUP_WINDOW_MS = 800
 
 function dedupKey(config: { method?: string; url?: string; params?: unknown }): string | null {

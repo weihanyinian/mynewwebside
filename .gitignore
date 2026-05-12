@@ -48,4 +48,8 @@ frontend/.env.*.local
 # Local large video files in root
 /*.mp4
 
+# 首页背景：由脚本从 light/dark 复制的约定文件名，避免仓库重复大文件
+frontend/public/videos/初音.mp4
+frontend/public/videos/livetune feat 初音ミク「Redial」Music Video_final_ver.mp4
+
 BGM/

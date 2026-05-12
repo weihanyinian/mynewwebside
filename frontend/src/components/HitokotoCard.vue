@@ -131,31 +131,49 @@ function onNext() {
 
 <style scoped>
 .hitokoto-card {
-  padding: 30px;
+  padding: 28px 26px;
   border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
   margin: 40px auto;
   max-width: 600px;
   position: relative;
   overflow: hidden;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif;
 }
 
 .glass-ui {
-  background: linear-gradient(135deg, rgba(102, 217, 255, 0.1) 0%, rgba(252, 162, 229, 0.1) 100%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(102, 217, 255, 0.15);
-  color: #fff;
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 10px 36px rgba(15, 23, 42, 0.12);
+  color: #111827;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+:global(html[data-theme='dark']) .hitokoto-card.glass-ui {
+  background: rgba(15, 23, 42, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  color: #f1f5f9;
 }
 
 .hitokoto-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 40px rgba(252, 162, 229, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 44px rgba(15, 23, 42, 0.14);
+}
+
+:global(html[data-theme='dark']) .hitokoto-card:hover {
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
 }
 
 .quote-content {
@@ -175,31 +193,52 @@ function onNext() {
 }
 
 .text {
-  font-size: 1.2rem;
-  font-weight: 600;
-  line-height: 1.6;
-  letter-spacing: 1px;
-  color: #e0f7fa;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.65;
+  letter-spacing: 0.02em;
+  color: #111827;
+  text-shadow: none;
   margin: 0;
 }
 
-.typed {
-  word-break: break-word;
+:global(html[data-theme='dark']) .hitokoto-card .text {
+  color: #f1f5f9;
 }
 
 .caret {
   display: inline-block;
   width: 2px;
-  height: 1.15em;
-  margin-left: 3px;
-  background: #4da3ff;
+  height: 1.1em;
+  margin-left: 2px;
+  background: #2563eb;
   border-radius: 1px;
   flex-shrink: 0;
   align-self: flex-end;
-  margin-bottom: 0.15em;
-  box-shadow: 0 0 6px rgba(77, 163, 255, 0.85);
+  margin-bottom: 0.12em;
+  box-shadow: none;
   animation: caret-blink var(--tw-cursor-blink, 500ms) steps(1, end) infinite;
+}
+
+:global(html[data-theme='dark']) .hitokoto-card .caret {
+  background: #93c5fd;
+}
+
+.quote-mark {
+  position: absolute;
+  font-size: 2.75rem;
+  font-family: system-ui, sans-serif;
+  font-weight: 300;
+  color: rgba(15, 23, 42, 0.12);
+  line-height: 1;
+}
+
+:global(html[data-theme='dark']) .hitokoto-card .quote-mark {
+  color: rgba(255, 255, 255, 0.12);
+}
+
+.typed {
+  word-break: break-word;
 }
 
 @keyframes caret-blink {
@@ -208,20 +247,13 @@ function onNext() {
   }
 }
 
-.quote-mark {
-  position: absolute;
-  font-size: 4rem;
-  font-family: Georgia, serif;
-  color: rgba(252, 162, 229, 0.3);
-  line-height: 1;
-}
 .quote-mark.left {
-  top: -20px;
-  left: -10px;
+  top: -16px;
+  left: -8px;
 }
 .quote-mark.right {
-  bottom: -40px;
-  right: -10px;
+  bottom: -28px;
+  right: -8px;
 }
 
 .actions {
@@ -232,25 +264,35 @@ function onNext() {
 }
 
 .ctrl-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: #0f172a;
   padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+:global(html[data-theme='dark']) .hitokoto-card .ctrl-btn {
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #e2e8f0;
 }
 
 .ctrl-btn:hover {
-  background: linear-gradient(135deg, rgba(102, 217, 255, 0.4), rgba(252, 162, 229, 0.4));
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 12px rgba(102, 217, 255, 0.3);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+:global(html[data-theme='dark']) .hitokoto-card .ctrl-btn:hover {
+  background: rgba(51, 65, 85, 0.9);
+  border-color: rgba(196, 181, 253, 0.35);
 }
 
 .ctrl-btn:active {
-  transform: translateY(0);
+  transform: translateY(1px);
 }
 
 @media (max-width: 768px) {
@@ -262,7 +304,7 @@ function onNext() {
     font-size: 1rem;
   }
   .quote-mark {
-    font-size: 3rem;
+    font-size: 2.25rem;
   }
 }
 </style>

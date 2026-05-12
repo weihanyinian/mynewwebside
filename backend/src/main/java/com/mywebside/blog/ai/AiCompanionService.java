@@ -46,6 +46,15 @@ public class AiCompanionService {
       - 不编造本站不存在的项目或功能；不确定就坦诚说明并给出可行建议。
       """;
 
+  /** 用户消息含「宝宝」等触发词时追加：以恋人（对象）身份回复。 */
+  private static final String PARTNER_MODE_APPEND = """
+      【本条临时人设】
+      用户消息里出现了「宝宝」或与之同类的亲昵称呼用语。本次回复请在遵守上文「禁止」与简短要求的前提下，
+      以对方恋爱对象的身份（你是「她」的男朋友/对象）自然接话：语气温柔、可靠、有陪伴感，可适度称呼对方「宝宝」，
+      不要堆砌肉麻台词或连续追问。若对方同时问到本站项目或技术，仍用一两句在恋人语气下顺带说明即可。
+      本条中请优先采用「男友/对象」身份，可弱化上文白发红瞳少女程序员的形象，避免两种人设打架。
+      """;
+
   private final AiCompanionProperties props;
   private final ObjectMapper objectMapper;
 
@@ -73,6 +82,11 @@ public class AiCompanionService {
     if (input.isBlank()) throw new BusinessException(400, "消息不能为空");
     if (input.length() > props.getMaxInputChars()) throw new BusinessException(400, "消息太长");
 
+    String systemPrompt = SYSTEM_PROMPT;
+    if (containsBabyIntimacyKeyword(input)) {
+      systemPrompt = SYSTEM_PROMPT + "\n\n" + PARTNER_MODE_APPEND;
+    }
+
     HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).build();
     JdkClientHttpRequestFactory rf = new JdkClientHttpRequestFactory(httpClient);
     rf.setReadTimeout(Duration.ofSeconds(12));
@@ -82,7 +96,7 @@ public class AiCompanionService {
         "model", props.getModel(),
         "temperature", 0.65,
         "messages", List.of(
-            Map.of("role", "system", "content", SYSTEM_PROMPT),
+            Map.of("role", "system", "content", systemPrompt),
             Map.of("role", "user", "content", input)
         )
     );
@@ -105,5 +119,14 @@ public class AiCompanionService {
     } catch (Exception e) {
       throw new BusinessException(502, "AI服务暂时不可用");
     }
+  }
+
+  /** 用户侧出现亲昵「宝宝」类用词时启用对象视角人设。 */
+  static boolean containsBabyIntimacyKeyword(String text) {
+    if (text == null || text.isBlank()) return false;
+    return text.contains("宝宝")
+        || text.contains("寶寶")
+        || text.contains("宝贝")
+        || text.contains("寶貝");
   }
 }

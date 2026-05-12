@@ -39,6 +39,13 @@ const emit = defineEmits<{
   justify-content: center;
   text-align: center;
   padding: 80px 20px 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif;
 }
 .hero-content {
   will-change: transform;
@@ -48,67 +55,90 @@ const emit = defineEmits<{
   position: relative;
   padding: clamp(28px, 4.2vw, 46px) clamp(22px, 4vw, 56px);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid color-mix(in srgb, #7dd3fc 40%, rgba(255, 255, 255, 0.5));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
   box-shadow:
     0 16px 38px rgba(15, 23, 42, 0.1),
-    0 0 22px color-mix(in srgb, var(--primary-color) 18%, transparent);
+    0 0 22px color-mix(in srgb, var(--primary-color) 14%, transparent);
 }
 :global(.dark-theme) .hero-glass-card {
-  background: rgba(15, 23, 42, 0.22);
-  border-color: color-mix(in srgb, #93c5fd 45%, rgba(255, 255, 255, 0.22));
+  background: rgba(15, 23, 42, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.42),
+    0 0 22px color-mix(in srgb, #a78bfa 18%, transparent);
 }
 .hero-title {
   position: relative;
-  font-size: clamp(1.86rem, 5.2vw, 3.22rem);
-  letter-spacing: -0.03em;
-  line-height: 1.12;
-  margin-bottom: 0.5rem;
-  font-weight: 800;
+  font-size: clamp(1.75rem, 4.8vw, 2.85rem);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+  font-weight: 700;
   color: #0f172a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 .hero-title::before,
 .hero-title::after {
-  content: attr(data-shadow);
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0.55;
-}
-.hero-title::before {
-  transform: translate3d(-2px, -2px, 0);
-  color: rgba(110, 231, 255, 0.6);
-}
-.hero-title::after {
-  transform: translate3d(2px, 2px, 0);
-  color: rgba(167, 139, 250, 0.55);
+  display: none;
 }
 .hero-title--animate {
   animation: hero-title-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   opacity: 0;
 }
+@media (prefers-reduced-motion: reduce) {
+  .hero-title--animate {
+    animation: none;
+    opacity: 1;
+  }
+}
+@keyframes hero-title-in {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+:global(.dark-theme) .hero-title {
+  color: #f8fafc;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
 .hero-name-float {
   display: inline-block;
-  background: linear-gradient(to right, var(--primary-color, #4a90e2), var(--secondary-color, #8b7fd8));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1d4ed8;
+  font-weight: 800;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  background-clip: unset;
+  -webkit-background-clip: unset;
+  text-shadow: none;
   animation: hero-name-float 4.8s ease-in-out infinite;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.48);
+  animation-delay: 0.4s;
+  -webkit-text-stroke: 0;
+  filter: none;
+  transition: color 0.3s ease;
+}
+:global(.dark-theme) .hero-name-float {
+  color: #d8b4fe;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  -webkit-text-stroke: 0;
 }
 .hero-title:hover .hero-name-float {
-  animation:
-    hero-name-float 4.8s ease-in-out infinite,
-    hero-name-flow 1.8s linear infinite;
+  animation: hero-name-float 4.8s ease-in-out infinite;
+  color: #1e40af;
+}
+:global(.dark-theme) .hero-title:hover .hero-name-float {
+  color: #e9d5ff;
 }
 .hero-subtitle {
   margin: 0 auto 1.2rem;
-  font-size: 0.92rem;
-  letter-spacing: 0.08em;
-  color: color-mix(in srgb, var(--text-muted, #64748b) 90%, #fff 10%);
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+  color: rgba(15, 23, 42, 0.78);
+}
+:global(.dark-theme) .hero-subtitle {
+  color: rgba(226, 232, 240, 0.88);
 }
 .hero-actions {
   display: flex;
@@ -130,16 +160,8 @@ const emit = defineEmits<{
   min-height: 46px;
   font-size: 0.9rem;
 }
-@keyframes hero-title-in {
-  from { opacity: 0; transform: translateY(28px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 @keyframes hero-name-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-7px); }
-}
-@keyframes hero-name-flow {
-  0% { filter: hue-rotate(0deg); }
-  100% { filter: hue-rotate(45deg); }
 }
 </style>
