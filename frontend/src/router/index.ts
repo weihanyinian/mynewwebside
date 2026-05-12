@@ -141,7 +141,7 @@ export const router = createRouter({
 
 router.beforeEach(async (to) => {
   const userStore = useUserStore()
-  userStore.hydrateFromStorage()
+  if (!userStore.hydrated) userStore.hydrateFromStorage()
 
   if (to.meta.requiresAuth || to.meta.requiresAdmin) {
     if (!getToken()) {

@@ -5,9 +5,10 @@
  * - 玻璃态参数与首页规范一致，颜色对比度随 SiteLayout 注入的 data-theme / CSS 变量变化
  */
 import { Search } from '@element-plus/icons-vue'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import SiteBackToTop from '../../components/site/SiteBackToTop.vue'
 import { getCategories, getPublicArticles, getTags, type ArticleListItem, type Category, type Tag } from '../../api/blog'
 
 // ---------- 可调整参数（设计 token，改这里即可全局微调）----------
@@ -36,7 +37,6 @@ const page = ref(route.query.page ? Number(route.query.page) - 1 : 0)
 const size = ref(9)
 const loading = ref(false)
 const total = ref(0)
-const showBackTop = ref(false)
 const categories = ref<Category[]>([])
 const tags = ref<Tag[]>([])
 const items = ref<ArticleListItem[]>([])
@@ -110,14 +110,6 @@ function triggerCardEnterAnimation() {
   })
 }
 
-function onScroll() {
-  showBackTop.value = window.scrollY > 480
-}
-
-function backToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
 function handlePageChange(p: number) {
   page.value = p - 1
   syncToRoute()
@@ -158,15 +150,11 @@ watch(
 )
 
 onMounted(async () => {
-  window.addEventListener('scroll', onScroll, { passive: true })
   const [c, tg] = await Promise.all([getCategories(true), getTags(true)])
   categories.value = c
   tags.value = tg
 })
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', onScroll)
-})
 </script>
 
 <template>
@@ -352,16 +340,7 @@ onUnmounted(() => {
       </main>
     </div>
 
-    <transition
-      enter-active-class="blog-fade-enter-active"
-      leave-active-class="blog-fade-leave-active"
-      enter-from-class="blog-fade-enter-from"
-      leave-to-class="blog-fade-leave-to"
-    >
-      <button v-if="showBackTop" type="button" class="site-pill site-pill--active blog-back-top" @click="backToTop">
-        ↑ {{ locale === 'zh' ? '顶部' : 'Top' }}
-      </button>
-    </transition>
+    <SiteBackToTop />
   </section>
 </template>
 
@@ -833,32 +812,4 @@ onUnmounted(() => {
   padding-bottom: 0.5rem;
 }
 
-.blog-back-top {
-  position: fixed;
-  right: 1.25rem;
-  bottom: 1.25rem;
-  z-index: 50;
-  font-weight: 800;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  box-shadow: v-bind('STYLE.glassShadow');
-}
-
-.blog-fade-enter-active,
-.blog-fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.blog-fade-enter-from,
-.blog-fade-leave-to {
-  opacity: 0;
-  transform: translateY(6px);
-}
-
-@media (min-width: 1024px) {
-  .blog-back-top {
-    right: 1.5rem;
-    bottom: 1.5rem;
-  }
-}
 </style>

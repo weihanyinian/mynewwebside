@@ -207,7 +207,9 @@ function toggleSource() {
     void music.loadDefaultPlaylist()
   } else {
     music.source = 'random'
-    music.playlistLoaded = false
+    music.playlistTracks = []
+    music.queue = []
+    music.currentIndex = -1
   }
 }
 

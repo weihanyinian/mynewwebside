@@ -41,11 +41,10 @@ public class AiCompanionService {
 
       【禁止】
       - 不粗鲁、不冒犯、不低俗、不涉黄暴、不歧视。
-      - 不使用过火情绪和夸张“打鸡血”表达。
+      - 不使用过火情绪和夸张"打鸡血"表达。
       - 不编造本站不存在的项目或功能；不确定就坦诚说明并给出可行建议。
       """;
 
-  /** 用户消息含「宝宝」等触发词时追加：亲昵语境下略更温柔，仍以男友视角接话。 */
   private static final String PARTNER_MODE_APPEND = """
       【本条追加】
       用户消息里出现了「宝宝」「宝贝」或同类亲昵称呼。在遵守上文「禁止」与简短要求的前提下，本次回复可再温柔一点：
@@ -53,12 +52,28 @@ public class AiCompanionService {
       若对方同时问到本站项目或技术，用一两句在恋人语气下顺带说明即可。
       """;
 
+  private static final int MAX_REPLY_CHARS = 200;
+
   private final AiCompanionProperties props;
   private final ObjectMapper objectMapper;
+  private final RestClient restClient;
 
   public AiCompanionService(AiCompanionProperties props, ObjectMapper objectMapper) {
     this.props = props;
     this.objectMapper = objectMapper;
+    this.restClient = buildRestClient(props);
+  }
+
+  private static RestClient buildRestClient(AiCompanionProperties props) {
+    String base = props.getBaseUrl() == null ? "" : props.getBaseUrl().trim();
+    if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+
+    HttpClient httpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(8))
+        .build();
+    JdkClientHttpRequestFactory rf = new JdkClientHttpRequestFactory(httpClient);
+    rf.setReadTimeout(Duration.ofSeconds(12));
+    return RestClient.builder().baseUrl(base).requestFactory(rf).build();
   }
 
   public String chat(String message) {
@@ -74,7 +89,6 @@ public class AiCompanionService {
     }
     String base = props.getBaseUrl() == null ? "" : props.getBaseUrl().trim();
     if (base.isBlank()) throw new BusinessException(500, "AI配置缺失：base-url");
-    if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
 
     String input = message == null ? "" : message.trim();
     if (input.isBlank()) throw new BusinessException(400, "消息不能为空");
@@ -84,11 +98,6 @@ public class AiCompanionService {
     if (containsBabyIntimacyKeyword(input)) {
       systemPrompt = SYSTEM_PROMPT + "\n\n" + PARTNER_MODE_APPEND;
     }
-
-    HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).build();
-    JdkClientHttpRequestFactory rf = new JdkClientHttpRequestFactory(httpClient);
-    rf.setReadTimeout(Duration.ofSeconds(12));
-    RestClient client = RestClient.builder().baseUrl(base).requestFactory(rf).build();
 
     Map<String, Object> body = Map.of(
         "model", props.getModel(),
@@ -100,7 +109,7 @@ public class AiCompanionService {
     );
 
     try {
-      String raw = client.post()
+      String raw = restClient.post()
           .uri("/chat/completions")
           .contentType(MediaType.APPLICATION_JSON)
           .header("Authorization", "Bearer " + props.getApiKey())
@@ -110,8 +119,7 @@ public class AiCompanionService {
       JsonNode root = objectMapper.readTree(raw == null ? "" : raw);
       String reply = root.path("choices").path(0).path("message").path("content").asText("").trim();
       if (reply.isBlank()) throw new BusinessException(502, "AI响应为空");
-      int maxReply = 200;
-      return reply.length() > maxReply ? reply.substring(0, maxReply) : reply;
+      return safeTruncate(reply, MAX_REPLY_CHARS);
     } catch (BusinessException e) {
       throw e;
     } catch (Exception e) {
@@ -119,7 +127,14 @@ public class AiCompanionService {
     }
   }
 
-  /** 用户侧出现亲昵「宝宝」类用词时在系统提示上追加温柔层。 */
+  /** 安全截断：不切断代理对（emoji 等多字节字符）。 */
+  static String safeTruncate(String s, int maxChars) {
+    if (s == null || s.length() <= maxChars) return s;
+    int idx = s.offsetByCodePoints(0, maxChars);
+    if (idx < 0 || idx > s.length()) return s;
+    return s.substring(0, idx);
+  }
+
   static boolean containsBabyIntimacyKeyword(String text) {
     if (text == null || text.isBlank()) return false;
     return text.contains("宝宝")

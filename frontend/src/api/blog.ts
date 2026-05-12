@@ -1,4 +1,4 @@
-import { http, type ApiResponse } from './http'
+import { http, type ApiResponse, type PageResponse } from './http'
 
 export type Category = { id: number; name: string }
 export type Tag = { id: number; name: string }
@@ -24,13 +24,6 @@ export type CommentDto = {
   author: string
   content: string
   createTime: string
-}
-
-export type PageResponse<T> = {
-  items: T[]
-  total: number
-  page: number
-  size: number
 }
 
 export type AdminArticleListItem = ArticleListItem & {

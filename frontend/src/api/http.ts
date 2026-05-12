@@ -5,16 +5,9 @@ export type ApiResponse<T> = {
   code: number
   message: string
   data: T
-  /** 后端统一时间戳（毫秒），可选 */
   timestamp?: number
 }
 
-/**
- * - 未设置 VITE_API_BASE_URL：走相对路径 `/api`。
- *   - npm run dev：由 Vite 代理到 8080；经 Nginx :88 打开时由网关转发到 8080。
- *   - 生产：同源 Nginx 反代 /api。
- * - 仅当需要跨域直连后端时设置，例如 VITE_API_BASE_URL=http://127.0.0.1:8080
- */
 function resolveApiBaseUrl(): string {
   const v = import.meta.env.VITE_API_BASE_URL as string | undefined
   if (v !== undefined && v !== '') {
@@ -23,8 +16,15 @@ function resolveApiBaseUrl(): string {
   return ''
 }
 
-/** 短时间内同一 GET 请求去重，避免页面挂载时重复调用 */
-const inflight = new Map<string, Promise<InternalAxiosRequestConfig>>()
+export type PageResponse<T> = {
+  items: T[]
+  total: number
+  page: number
+  size: number
+}
+
+/** 短时间内同一 GET 请求去重：共享实际 HTTP 调用结果 */
+const inflight = new Map<string, Promise<unknown>>()
 const DEDUP_WINDOW_MS = 800
 
 function dedupKey(config: { method?: string; url?: string; params?: unknown }): string | null {
@@ -32,6 +32,14 @@ function dedupKey(config: { method?: string; url?: string; params?: unknown }): 
   const u = config.url || ''
   const p = config.params ? JSON.stringify(config.params) : ''
   return `${u}|${p}`
+}
+
+function scheduleDedupCleanup(key: string, promise: Promise<unknown>) {
+  promise.finally(() => {
+    setTimeout(() => {
+      if (inflight.get(key) === promise) inflight.delete(key)
+    }, DEDUP_WINDOW_MS)
+  })
 }
 
 export const http = axios.create({
@@ -45,21 +53,23 @@ http.interceptors.request.use((config) => {
     config.headers = config.headers || {}
     config.headers.Authorization = `Bearer ${token}`
   }
-
-  const key = dedupKey(config)
-  if (key) {
-    const existing = inflight.get(key)
-    if (existing) return existing
-    // 构造一个带超时清理的 promise
-    const p = Promise.resolve(config)
-    inflight.set(key, p)
-    setTimeout(() => {
-      if (inflight.get(key) === p) inflight.delete(key)
-    }, DEDUP_WINDOW_MS)
-  }
-
   return config
 })
+
+const _rawGet = http.get.bind(http)
+
+http.get = function <T = unknown>(url: string, config?: Record<string, unknown>): Promise<T> {
+  const key = dedupKey({ method: 'GET', url, params: config?.params })
+  if (key) {
+    const existing = inflight.get(key)
+    if (existing) return existing as Promise<T>
+    const promise = _rawGet(url, config) as unknown as Promise<T>
+    inflight.set(key, promise as unknown as Promise<unknown>)
+    scheduleDedupCleanup(key, promise as unknown as Promise<unknown>)
+    return promise
+  }
+  return _rawGet(url, config) as unknown as Promise<T>
+}
 
 http.interceptors.response.use(
   (resp) => {
@@ -91,4 +101,3 @@ http.interceptors.response.use(
     return Promise.reject(new Error('网络异常'))
   },
 )
-

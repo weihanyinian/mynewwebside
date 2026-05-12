@@ -1,5 +1,7 @@
 package com.mywebside.blog.controller;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.mywebside.blog.common.ApiResponse;
 import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
 import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
@@ -12,7 +14,6 @@ import com.mywebside.blog.music.qq.service.QqMusicProxyService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,11 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 
-/**
- * 音乐代理接口（REST 前缀 {@code /api/public/music}）。
- *
- * <p>后端代理网易云歌单与播放能力，避免前端跨域；歌单按 ID 缓存 5 分钟。</p>
- */
 @RestController
 @RequestMapping("/api/public/music")
 public class MusicController {
@@ -34,16 +30,16 @@ public class MusicController {
   private static final Logger log = LoggerFactory.getLogger(MusicController.class);
 
   private static final int PLAYLIST_TRACK_LIMIT = 1000;
-
-  private static final long CACHE_TTL_MS = TimeUnit.MINUTES.toMillis(5);
+  private static final long CACHE_TTL_MINUTES = 5;
+  private static final int CACHE_MAX_SIZE = 200;
 
   private final NeteaseBinaryifyClient neteaseBinaryifyClient;
   private final NeteaseMusicProxyService neteaseMusicProxyService;
   private final NeteaseProxyProperties neteaseProxyProperties;
   private final QqMusicProxyService qqMusicProxyService;
 
-  private final ConcurrentHashMap<String, CachedPlaylist> playlistCache = new ConcurrentHashMap<>();
-  private final ConcurrentHashMap<String, CachedPlaylist> hotCache = new ConcurrentHashMap<>();
+  private final Cache<String, List<PlaylistTrack>> playlistCache;
+  private final Cache<String, List<PlaylistTrack>> hotCache;
 
   public MusicController(
       NeteaseBinaryifyClient neteaseBinaryifyClient,
@@ -55,16 +51,16 @@ public class MusicController {
     this.neteaseMusicProxyService = neteaseMusicProxyService;
     this.neteaseProxyProperties = neteaseProxyProperties;
     this.qqMusicProxyService = qqMusicProxyService;
+    this.playlistCache = Caffeine.newBuilder()
+        .expireAfterWrite(CACHE_TTL_MINUTES, TimeUnit.MINUTES)
+        .maximumSize(CACHE_MAX_SIZE)
+        .build();
+    this.hotCache = Caffeine.newBuilder()
+        .expireAfterWrite(CACHE_TTL_MINUTES, TimeUnit.MINUTES)
+        .maximumSize(CACHE_MAX_SIZE)
+        .build();
   }
 
-  /**
-   * 获取歌单曲目列表；省略 {@code id} 时使用配置项 {@code netease.proxy.default-playlist-id}。
-   * GET /api/public/music/playlist?id=&shuffle=true
-   */
-  /**
-   * 近期热歌：{@code netease} 为云音乐热歌榜歌单；{@code qq} 为 QQ 巅峰榜（默认 topId 见配置）。
-   * GET /api/public/music/hot?source=netease|qq&limit=80
-   */
   @GetMapping("/hot")
   public ApiResponse<List<PlaylistTrack>> hot(
       @RequestParam String source,
@@ -72,10 +68,9 @@ public class MusicController {
   ) {
     int lim = Math.min(Math.max(limit, 1), 200);
     String key = source + ":" + lim;
-    long now = System.currentTimeMillis();
-    CachedPlaylist cached = hotCache.get(key);
-    if (cached != null && !cached.tracks.isEmpty() && (now - cached.time) < CACHE_TTL_MS) {
-      return ApiResponse.ok(cached.tracks);
+    List<PlaylistTrack> cached = hotCache.getIfPresent(key);
+    if (cached != null && !cached.isEmpty()) {
+      return ApiResponse.ok(cached);
     }
     List<PlaylistTrack> tracks =
         switch (source == null ? "" : source.trim().toLowerCase()) {
@@ -86,7 +81,7 @@ public class MusicController {
     if (tracks.isEmpty()) {
       return ApiResponse.error(503, "热歌列表暂时不可用");
     }
-    hotCache.put(key, new CachedPlaylist(Collections.unmodifiableList(new ArrayList<>(tracks)), now));
+    hotCache.put(key, Collections.unmodifiableList(new ArrayList<>(tracks)));
     return ApiResponse.ok(tracks);
   }
 
@@ -107,9 +102,6 @@ public class MusicController {
     return ApiResponse.ok(result);
   }
 
-  /**
-   * 未携带网易云登录态时获取播放链接（VIP / 版权受限曲目可能无法播放）。
-   */
   @GetMapping("/song/url")
   public ApiResponse<SongUrlDto> publicSongUrl(@RequestParam long id, @RequestParam(required = false) Integer br) {
     int quality = br != null ? Math.max(64000, br) : neteaseProxyProperties.getDefaultBr();
@@ -121,28 +113,32 @@ public class MusicController {
     return ApiResponse.ok(neteaseMusicProxyService.lyric(id));
   }
 
+  private List<PlaylistTrack> tracksFromMetas(List<SongMetaDto> metas) {
+    List<PlaylistTrack> tracks = new ArrayList<>();
+    for (SongMetaDto m : metas) {
+      tracks.add(new PlaylistTrack(m.id(), m.name(), m.artist(), m.cover(), null));
+    }
+    return tracks;
+  }
+
   private List<PlaylistTrack> loadPlaylist(String playlistId) {
-    long now = System.currentTimeMillis();
-    CachedPlaylist cached = playlistCache.get(playlistId);
-    if (cached != null && !cached.tracks.isEmpty() && (now - cached.time) < CACHE_TTL_MS) {
-      return cached.tracks;
+    List<PlaylistTrack> cached = playlistCache.getIfPresent(playlistId);
+    if (cached != null && !cached.isEmpty()) {
+      return cached;
     }
     try {
       var root = neteaseBinaryifyClient.playlistTrackAll(Long.parseLong(playlistId), PLAYLIST_TRACK_LIMIT, null);
       List<SongMetaDto> metas = neteaseMusicProxyService.parsePlaylistSongs(root);
-      List<PlaylistTrack> tracks = new ArrayList<>();
-      for (SongMetaDto m : metas) {
-        tracks.add(new PlaylistTrack(m.id(), m.name(), m.artist(), m.cover(), null));
-      }
+      List<PlaylistTrack> tracks = tracksFromMetas(metas);
       if (!tracks.isEmpty()) {
-        playlistCache.put(playlistId, new CachedPlaylist(Collections.unmodifiableList(tracks), now));
+        playlistCache.put(playlistId, Collections.unmodifiableList(tracks));
         log.info("网易云歌单加载成功: playlistId={} size={}", playlistId, tracks.size());
       }
       return tracks;
     } catch (RestClientException | NumberFormatException e) {
       log.error("加载网易云歌单失败: {}", playlistId, e);
-      if (cached != null && !cached.tracks.isEmpty()) {
-        return cached.tracks;
+      if (cached != null && !cached.isEmpty()) {
+        return cached;
       }
       return Collections.emptyList();
     }
@@ -152,12 +148,7 @@ public class MusicController {
     String pid = neteaseProxyProperties.getHotChartPlaylistId();
     try {
       var root = neteaseBinaryifyClient.playlistTrackAll(Long.parseLong(pid), limit, null);
-      List<SongMetaDto> metas = neteaseMusicProxyService.parsePlaylistSongs(root);
-      List<PlaylistTrack> tracks = new ArrayList<>();
-      for (SongMetaDto m : metas) {
-        tracks.add(new PlaylistTrack(m.id(), m.name(), m.artist(), m.cover(), null));
-      }
-      return tracks;
+      return tracksFromMetas(neteaseMusicProxyService.parsePlaylistSongs(root));
     } catch (RestClientException | NumberFormatException e) {
       log.warn("加载网易云热歌榜失败: {}", pid, e);
       return Collections.emptyList();
@@ -178,10 +169,5 @@ public class MusicController {
     }
   }
 
-  private record CachedPlaylist(List<PlaylistTrack> tracks, long time) {}
-
-  /**
-   * 歌单曲目 DTO；{@code songmid} 非空时表示 QQ 曲库（网易云曲目为 {@code null}）。
-   */
   public record PlaylistTrack(long id, String name, String artist, String cover, String songmid) {}
 }

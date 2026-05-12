@@ -1,6 +1,4 @@
-import type { PageResponse } from './blog'
-import type { ApiResponse } from './http'
-import { http } from './http'
+import { http, type ApiResponse, type PageResponse } from './http'
 
 export type WallMessagePublic = {
   id: number
