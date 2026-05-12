@@ -6,7 +6,7 @@
  * 默认片名见 `src/config/homeBackgroundVideos.ts`（对应 `public/videos/` 下两个 mp4）。
  * 若本地文件缺失（404），自动回退到 MDN CC0 示例片，避免整页纯黑；也可通过 props 覆盖地址。
  */
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { HOME_BG_LIGHT_SRC, HOME_BG_DARK_SRC } from '../../config/homeBackgroundVideos'
 
 /** 仅作本地源加载失败时的兜底，不是你的正式素材 */
@@ -31,6 +31,19 @@ let shadowRoot: ShadowRoot | null = null
 let lightVideoEl: HTMLVideoElement | null = null
 let darkVideoEl: HTMLVideoElement | null = null
 
+function resumeBothVideos() {
+  for (const v of [lightVideoEl, darkVideoEl]) {
+    if (!v) continue
+    if (v.paused) void v.play().catch(() => {})
+  }
+}
+
+function onVisibilityResume() {
+  if (document.visibilityState === 'visible') resumeBothVideos()
+}
+
+let suspendHandlers: Array<{ el: HTMLVideoElement; fn: () => void }> = []
+
 function syncTheme() {
   const el = hostRef.value
   if (!el) return
@@ -44,6 +57,7 @@ function mountShadow() {
   shadowRoot = el.attachShadow({ mode: 'closed' })
 
   const style = document.createElement('style')
+  /* 滤镜加在包裹层而非 video 上：Chrome 等对 video 直接 filter 易导致画面不刷新、像「定格」 */
   style.textContent = `
     :host {
       display: block;
@@ -55,40 +69,56 @@ function mountShadow() {
       z-index: -2;
       pointer-events: none;
     }
-    video {
+    .bg-video-wrap {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      transition: opacity 0.5s ease;
+    }
+    .bg-video-wrap video {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: opacity 0.5s ease, transform 0.6s ease-out, filter 0.55s ease;
-      will-change: transform, opacity;
+      transform: translateZ(0);
     }
-    .light-video {
+    .light-video-wrap {
       opacity: 1;
       filter: brightness(1.06) saturate(1.12);
     }
-    .dark-video {
+    .dark-video-wrap {
       opacity: 0;
       filter: brightness(0.42) contrast(1.12) saturate(1.18);
     }
-    :host([data-theme="dark"]) .light-video { opacity: 0; }
-    :host([data-theme="dark"]) .dark-video {
+    :host([data-theme="dark"]) .light-video-wrap { opacity: 0; }
+    :host([data-theme="dark"]) .dark-video-wrap {
       opacity: 1;
       filter: brightness(0.42) contrast(1.12) saturate(1.18);
     }
   `
 
-  const mkVideo = (className: string, primarySrc: string, fallbackSrc: string) => {
+  const mkVideo = (className: string, wrapClass: string, primarySrc: string, fallbackSrc: string) => {
+    const wrap = document.createElement('div')
+    wrap.className = wrapClass
     const v = document.createElement('video')
     v.className = className
     v.autoplay = true
     v.loop = true
     v.muted = true
     v.playsInline = true
-    v.preload = 'metadata'
+    v.preload = 'auto'
     v.disableRemotePlayback = true
     v.setAttribute('controlsList', 'nodownload noremoteplayback nofullscreen')
+    /** 少数 WebView / 省电策略下 loop 不生效，ended 后手动重头播 */
+    v.addEventListener('ended', () => {
+      v.currentTime = 0
+      void v.play().catch(() => {})
+    })
+    /** 缓冲卡住时尝试恢复（与 suspend / visibility 兜底互补） */
+    v.addEventListener('stalled', () => {
+      window.setTimeout(() => void v.play().catch(() => {}), 200)
+    })
     v.src = primarySrc
     v.addEventListener('error', function onErr() {
       const cur = v.currentSrc || v.src || ''
@@ -98,24 +128,43 @@ function mountShadow() {
       void v.load()
       void v.play().catch(() => {})
     })
-    return v
+    wrap.appendChild(v)
+    return wrap
   }
 
-  const light = mkVideo('light-video', props.lightSrc, FALLBACK_LIGHT)
-  const dark = mkVideo('dark-video', props.darkSrc, FALLBACK_DARK)
-  lightVideoEl = light
-  darkVideoEl = dark
-  shadowRoot.append(style, light, dark)
+  const lightWrap = mkVideo('light-video', 'bg-video-wrap light-video-wrap', props.lightSrc, FALLBACK_LIGHT)
+  const darkWrap = mkVideo('dark-video', 'bg-video-wrap dark-video-wrap', props.darkSrc, FALLBACK_DARK)
+  lightVideoEl = lightWrap.querySelector('video') as HTMLVideoElement | null
+  darkVideoEl = darkWrap.querySelector('video') as HTMLVideoElement | null
+  shadowRoot.append(style, lightWrap, darkWrap)
   syncTheme()
-  for (const v of [light, dark]) {
+  for (const v of [lightVideoEl, darkVideoEl]) {
+    if (!v) continue
     void v.play().catch(() => {
       /* 部分环境需用户手势后才可 play；静音 autoplay 通常可直接播 */
     })
+    const onSuspend = () => {
+      window.setTimeout(() => void v.play().catch(() => {}), 50)
+    }
+    v.addEventListener('suspend', onSuspend)
+    suspendHandlers.push({ el: v, fn: onSuspend })
   }
+
+  document.addEventListener('visibilitychange', onVisibilityResume)
+  window.addEventListener('pageshow', resumeBothVideos)
 }
 
 onMounted(() => {
   mountShadow()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', onVisibilityResume)
+  window.removeEventListener('pageshow', resumeBothVideos)
+  for (const { el, fn } of suspendHandlers) {
+    el.removeEventListener('suspend', fn)
+  }
+  suspendHandlers = []
 })
 
 watch(

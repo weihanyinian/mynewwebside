@@ -1,6 +1,7 @@
 /**
  * 【全站 UI 统一】圆角 16px、玻璃态；主按钮为青蓝→浅紫渐变，次按钮为浅底描边。
- * 引入顺序：在 main.ts 中于 ./style.css 之后加载。
+ * 引入顺序：在 main.ts 中于 ./style.css、./styles/design-tokens.css 之后加载。
+ * 顶栏 pill 的底色/字色见 design-tokens.css 中 --pill-* 变量。
  */
 
 /* ---------- 顶栏统一：顶部 1px 青蓝边线（不写 box-shadow，避免覆盖各页 .glass-nav 原有阴影） ---------- */
@@ -25,16 +26,16 @@
   box-sizing: border-box;
   padding: 8px 16px;
   border-radius: var(--card-radius, 16px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--pill-border);
   appearance: none;
   -webkit-appearance: none;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--pill-surface);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--blog-on-glass, #1a3a52);
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.42);
+  font-weight: 600;
+  color: var(--pill-text);
+  text-shadow: var(--pill-text-shadow);
   cursor: pointer;
   text-decoration: none;
   transition:
@@ -44,26 +45,30 @@
     color 0.25s ease,
     border-color 0.25s ease,
     filter 0.25s ease;
-  box-shadow: 0 6px 16px rgba(98, 167, 234, 0.14);
+  box-shadow: var(--pill-shadow);
 }
 
-:root[data-theme='dark'] .site-pill {
-  color: rgba(240, 251, 255, 0.92);
-  text-shadow: 0 1px 2px rgba(0, 30, 60, 0.4);
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.38);
+/* 顶栏内子控件不再单独 backdrop，避免与 .glass-nav 毛玻璃形成嵌套 backdrop-root 导致整栏几乎不模糊 */
+.glass-nav .site-pill {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.glass-nav .nav-social-link {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .site-pill:hover:not(:disabled) {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--pill-hover-surface);
   border-color: color-mix(in srgb, var(--primary-color) 56%, rgba(255, 255, 255, 0.42));
   box-shadow: 0 8px 22px rgba(98, 167, 234, 0.22);
 }
 
-:root[data-theme='dark'] .site-pill:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+:root[data-theme='dark'] .site-pill:hover:not(:disabled),
+html.dark-mode .site-pill:hover:not(:disabled) {
+  color: var(--pill-hover-text, #f1f5f9);
 }
 
 .site-pill:disabled {
@@ -76,8 +81,8 @@
 .site-pill--active {
   background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 84%, #fff 16%) 0%, color-mix(in srgb, var(--secondary-color) 84%, #fff 16%) 100%) !important;
   border-color: rgba(255, 255, 255, 0.62) !important;
-  color: #fff !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.22) !important;
+  color: var(--pill-active-label) !important;
+  text-shadow: var(--pill-active-shadow) !important;
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--primary-color) 22%, rgba(255, 255, 255, 0.5)),
     0 8px 24px color-mix(in srgb, var(--primary-color) 28%, transparent),
@@ -148,16 +153,17 @@
 
 /* ---------- 次按钮：浅底 + 主题色描边 ---------- */
 .site-pill--secondary {
-  background: rgba(255, 255, 255, 0.55) !important;
+  background: var(--pill-secondary-surface) !important;
   border: 1px solid color-mix(in srgb, var(--primary-color) 42%, rgba(255, 255, 255, 0.7)) !important;
-  color: var(--blog-on-glass, var(--text-color)) !important;
+  color: var(--pill-secondary-text) !important;
   text-shadow: none !important;
 }
 
-:root[data-theme='dark'] .site-pill--secondary {
-  background: rgba(255, 255, 255, 0.08) !important;
+:root[data-theme='dark'] .site-pill--secondary,
+html.dark-mode .site-pill--secondary {
+  background: var(--pill-secondary-surface) !important;
   border-color: rgba(196, 181, 253, 0.45) !important;
-  color: rgba(248, 250, 252, 0.95) !important;
+  color: var(--pill-secondary-text-dark) !important;
 }
 
 .site-pill--secondary:hover:not(:disabled) {

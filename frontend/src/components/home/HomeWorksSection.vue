@@ -82,15 +82,15 @@ const emit = defineEmits<{
   margin: 0 auto 1.15rem;
   padding: 0.48rem 1.05rem;
   border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--primary-color, #4a90e2) 34%, rgba(255, 255, 255, 0.7));
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.16));
+  border: 1px solid var(--works-title-border);
+  background: var(--works-title-bg);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  color: color-mix(in srgb, var(--primary-color, #4a90e2) 62%, #1e293b 38%);
+  color: var(--works-title-color);
   -webkit-text-fill-color: currentColor;
   background-clip: border-box;
   -webkit-background-clip: border-box;
-  text-shadow: 0 1px 10px rgba(74, 144, 226, 0.16);
+  text-shadow: var(--works-title-shadow);
   box-shadow: 0 8px 26px rgba(74, 144, 226, 0.1);
 }
 .works-entry {
@@ -101,13 +101,6 @@ const emit = defineEmits<{
   padding: 0.45rem 0.95rem;
   text-decoration: none;
 }
-:root[data-theme='dark'] .section-title-pill {
-  border-color: rgba(167, 139, 250, 0.42);
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.42));
-  color: #ddd6fe;
-  text-shadow: 0 1px 14px rgba(167, 139, 250, 0.22);
-}
-
 .section {
   max-width: 1080px;
   margin: 0 auto;
@@ -134,9 +127,10 @@ const emit = defineEmits<{
   margin: -6px 0 20px;
 }
 .works-filter-chip {
-  border: 1px solid color-mix(in srgb, var(--primary-color, #5b9bd8) 30%, rgba(255, 255, 255, 0.65));
-  background: rgba(255, 255, 255, 0.28);
-  color: var(--text-color, #0f172a);
+  border: 1px solid var(--works-filter-border);
+  background: var(--works-filter-bg);
+  color: var(--works-filter-text);
+  font-weight: var(--works-filter-font-weight, 600);
   border-radius: 999px;
   font-size: 0.8rem;
   padding: 0.35rem 0.78rem;
@@ -145,7 +139,7 @@ const emit = defineEmits<{
 }
 .works-filter-chip:hover {
   transform: translateY(-1px);
-  border-color: var(--primary-color, #5b9bd8);
+  border-color: var(--works-filter-border-hover);
 }
 .works-filter-chip--active {
   color: #fff;
@@ -269,16 +263,6 @@ const emit = defineEmits<{
   font-weight: 700;
   font-size: 0.92rem;
   color: var(--primary-color, #4a90e2);
-}
-
-:root[data-theme='dark'] .works-filter-chip {
-  border-color: rgba(196, 181, 253, 0.35);
-  background: rgba(30, 41, 59, 0.52);
-  color: rgba(241, 245, 249, 0.92);
-}
-
-:root[data-theme='dark'] .works-filter-chip:hover {
-  border-color: rgba(167, 139, 250, 0.75);
 }
 
 :root[data-theme='dark'] .work-tag {

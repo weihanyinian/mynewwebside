@@ -8,6 +8,7 @@
  * 主题：日间/夜间由 Pinia stores/theme.ts 写入
  * - document.documentElement.dataset.theme = 'light' | 'dark'
  * - html.dark-mode / body.dark-mode 与 isDarkMode 同步，可与 [data-theme] 并列使用
+ * - 伴聊 / Hero / 一言 / 作品筛选 / 顶栏 pill 等模块色值见 styles/design-tokens.css（集中改一处即可）
  */
 
 :root {

@@ -259,8 +259,8 @@ const mobileTabs = computed(() => [
   top: 0;
   z-index: 100;
   background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px) saturate(1.12);
+  -webkit-backdrop-filter: blur(20px) saturate(1.12);
   border-bottom: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }

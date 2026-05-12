@@ -55,20 +55,12 @@ const emit = defineEmits<{
   position: relative;
   padding: clamp(28px, 4.2vw, 46px) clamp(22px, 4vw, 56px);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.26);
-  border: 1px solid rgba(255, 255, 255, 0.58);
-  backdrop-filter: blur(16px) saturate(1.1);
-  -webkit-backdrop-filter: blur(16px) saturate(1.1);
-  box-shadow:
-    0 16px 38px rgba(15, 23, 42, 0.1),
-    0 0 22px color-mix(in srgb, var(--primary-color) 14%, transparent);
-}
-:global(.dark-theme) .hero-glass-card {
-  background: rgba(15, 23, 42, 0.52);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.42),
-    0 0 22px color-mix(in srgb, #a78bfa 18%, transparent);
+  background: var(--hero-glass-bg);
+  border: 1px solid var(--hero-glass-border);
+  /* 使用固定 px，避免个别浏览器对 filter() 内 var() 解析异常导致毛玻璃消失 */
+  backdrop-filter: blur(22px) saturate(1.12);
+  -webkit-backdrop-filter: blur(22px) saturate(1.12);
+  box-shadow: var(--hero-glass-shadow);
 }
 .hero-title {
   position: relative;
@@ -77,8 +69,8 @@ const emit = defineEmits<{
   line-height: 1.2;
   margin-bottom: 1rem;
   font-weight: 700;
-  color: #0f172a;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+  color: var(--hero-title-color);
+  text-shadow: var(--hero-title-shadow);
 }
 .hero-title::before,
 .hero-title::after {
@@ -98,47 +90,33 @@ const emit = defineEmits<{
   from { opacity: 0; transform: translateY(28px); }
   to { opacity: 1; transform: translateY(0); }
 }
-:global(.dark-theme) .hero-title {
-  color: #f8fafc;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
 .hero-name-float {
   display: inline-block;
-  color: #1d4ed8;
-  font-weight: 800;
+  color: var(--hero-name-color);
+  font-weight: 700;
   -webkit-text-fill-color: currentColor;
   background: none;
   background-clip: unset;
   -webkit-background-clip: unset;
-  text-shadow: none;
+  text-shadow: var(--hero-name-shadow);
   animation: hero-name-float 4.8s ease-in-out infinite;
   animation-delay: 0.4s;
   -webkit-text-stroke: 0;
   filter: none;
   transition: color 0.3s ease;
 }
-:global(.dark-theme) .hero-name-float {
-  color: #d8b4fe;
-  -webkit-text-fill-color: currentColor;
-  background: none;
-  -webkit-text-stroke: 0;
-}
 .hero-title:hover .hero-name-float {
   animation: hero-name-float 4.8s ease-in-out infinite;
-  color: #1e40af;
-}
-:global(.dark-theme) .hero-title:hover .hero-name-float {
-  color: #e9d5ff;
+  color: var(--hero-name-hover-color);
 }
 .hero-subtitle {
   margin: 0 auto 1.2rem;
-  font-size: 0.95rem;
-  letter-spacing: 0.03em;
-  line-height: 1.6;
-  color: rgba(15, 23, 42, 0.78);
-}
-:global(.dark-theme) .hero-subtitle {
-  color: rgba(226, 232, 240, 0.88);
+  font-size: 0.98rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.65;
+  color: var(--hero-subtitle-color);
+  text-shadow: none;
 }
 .hero-actions {
   display: flex;
@@ -152,9 +130,10 @@ const emit = defineEmits<{
   padding: 0.34rem 0.7rem;
   border-radius: 999px;
   font-size: 0.78rem;
-  color: color-mix(in srgb, var(--text-color, #0f172a) 78%, #fff 22%);
-  border: 1px solid color-mix(in srgb, var(--primary-color, #5b9bd8) 28%, rgba(255, 255, 255, 0.55));
-  background: color-mix(in srgb, var(--primary-color, #5b9bd8) 10%, rgba(255, 255, 255, 0.42));
+  font-weight: 500;
+  color: var(--hero-stats-color);
+  border: 1px solid var(--hero-stats-border);
+  background: var(--hero-stats-bg);
 }
 .hero-actions--cta .site-pill {
   min-height: 46px;

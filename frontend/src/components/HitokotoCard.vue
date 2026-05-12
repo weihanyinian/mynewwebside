@@ -151,29 +151,18 @@ function onNext() {
 }
 
 .glass-ui {
-  background: rgba(255, 255, 255, 0.52);
-  backdrop-filter: blur(18px) saturate(1.15);
-  -webkit-backdrop-filter: blur(18px) saturate(1.15);
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  box-shadow: 0 10px 36px rgba(15, 23, 42, 0.12);
-  color: #111827;
+  background: var(--hitokoto-glass-bg);
+  backdrop-filter: blur(20px) saturate(1.12);
+  -webkit-backdrop-filter: blur(20px) saturate(1.12);
+  border: 1px solid var(--hitokoto-glass-border);
+  box-shadow: var(--hitokoto-glass-shadow);
+  color: var(--hitokoto-glass-color);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-:global(html[data-theme='dark']) .hitokoto-card.glass-ui {
-  background: rgba(15, 23, 42, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-  color: #f1f5f9;
 }
 
 .hitokoto-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 44px rgba(15, 23, 42, 0.14);
-}
-
-:global(html[data-theme='dark']) .hitokoto-card:hover {
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--hitokoto-hover-shadow);
 }
 
 .quote-content {
@@ -193,17 +182,13 @@ function onNext() {
 }
 
 .text {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-weight: 500;
   line-height: 1.65;
   letter-spacing: 0.02em;
-  color: #111827;
+  color: var(--hitokoto-text-color);
   text-shadow: none;
   margin: 0;
-}
-
-:global(html[data-theme='dark']) .hitokoto-card .text {
-  color: #f1f5f9;
 }
 
 .caret {
@@ -211,7 +196,7 @@ function onNext() {
   width: 2px;
   height: 1.1em;
   margin-left: 2px;
-  background: #2563eb;
+  background: var(--hitokoto-caret);
   border-radius: 1px;
   flex-shrink: 0;
   align-self: flex-end;
@@ -220,21 +205,13 @@ function onNext() {
   animation: caret-blink var(--tw-cursor-blink, 500ms) steps(1, end) infinite;
 }
 
-:global(html[data-theme='dark']) .hitokoto-card .caret {
-  background: #93c5fd;
-}
-
 .quote-mark {
   position: absolute;
   font-size: 2.75rem;
   font-family: system-ui, sans-serif;
   font-weight: 300;
-  color: rgba(15, 23, 42, 0.12);
+  color: var(--hitokoto-quote);
   line-height: 1;
-}
-
-:global(html[data-theme='dark']) .hitokoto-card .quote-mark {
-  color: rgba(255, 255, 255, 0.12);
 }
 
 .typed {
@@ -264,31 +241,20 @@ function onNext() {
 }
 
 .ctrl-btn {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  color: #0f172a;
+  background: var(--hitokoto-ctrl-bg);
+  border: 1px solid var(--hitokoto-ctrl-border);
+  color: var(--hitokoto-ctrl-text);
   padding: 8px 16px;
   border-radius: 999px;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: var(--hitokoto-ctrl-font-weight, 600);
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
 
-:global(html[data-theme='dark']) .hitokoto-card .ctrl-btn {
-  background: rgba(30, 41, 59, 0.75);
-  border-color: rgba(255, 255, 255, 0.16);
-  color: #e2e8f0;
-}
-
 .ctrl-btn:hover {
-  background: rgba(255, 255, 255, 0.98);
-  border-color: rgba(37, 99, 235, 0.35);
-}
-
-:global(html[data-theme='dark']) .hitokoto-card .ctrl-btn:hover {
-  background: rgba(51, 65, 85, 0.9);
-  border-color: rgba(196, 181, 253, 0.35);
+  background: var(--hitokoto-ctrl-hover-bg);
+  border-color: var(--hitokoto-ctrl-hover-border);
 }
 
 .ctrl-btn:active {
