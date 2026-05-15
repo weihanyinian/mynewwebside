@@ -176,3 +176,15 @@ export async function fetchDailyQuoteFromServer(): Promise<string | null> {
     return null
   }
 }
+
+// ---- article likes ----
+
+export async function toggleArticleLike(articleId: number) {
+  const resp = await http.post<ApiResponse<{ count: number; liked: boolean }>>(`/api/article/${articleId}/like`)
+  return resp.data.data
+}
+
+export async function getArticleLikeStatus(articleId: number) {
+  const resp = await http.get<ApiResponse<{ count: number; liked: boolean }>>(`/api/article/${articleId}/like-status`)
+  return resp.data.data
+}

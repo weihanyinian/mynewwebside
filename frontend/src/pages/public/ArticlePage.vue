@@ -6,6 +6,8 @@ import { useThemeStore } from '../../stores/theme'
 import { getPublicArticle, getPublicArticles, type ArticleDetail, type ArticleListItem } from '../../api/blog'
 import MarkdownView from '../../components/MarkdownView.vue'
 import SiteBackToTop from '../../components/site/SiteBackToTop.vue'
+import { useSeoMeta } from '../../composables/useSeoMeta'
+import { toggleArticleLike, getArticleLikeStatus } from '../../api/blog'
 
 const route = useRoute()
 const router = useRouter()
@@ -27,6 +29,17 @@ const tocOpen = ref(false)
 const showBackTop = ref(false)
 const readProgress = ref(0)
 const relatedPosts = ref<ArticleListItem[]>([])
+const likeCount = ref(0)
+const liked = ref(false)
+
+async function toggleLike() {
+  if (!article.value) return
+  try {
+    const r = await toggleArticleLike(article.value.id)
+    likeCount.value = r.count
+    liked.value = r.liked
+  } catch { /* ignore — we show login prompt via ElMessage */ }
+}
 const isDarkMode = computed(() => themeStore.isDarkMode)
 
 const navItems = computed(() => [
@@ -110,6 +123,16 @@ async function loadArticle() {
   try {
     const id = Number(route.params.id)
     article.value = await getPublicArticle(id)
+    if (article.value) {
+      useSeoMeta({
+        title: `${article.value.title} — 维寒一念的小站`,
+        description: article.value.summary || article.value.title,
+        url: `https://mywebside.vercel.app/article/${article.value.id}`,
+        image: article.value.coverUrl || 'https://mywebside.vercel.app/avatar.png',
+        type: 'article',
+      })
+    }
+    getArticleLikeStatus(id).then(r => { likeCount.value = r.count; liked.value = r.liked }).catch(() => {})
     if (article.value?.tags?.length) {
       const tagId = article.value.tags[0].id
       const res = await getPublicArticles({ tagId, size: 3 })
@@ -244,6 +267,11 @@ watch(
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 13m0-3v6m0-6H5a2 2 0 00-2 2v2a2 2 0 002 2h10"></path></svg>
                     {{ article.views }} 次阅读
                   </span>
+                  <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                  <button class="like-btn inline-flex items-center gap-1" :class="{ 'liked': liked }" @click="toggleLike">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    <span class="text-sm">{{ likeCount || '' }}</span>
+                  </button>
                 </div>
 
                 <div v-if="article.tags?.length" class="mt-6 flex flex-wrap gap-2">
@@ -383,6 +411,13 @@ watch(
 .article-page--light .article-meta {
   color: #64748b;
 }
+
+.like-btn {
+  background: none; border: none; cursor: pointer; color: #94a3b8; transition: color 0.2s; padding: 0;
+}
+.like-btn:hover { color: #f472b6; }
+.like-btn.liked { color: #f472b6; }
+.like-btn.liked svg { fill: #f472b6; }
 
 /* --- Article sidebar: responsive bg --- */
 .article-sidebar {

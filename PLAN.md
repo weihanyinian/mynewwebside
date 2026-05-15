@@ -129,10 +129,10 @@ CREATE TABLE stock_orders (
 
 ## 三、Phase 3 — 博客发现层
 
-- [ ] RSS + Sitemap
-- [ ] SEO Meta (Open Graph / Twitter Card)
-- [ ] Microsoft Clarity 接入
-- [ ] 文章点赞/收藏
+- [x] RSS + Sitemap
+- [x] SEO Meta (Open Graph / Twitter Card)
+- [x] Microsoft Clarity 接入
+- [x] 文章点赞/收藏
 
 ---
 

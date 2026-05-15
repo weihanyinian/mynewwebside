@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -82,6 +82,18 @@ const mobileTabs = computed(() => [
   { key: 'msg', label: t('nav.message'), active: route.path === '/message', go: () => router.push('/message') },
   { key: 'me', label: isLoggedIn.value ? t('nav.logout') : t('nav.login'), active: route.path === '/login', go: () => (isLoggedIn.value ? logout() : router.push('/login')) },
 ])
+
+onMounted(() => {
+  const id = import.meta.env.VITE_CLARITY_ID as string | undefined
+  if (id) {
+    const w = window as unknown as Record<string, unknown>
+    const c = (w.clarity = w.clarity || function () { (c as { q: unknown[] }).q.push(arguments) }) as { q: unknown[] }
+    c.q = c.q || []
+    const s = document.createElement('script')
+    s.async = true; s.src = 'https://www.clarity.ms/tag/' + id
+    document.head.appendChild(s)
+  }
+})
 
 </script>
 
