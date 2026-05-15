@@ -28,6 +28,9 @@ public class Comment {
   @Column(nullable = false, length = 1000)
   private String content;
 
+  @Column(name = "parent_id")
+  private Long parentId;
+
   @Column(nullable = false)
   private Instant createTime;
 
@@ -70,4 +73,6 @@ public class Comment {
   public void setCreateTime(Instant createTime) {
     this.createTime = createTime;
   }
+  public Long getParentId() { return parentId; }
+  public void setParentId(Long parentId) { this.parentId = parentId; }
 }

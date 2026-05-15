@@ -29,9 +29,19 @@ public class CommentService {
     }
 
     public List<CommentDto> getCommentsByArticle(Long articleId) {
-        return commentRepository.findByArticleIdOrderByCreateTimeDesc(articleId).stream()
-                .map(c -> new CommentDto(c.getId(), c.getAuthor(), c.getContent(), c.getCreateTime()))
-                .collect(Collectors.toList());
+        List<Comment> all = commentRepository.findByArticleIdOrderByCreateTimeDesc(articleId);
+        List<Comment> topLevel = all.stream().filter(c -> c.getParentId() == null).toList();
+        return topLevel.stream()
+            .map(c -> toNestedDto(c, all))
+            .collect(Collectors.toList());
+    }
+
+    private CommentDto toNestedDto(Comment c, List<Comment> all) {
+        List<CommentDto> replies = all.stream()
+            .filter(r -> c.getId().equals(r.getParentId()))
+            .map(r -> toNestedDto(r, all))
+            .collect(Collectors.toList());
+        return new CommentDto(c.getId(), c.getAuthor(), c.getContent(), c.getCreateTime(), c.getParentId(), replies);
     }
 
     @Transactional(readOnly = true)
@@ -66,11 +76,12 @@ public class CommentService {
         comment.setArticle(article);
         comment.setAuthor((req.author() == null || req.author().isBlank()) ? "匿名用户" : req.author().trim());
         comment.setContent(req.content());
+        comment.setParentId(req.parentId());
         comment.setCreateTime(Instant.now());
-        
+
         comment = commentRepository.save(comment);
-        
-        return new CommentDto(comment.getId(), comment.getAuthor(), comment.getContent(), comment.getCreateTime());
+
+        return CommentDto.flat(comment.getId(), comment.getAuthor(), comment.getContent(), comment.getCreateTime(), comment.getParentId());
     }
 
     @Transactional
@@ -86,7 +97,7 @@ public class CommentService {
         Comment c = commentRepository.findById(id).orElseThrow(() -> new BusinessException(404, "评论不存在"));
         c.setAuthor(req.author().trim());
         c.setContent(req.content().trim());
-        return new CommentDto(c.getId(), c.getAuthor(), c.getContent(), c.getCreateTime());
+        return CommentDto.flat(c.getId(), c.getAuthor(), c.getContent(), c.getCreateTime(), c.getParentId());
     }
 
     private static String blankToNull(String s) {

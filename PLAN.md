@@ -138,9 +138,9 @@ CREATE TABLE stock_orders (
 
 ## 四、Phase 4 — 互动增强
 
-- [ ] 全局搜索 (Ctrl+K)
-- [ ] 评论嵌套回复
-- [ ] Newsletter (Buttondown)
+- [x] 全局搜索 (Ctrl+K)
+- [x] 评论嵌套回复
+- [x] Newsletter (Buttondown)
 - [ ] E2E 测试
 
 ---

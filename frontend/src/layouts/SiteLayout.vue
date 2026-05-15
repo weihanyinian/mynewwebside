@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -8,6 +8,9 @@ import { goToSiteHome } from '../utils/siteHome'
 import GlassBreadcrumb from '../components/GlassBreadcrumb.vue'
 import SiteGlassFooter from '../components/site/SiteGlassFooter.vue'
 import SiteBackToTop from '../components/site/SiteBackToTop.vue'
+import GlobalSearch from '../components/GlobalSearch.vue'
+import SiteTopNav from '../components/site/SiteTopNav.vue'
+import NewsletterSignup from '../components/NewsletterSignup.vue'
 import { useThemeStore } from '../stores/theme'
 
 const router = useRouter()
@@ -21,11 +24,6 @@ const { isDarkMode } = storeToRefs(themeStore)
 const userStore = useUserStore()
 const isLoggedIn = computed(() => userStore.isLoggedIn)
 const isAdminUser = computed(() => userStore.isAdmin)
-
-function logout() {
-  userStore.logout()
-  router.push('/login')
-}
 
 /** 博客/文章等页需要更宽主栏，避免卡片栅格被 1080px 挤乱 */
 const isWideMain = computed(() => {
@@ -53,26 +51,13 @@ const liftAboveMascot = computed(() => {
   )
 })
 
-function goHome(hash: string) {
-  router.push({ path: '/', hash: hash })
-}
-
-/** Portfolio 锚点区高亮：仅当当前在首页且 hash 一致 */
-function isSectionActive(hash: string) {
-  return route.path === '/' && route.hash === hash
+function logout() {
+  userStore.logout()
+  router.push('/login')
 }
 
 function isRoutePrefix(path: string) {
   return route.path === path || route.path.startsWith(`${path}/`)
-}
-
-/** 顶栏 Logo：全局回主页入口（清除 hash，子页状态随卸载而结束） */
-function onSiteLogoClick() {
-  goToSiteHome(router)
-}
-
-function toggleLocale() {
-  locale.value = locale.value === 'zh' ? 'en' : 'zh'
 }
 
 const mobileTabs = computed(() => [
@@ -83,7 +68,17 @@ const mobileTabs = computed(() => [
   { key: 'me', label: isLoggedIn.value ? t('nav.logout') : t('nav.login'), active: route.path === '/login', go: () => (isLoggedIn.value ? logout() : router.push('/login')) },
 ])
 
+const searchRef = ref<InstanceType<typeof import('../components/GlobalSearch.vue').default> | null>(null)
+
+function onKeydown(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault()
+    searchRef.value?.open()
+  }
+}
+
 onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
   const id = import.meta.env.VITE_CLARITY_ID as string | undefined
   if (id) {
     const w = window as unknown as Record<string, unknown>
@@ -95,141 +90,16 @@ onMounted(() => {
   }
 })
 
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+})
+
 </script>
 
 <template>
+  <GlobalSearch ref="searchRef" />
   <div class="site-root" :class="{ 'site-root--above-mascot': liftAboveMascot }">
-    <nav class="glass-nav site-nav-unified">
-      <div class="nav-inner">
-        <div class="nav-brand-row">
-          <div
-            class="logo brand-logo"
-            role="link"
-            tabindex="0"
-            :title="locale === 'zh' ? '返回主页' : 'Home'"
-            @click="onSiteLogoClick"
-            @keydown.enter.prevent="onSiteLogoClick"
-          >
-            <span class="brand-logo__text">{{ t('nav.logo') }}</span>
-          </div>
-          <div class="nav-social" role="navigation" :aria-label="t('sidebar.social')">
-            <a
-              class="nav-social-link"
-              href="https://github.com/weihanyinian"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <svg class="nav-social-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path
-                  fill="currentColor"
-                  d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.207 11.385.6.113.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.087.745.084.729.084.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.98-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.565 21.796 24 17.302 24 12c0-6.63-5.373-12-12-12Z"
-                />
-              </svg>
-              GitHub
-            </a>
-            <a class="nav-social-link" href="mailto:1012308753@qq.com">
-              <svg class="nav-social-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path
-                  fill="currentColor"
-                  d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Zm0 4-8 4.99L4 8V6l8 5 8-5v2Z"
-                />
-              </svg>
-              Email
-            </a>
-          </div>
-        </div>
-        <div id="site-layout-nav-links" class="links site-nav-links">
-          <div class="site-nav-links__core">
-            <a
-              href="#"
-              class="site-pill site-pill--nav site-top-anchor"
-              :class="{ 'site-pill--active': isSectionActive('#about') }"
-              @click.prevent="goHome('#about')"
-            >{{ t('nav.about') }}</a>
-            <a
-              href="#"
-              class="site-pill site-pill--nav site-top-anchor"
-              :class="{ 'site-pill--active': isSectionActive('#works') }"
-              @click.prevent="goHome('#works')"
-            >{{ t('nav.works') }}</a>
-            <a
-              href="#"
-              class="site-pill site-pill--nav site-top-anchor"
-              :class="{ 'site-pill--active': isSectionActive('#contact') }"
-              @click.prevent="goHome('#contact')"
-            >{{ t('nav.contact') }}</a>
-            <a
-              href="#"
-              class="site-pill site-pill--nav"
-              :class="{ 'site-pill--active': route.path === '/message' }"
-              @click.prevent="router.push('/message')"
-            >{{ t('nav.message') }}</a>
-            <a
-              href="#"
-              class="site-pill site-pill--nav site-pill--keep-mobile"
-              :class="{ 'site-pill--active': isRoutePrefix('/tools') }"
-              @click.prevent="router.push('/tools')"
-            >{{ t('nav.tools') }}</a>
-            <a
-              href="#"
-              class="site-pill site-pill--nav site-pill--keep-mobile"
-              :class="{ 'site-pill--active': isRoutePrefix('/blog') || isRoutePrefix('/article') }"
-              @click.prevent="router.push('/blog')"
-            >{{ t('nav.blog') }}</a>
-            <a
-              href="#"
-              class="site-pill site-pill--nav site-pill--keep-mobile"
-              :class="{ 'site-pill--active': isRoutePrefix('/albums') }"
-              @click.prevent="router.push('/albums')"
-            >{{ t('breadcrumb.albums') }}</a>
-            <a
-              href="#"
-              class="site-pill site-pill--nav site-pill--keep-mobile"
-              :class="{ 'site-pill--active': route.path === '/music' }"
-              @click.prevent="router.push('/music')"
-            >{{ t('nav.music') }}</a>
-          </div>
-          <div class="site-nav-links__actions">
-            <a href="#" class="site-pill site-pill--nav site-pill--ghost lang-toggle" :title="t('home.langToggle')" @click.prevent="toggleLocale">
-              {{ locale === 'zh' ? 'EN' : '中' }}
-            </a>
-            <a
-              href="#"
-              class="nav-social-link nav-theme-icon"
-              :title="t('home.themeToggle')"
-              @click.prevent="themeStore.toggleTheme"
-            >{{ !isDarkMode ? '夜' : '昼' }}</a>
-            <a
-              v-if="isAdminUser"
-              href="#"
-              class="site-pill site-pill--nav site-nav-auth"
-              :class="{ 'site-pill--active': route.path.startsWith('/admin') }"
-              @click.prevent="router.push('/admin')"
-            >{{ t('nav.admin') }}</a>
-            <a
-              v-if="!isLoggedIn"
-              href="#"
-              class="site-pill site-pill--nav site-nav-auth"
-              :class="{ 'site-pill--active': route.path === '/login' }"
-              @click.prevent="router.push('/login')"
-            >{{ t('nav.login') }}</a>
-            <a
-              v-if="!isLoggedIn"
-              href="#"
-              class="site-pill site-pill--nav site-nav-auth"
-              :class="{ 'site-pill--active': route.path === '/register' }"
-              @click.prevent="router.push('/register')"
-            >{{ t('nav.register') }}</a>
-            <a
-              v-if="isLoggedIn"
-              href="#"
-              class="site-pill site-pill--nav site-nav-auth"
-              @click.prevent="logout"
-            >{{ t('nav.logout') }}</a>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <SiteTopNav />
 
     <main class="site-main" :class="{ 'site-main--wide': isWideMain }">
       <GlassBreadcrumb />
@@ -249,6 +119,7 @@ onMounted(() => {
       </button>
     </nav>
 
+    <div class="newsletter-wrap"><NewsletterSignup /></div>
     <SiteGlassFooter />
     <SiteBackToTop />
   </div>
