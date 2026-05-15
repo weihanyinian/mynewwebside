@@ -4,13 +4,11 @@
  */
 import { storeToRefs } from 'pinia'
 import { useThemeStore } from '../../stores/theme'
-import MoyuBackToHubButton from './MoyuBackToHubButton.vue'
+import MoyuTopBar from './MoyuTopBar.vue'
 
 defineProps<{
   title: string
-  /** 右侧展示的最高分/统计文案 */
   highText?: string
-  /** iframe 或子内容加载中 */
   loading?: boolean
 }>()
 
@@ -21,13 +19,7 @@ const { isDarkMode } = storeToRefs(themeStore)
 <template>
   <div class="moyu-game-page" :class="{ 'moyu-game-page--dark': isDarkMode }">
     <div class="moyu-game-shell glass-surface">
-      <header class="moyu-game-shell__bar">
-        <div class="moyu-game-shell__row1">
-          <MoyuBackToHubButton class="moyu-game-shell__back" compact />
-          <h1 class="moyu-game-shell__title">{{ title }}</h1>
-        </div>
-        <div v-if="highText" class="moyu-game-shell__hi">{{ highText }}</div>
-      </header>
+      <MoyuTopBar :title="title" :high-text="highText" />
 
       <div v-if="loading" class="moyu-game-shell__loading" aria-busy="true">
         <span class="moyu-game-shell__loading-dot" />
@@ -68,44 +60,6 @@ const { isDarkMode } = storeToRefs(themeStore)
 .moyu-game-page--dark .moyu-game-shell {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.35);
-}
-
-.moyu-game-shell__bar {
-  margin-bottom: 12px;
-}
-
-.moyu-game-shell__row1 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.moyu-game-shell__back {
-  flex-shrink: 0;
-  touch-action: manipulation;
-}
-
-.moyu-game-shell__title {
-  flex: 1;
-  margin: 0;
-  font-size: clamp(1.05rem, 3vw, 1.25rem);
-  font-weight: 800;
-  color: var(--text-color);
-  min-width: 0;
-  text-align: right;
-  line-height: 1.2;
-}
-
-.moyu-game-shell__hi {
-  margin-top: 10px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-color);
-  opacity: 0.9;
-  line-height: 1.4;
-  word-break: break-word;
-  text-align: center;
 }
 
 .moyu-game-shell__loading {

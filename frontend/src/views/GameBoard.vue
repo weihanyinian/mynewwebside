@@ -1,7 +1,7 @@
 <script setup>
 import { computed, reactive, ref } from "vue"
 import { ElMessage, ElMessageBox } from "element-plus"
-import BackToHomeButton from "../components/BackToHomeButton.vue"
+import MoyuBackToHubButton from "../components/moyu/MoyuBackToHubButton.vue"
 import ControlPanel from "../components/ControlPanel.vue"
 import PlayArea from "../components/PlayArea.vue"
 import PlayerHand from "../components/PlayerHand.vue"
@@ -320,7 +320,7 @@ startNewGame()
   <div class="min-h-screen bg-[radial-gradient(circle_at_top,#0f5132,#0b3d28_38%,#07251a)] p-4 text-white">
     <div class="mx-auto max-w-[1500px]">
       <div class="mb-3 flex items-center justify-between">
-        <BackToHomeButton />
+        <MoyuBackToHubButton />
         <h1 class="text-xl font-bold tracking-wide">摸鱼小游戏 · 斗地主</h1>
       </div>
 

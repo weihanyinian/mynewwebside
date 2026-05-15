@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted } from 'vue'
-import MoyuBackToHubButton from '../../components/moyu/MoyuBackToHubButton.vue'
+import MoyuGameShell from '../../components/moyu/MoyuGameShell.vue'
 
 // ─── 牌组配置 ────────────────────────────────────────────────────────────────
 const EMOJIS_ALL = ['🌸','🎸','🦊','🐉','🍭','🎯','🌊','🦋','🍓','🎃','🌈','⭐','🎹','🎨','🚀','🦄','🍀','🎵']
@@ -81,22 +81,16 @@ function flip(id: number) {
 
 const formatTime = (s: number) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
 const cols = computed(() => diffMap[difficulty.value].cols)
+const highText = computed(() => `最佳 ${bestScore[difficulty.value] ? formatTime(bestScore[difficulty.value]!) : '—'} · 已配 ${matchedCnt.value}/${diffMap[difficulty.value].pairs}`)
 
 onUnmounted(() => { if (timer) clearInterval(timer) })
 </script>
 
 <template>
-  <div class="memory-page">
+  <MoyuGameShell title="记忆翻牌" :high-text="highText">
     <!-- 动态光球 -->
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
-
-    <div class="back-btn"><MoyuBackToHubButton /></div>
-    <div class="header">
-      <div class="header-icon">🃏</div>
-      <h1 class="title">记忆翻牌</h1>
-      <p class="subtitle">找到所有匹配对 · 记忆力挑战</p>
-    </div>
 
     <!-- 空闲 -->
     <div v-if="gameState === 'idle'" class="idle-card glass-surface">
@@ -196,20 +190,10 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
         </button>
       </div>
     </div>
-  </div>
+  </MoyuGameShell>
 </template>
 
 <style scoped>
-.memory-page {
-  box-sizing: border-box;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: max(16px, env(safe-area-inset-top)) 14px max(32px, calc(env(safe-area-inset-bottom) + 12px));
-  animation: fadeIn 0.4s ease-out;
-  position: relative;
-  overflow: hidden;
-}
-
 /* 光球背景 */
 .orb {
   position: fixed;
@@ -234,30 +218,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   animation-delay: -9s;
 }
 
-.back-btn { margin-bottom: 12px; position: relative; z-index: 1; }
-.header {
-  text-align: center;
-  margin-bottom: 24px;
-  position: relative;
-  z-index: 1;
-}
-.header-icon {
-  font-size: 3rem;
-  margin-bottom: 8px;
-  display: inline-block;
-  animation: iconFloat 3s ease-in-out infinite;
-}
-.title {
-  font-size: clamp(1.6rem, 5vw, 2.2rem);
-  background: linear-gradient(135deg, #f472b6, #66d9ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 6px;
-}
-.subtitle { font-size: 0.85rem; color: var(--text-color); opacity: 0.65; letter-spacing: 0.3px; }
-
-.game-area { position: relative; z-index: 1; }
+.game-area { position: relative; z-index: 1; width: 100%; }
 
 /* 空闲卡 */
 .idle-card {
@@ -411,6 +372,7 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   grid-template-columns: repeat(var(--cols), 1fr);
   gap: 8px;
   margin-bottom: 18px;
+  width: 100%;
 }
 .board--shuffling .card { animation: cardShuffle 0.5s ease-out both; }
 .board--shuffling .card:nth-child(2n) { animation-delay: 0.05s; }
@@ -476,7 +438,6 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
   border-color: rgba(16,185,129,0.5);
   box-shadow: 0 0 20px rgba(16,185,129,0.2);
 }
-.card.pop-matched .card-inner { animation: matchPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
 .bottom-btns { display: flex; gap: 10px; position: relative; z-index: 1; }
 .restart-btn {
@@ -501,15 +462,20 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
 }
 .restart-btn:active { transform: translateY(0) scale(0.97); }
 
+/* glass-surface fallback for non-shell contexts */
+.glass-surface {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
 /* 动画 */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes cardSlideIn { from { opacity: 0; transform: scale(0.8) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 @keyframes cardShuffle { 0% { transform: translateX(-20px) rotate(-5deg); opacity: 0; } 100% { transform: translateX(0) rotate(0); opacity: 1; } }
 @keyframes emojiPop { from { transform: scale(0); } to { transform: scale(1); } }
-@keyframes matchPop { 0% { transform: rotateY(180deg) scale(1); } 50% { transform: rotateY(180deg) scale(1.15); } 100% { transform: rotateY(180deg) scale(1); } }
 @keyframes winBounce { from { transform: scale(0) rotate(-20deg); } to { transform: scale(1) rotate(0); } }
-@keyframes iconFloat { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-6px) rotate(3deg); } }
 @keyframes orbFloat {
   0%, 100% { transform: translate(0, 0); }
   33% { transform: translate(25px, -30px); }

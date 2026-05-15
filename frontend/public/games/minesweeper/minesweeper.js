@@ -99,7 +99,7 @@
 
   function setCellCss() {
     var w = Math.min(window.innerWidth - 36, 560)
-    var cell = Math.max(22, Math.min(38, (w / C - 6) | 0))
+    var cell = Math.max(28, Math.min(40, (w / C - 6) | 0))
     gridEl.style.setProperty('--cell', cell + 'px')
   }
 

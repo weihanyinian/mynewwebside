@@ -24,6 +24,9 @@ body {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 :root[data-moyu-theme='light'],
@@ -57,8 +60,8 @@ html:not(.moyu-dark) {
 }
 
 .moyu-btn {
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 48px;
+  min-width: 48px;
   padding: 10px 16px;
   border-radius: 14px;
   border: 1px solid var(--moyu-glass-b);
@@ -68,6 +71,10 @@ html:not(.moyu-dark) {
   font-size: 0.9rem;
   cursor: pointer;
   touch-action: manipulation;
+  transition: transform 0.15s ease;
+}
+.moyu-btn:active {
+  transform: scale(0.95);
 }
 
 .moyu-btn--primary {
@@ -120,6 +127,11 @@ canvas.moyu-canvas {
   align-items: center;
   gap: 8px;
   margin-top: 10px;
+}
+.moyu-dpad button {
+  min-width: 56px;
+  min-height: 56px;
+  font-size: 1.1rem;
 }
 .moyu-dpad-mid {
   display: flex;

@@ -8,13 +8,10 @@ const games = [
   { path: '/moyu/2048', name: '2048', icon: '2048', desc: '合并数字，挑战 2048（支持撤销）' },
   { path: '/moyu/doudizhu', name: '斗地主', icon: 'DDZ', desc: '完整叫地主与出牌流程，含电脑 AI' },
   { path: '/moyu/tetris', name: '俄罗斯方块', icon: 'TET', desc: '经典下落，触摸键 + 滑动' },
-  { path: '/moyu/snake', name: '贪吃蛇', icon: 'SNK', desc: '滑动 / 虚拟方向键，可调速度' },
   { path: '/moyu/minesweeper', name: '扫雷', icon: 'MIN', desc: '多难度 · 长按插旗 · 计时' },
   { path: '/moyu/breakout', name: '打砖块', icon: 'BRK', desc: '滑动挡板 + 左右键' },
   { path: '/moyu/gomoku', name: '五子棋', icon: 'GMK', desc: '大屏棋盘 · 触摸落子' },
-  { path: '/moyu/guess', name: '猜数字', icon: 'GUE', desc: '三档难度 · 冷热提示 · 最少次数挑战' },
   { path: '/moyu/memory-card', name: '记忆翻牌', icon: 'MEM', desc: '翻牌配对 · 记忆力挑战 · 计时排名' },
-  { path: '/moyu/snakeball', name: 'Snakeball', icon: 'SBL', desc: '敏捷躲避 + 吃球成长，外部项目接入版' },
 ] as const
 
 function go(path: string) {
@@ -30,7 +27,7 @@ function go(path: string) {
     <div class="header">
       <h1 class="title">维寒一念 · 摸鱼中心</h1>
       <p class="subtitle">
-        10 款经典小游戏，纯静态页面与本地逻辑混合；最高分本地保存；随站点主题切换。
+        7 款经典小游戏，纯静态页面与本地逻辑混合；最高分本地保存；随站点主题切换。
       </p>
     </div>
 

@@ -14,7 +14,6 @@ const MessageWallPage = () => import('../pages/public/MessageWallPage.vue')
 const MoyuPage = () => import('../pages/public/MoyuPage.vue')
 const Game2048 = () => import('../pages/moyu/Game2048.vue')
 const GameTetris = () => import('../pages/moyu/GameTetris.vue')
-const GameSnake = () => import('../pages/moyu/GameSnake.vue')
 const GameMinesweeper = () => import('../pages/moyu/GameMinesweeper.vue')
 const GameBreakout = () => import('../pages/moyu/GameBreakout.vue')
 const GameGomoku = () => import('../pages/moyu/GameGomoku.vue')
@@ -43,9 +42,7 @@ const AlbumsPage = () => import('../pages/public/AlbumsPage.vue')
 const StatsPage = () => import('../pages/public/StatsPage.vue')
 const MusicCenterPage = () => import('../pages/music/MusicCenterPage.vue')
 const MbtiTestPage = () => import('../pages/tools/MbtiTestPage.vue')
-const GameGuessNumber = () => import('../pages/moyu/GameGuessNumber.vue')
 const GameMemoryCard = () => import('../pages/moyu/GameMemoryCard.vue')
-const GameSnakeball = () => import('../pages/moyu/GameSnakeball.vue')
 const GameDoudizhu = () => import('../views/GameBoard.vue')
 const MemoriesPage = () => import('../pages/public/MemoriesPage.vue')
 const WorksShowcasePage = () => import('../pages/public/WorksShowcasePage.vue')
@@ -65,7 +62,6 @@ export const router = createRouter({
     { path: '/moyu', component: MoyuPage },
     { path: '/moyu/2048', component: Game2048 },
     { path: '/moyu/tetris', component: GameTetris },
-    { path: '/moyu/snake', component: GameSnake },
     { path: '/moyu/minesweeper', component: GameMinesweeper },
     { path: '/moyu/trex', redirect: '/moyu' },
     { path: '/moyu/flappy', redirect: '/moyu' },
@@ -84,9 +80,7 @@ export const router = createRouter({
     { path: '/music', component: MusicCenterPage, meta: { requiresAuth: true } },
     { path: '/memories', component: MemoriesPage, meta: { requiresAuth: true } },
     { path: '/tools/mbti', component: MbtiTestPage },
-    { path: '/moyu/guess', component: GameGuessNumber },
     { path: '/moyu/memory-card', component: GameMemoryCard },
-    { path: '/moyu/snakeball', component: GameSnakeball },
     { path: '/moyu/doudizhu', component: GameDoudizhu },
     { path: '/admin/login', redirect: '/login' },
     { path: '/tools', component: ToolsHubPage },
