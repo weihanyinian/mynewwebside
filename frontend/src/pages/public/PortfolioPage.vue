@@ -5,9 +5,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { goToSiteHome } from '../../utils/siteHome'
 import HitokotoCard from '../../components/HitokotoCard.vue'
-import SiteGlassFooter from '../../components/site/SiteGlassFooter.vue'
 import SiteBackgroundVideos from '../../components/site/SiteBackgroundVideos.vue'
-import SiteBackToTop from '../../components/site/SiteBackToTop.vue'
 import { useThemeStore } from '../../stores/theme'
 import { useUserStore } from '../../stores/user'
 import { useWorksStore } from '../../stores/works'
@@ -362,8 +360,6 @@ onMounted(() => {
       </button>
     </nav>
 
-    <SiteGlassFooter />
-    <SiteBackToTop />
   </div>
 </template>
 

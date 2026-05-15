@@ -7,7 +7,6 @@ import AvatarBadge from './components/AvatarBadge.vue'
 import MusicPlayer from './components/MusicPlayer.vue'
 const route = useRoute()
 const isAdmin = computed(() => route.path.startsWith('/admin'))
-const isPortfolio = computed(() => route.path === '/')
 </script>
 
 <template>
@@ -17,7 +16,6 @@ const isPortfolio = computed(() => route.path === '/')
         <AdminLayout v-if="isAdmin && Component" :key="'a-' + route.fullPath">
           <component :is="Component" />
         </AdminLayout>
-        <component :is="Component" v-else-if="isPortfolio && Component" :key="'p-' + route.fullPath" />
         <SiteLayout v-else-if="Component" :key="'s-' + route.fullPath">
           <component :is="Component" />
         </SiteLayout>

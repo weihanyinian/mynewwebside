@@ -18,7 +18,9 @@ const props = withDefaults(
 const route = useRoute()
 const { t } = useI18n()
 
-type Crumb = { label: string; to?: string }
+type CrumbIcon = 'home' | 'tools-grid'
+
+type Crumb = { label: string; to?: string; icon?: CrumbIcon }
 
 const items = computed<Crumb[]>(() => {
   const path = route.path
@@ -60,7 +62,7 @@ const items = computed<Crumb[]>(() => {
   }
 
   // ---------- 前台 ----------
-  const list: Crumb[] = [{ label: t('breadcrumb.home'), to: '/' }]
+  const list: Crumb[] = [{ label: t('breadcrumb.home'), to: '/', icon: 'home' }]
   if (path === '/blog') {
     list.push({ label: t('breadcrumb.blog') })
     return list
@@ -95,7 +97,7 @@ const items = computed<Crumb[]>(() => {
     return list
   }
   if (path.startsWith('/tools')) {
-    list.push({ label: t('breadcrumb.tools'), to: '/tools' })
+    list.push({ label: t('breadcrumb.tools'), to: '/tools', icon: 'tools-grid' })
     if (path === '/tools') return list
     if (path.startsWith('/tools/oj')) {
       list.push({ label: t('nav.oj'), to: '/tools/oj' })
@@ -143,9 +145,31 @@ const visible = computed(() => items.value.length >= 2)
           :to="c.to"
           class="site-pill site-pill--crumb glass-crumb__link"
         >
+          <span v-if="c.icon === 'home'" class="glass-crumb__ico" aria-hidden="true">
+            <svg class="glass-crumb__svg" viewBox="0 0 24 24" focusable="false">
+              <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+            </svg>
+          </span>
+          <span v-else-if="c.icon === 'tools-grid'" class="glass-crumb__ico" aria-hidden="true">
+            <svg class="glass-crumb__svg" viewBox="0 0 24 24" focusable="false">
+              <path fill="currentColor" d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
+            </svg>
+          </span>
           {{ c.label }}
         </RouterLink>
-        <span v-else class="site-pill site-pill--crumb glass-crumb__current">{{ c.label }}</span>
+        <span v-else class="site-pill site-pill--crumb glass-crumb__current">
+          <span v-if="c.icon === 'home'" class="glass-crumb__ico" aria-hidden="true">
+            <svg class="glass-crumb__svg" viewBox="0 0 24 24" focusable="false">
+              <path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+            </svg>
+          </span>
+          <span v-else-if="c.icon === 'tools-grid'" class="glass-crumb__ico" aria-hidden="true">
+            <svg class="glass-crumb__svg" viewBox="0 0 24 24" focusable="false">
+              <path fill="currentColor" d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" />
+            </svg>
+          </span>
+          {{ c.label }}
+        </span>
         <span v-if="i < items.length - 1" class="glass-crumb__sep" aria-hidden="true">/</span>
       </li>
     </ol>
@@ -195,6 +219,19 @@ const visible = computed(() => items.value.length >= 2)
   border-color: rgba(255, 255, 255, 0.5) !important;
   color: #fff !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+
+.glass-crumb__ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.35em;
+  vertical-align: middle;
+}
+.glass-crumb__svg {
+  width: 1.05em;
+  height: 1.05em;
+  opacity: 0.92;
 }
 
 .glass-crumb__sep {
