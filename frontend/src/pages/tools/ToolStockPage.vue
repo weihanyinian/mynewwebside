@@ -4,12 +4,43 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
   fetchQuote, searchStocks, fetchPortfolio, fetchTrades, fetchLeaderboard,
-  buyStock, sellStock,
+  buyStock, sellStock, fetchHotStocks, placeOrder, cancelOrder, fetchOrders,
   type StockQuote, type StockSearchResult, type PortfolioSummary,
-  type TradeHistoryItem, type LeaderboardEntry,
+  type TradeHistoryItem, type LeaderboardEntry, type HotStockItem, type OrderItem,
 } from '../../api/stock'
 
-const router = useRouter()
+type Market = 'cn' | 'us' | 'hk'
+
+const POPULAR: Record<Market, { code: string; name: string }[]> = {
+  cn: [
+    { code: 'sh600519', name: '贵州茅台' }, { code: 'sz000001', name: '平安银行' },
+    { code: 'sh600036', name: '招商银行' }, { code: 'sz300750', name: '宁德时代' },
+    { code: 'sh601318', name: '中国平安' }, { code: 'sz002594', name: '比亚迪' },
+    { code: 'sh600900', name: '长江电力' }, { code: 'sz000858', name: '五粮液' },
+  ],
+  us: [
+    { code: 'AAPL', name: 'Apple' }, { code: 'TSLA', name: 'Tesla' },
+    { code: 'MSFT', name: 'Microsoft' }, { code: 'NVDA', name: 'NVIDIA' },
+    { code: 'GOOGL', name: 'Alphabet' }, { code: 'AMZN', name: 'Amazon' },
+    { code: 'META', name: 'Meta' }, { code: 'AMD', name: 'AMD' },
+  ],
+  hk: [
+    { code: '0700.HK', name: '腾讯控股' }, { code: '9988.HK', name: '阿里巴巴' },
+    { code: '0941.HK', name: '中国移动' }, { code: '3690.HK', name: '美团' },
+    { code: '2318.HK', name: '中国平安' }, { code: '0388.HK', name: '港交所' },
+    { code: '1810.HK', name: '小米集团' }, { code: '2269.HK', name: '药明生物' },
+  ],
+}
+
+const MARKET_LABELS: Record<Market, string> = { cn: 'A股', us: '美股', hk: '港股' }
+
+const market = ref<Market>('cn')
+const hotStocks = ref<HotStockItem[]>([])
+
+import { watch } from 'vue'
+watch(market, async (m) => {
+  try { hotStocks.value = await fetchHotStocks(m) } catch { hotStocks.value = [] }
+}, { immediate: true })
 const quoteCache = ref<Map<string, StockQuote>>(new Map())
 
 const searchKeyword = ref('')
@@ -20,7 +51,7 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null
 const portfolio = ref<PortfolioSummary | null>(null)
 const trades = ref<TradeHistoryItem[]>([])
 const leaderboard = ref<LeaderboardEntry[]>([])
-const activeTab = ref<'portfolio' | 'trades' | 'leaderboard'>('portfolio')
+// activeTab declared below with orders support
 
 const tradeCode = ref('')
 const tradeName = ref('')
@@ -28,6 +59,11 @@ const tradePrice = ref<number | null>(null)
 const tradeShares = ref(100)
 const tradeDialog = ref(false)
 const tradeMode = ref<'BUY' | 'SELL'>('BUY')
+const orderType = ref<'LIMIT' | 'MARKET'>('LIMIT')
+const limitPrice = ref<number | null>(null)
+
+const orders = ref<OrderItem[]>([])
+const activeTab = ref<'portfolio' | 'trades' | 'leaderboard' | 'orders'>('portfolio')
 
 const loading = ref(true)
 
@@ -54,6 +90,7 @@ async function refreshData() {
     portfolio.value = p
     trades.value = t
     leaderboard.value = lb
+    orders.value = await fetchOrders().catch(() => [] as OrderItem[])
   } catch { /* ignore */ }
   loading.value = false
 }
@@ -110,15 +147,36 @@ async function executeTrade() {
     return
   }
   try {
-    const fn = tradeMode.value === 'BUY' ? buyStock : sellStock
-    const result = await fn(tradeCode.value, tradeShares.value)
     const label = tradeMode.value === 'BUY' ? '买入' : '卖出'
-    ElMessage.success(`${label}成功！${result.name} ${result.shares}股 @${fmt(result.price)}`)
+    if (orderType.value === 'MARKET') {
+      const fn = tradeMode.value === 'BUY' ? buyStock : sellStock
+      const result = await fn(tradeCode.value, tradeShares.value)
+      ElMessage.success(`${label}成功！${result.name} ${result.shares}股 @${fmt(result.price)}`)
+    } else {
+      await placeOrder(tradeCode.value, tradeMode.value, 'LIMIT', limitPrice.value ?? 0, tradeShares.value)
+      ElMessage.success(`限价${label}委托已提交`)
+    }
     tradeDialog.value = false
     await refreshData()
   } catch (e: unknown) {
     ElMessage.error(e instanceof Error ? e.message : '交易失败')
   }
+}
+
+async function cancelOrderHandler(id: number) {
+  try {
+    await cancelOrder(id)
+    ElMessage.success('已撤单')
+    await loadOrders()
+  } catch (e: unknown) { ElMessage.error(e instanceof Error ? e.message : '撤单失败') }
+}
+
+async function loadOrders() {
+  try { orders.value = await fetchOrders() } catch { orders.value = [] }
+}
+
+function goStock(code: string) {
+  router.push(`/tools/stock/${code}`)
 }
 
 function maxSellShares(code: string): number {
@@ -141,7 +199,29 @@ onUnmounted(() => {
 <template>
   <div class="stock-page">
     <h1 class="page-title">模拟炒股</h1>
-    <p class="page-subtitle">虚拟资金 {{ INITIAL_CASH.toLocaleString() }} 元 · 数据来自新浪财经 · 仅供学习参考</p>
+    <p class="page-subtitle">虚拟资金 {{ INITIAL_CASH.toLocaleString() }} 元 · A股/美股/港股实时行情 · 仅供学习参考</p>
+
+    <!-- 市场切换 + 热门股票 -->
+    <div class="market-bar">
+      <div class="market-tabs">
+        <button v-for="(label, key) in MARKET_LABELS" :key="key"
+          class="market-tab" :class="{ active: market === key }"
+          @click="market = (key as Market)">{{ label }}</button>
+      </div>
+      <div class="popular-chips">
+        <button v-for="s in POPULAR[market]" :key="s.code"
+          class="popular-chip" @click="goStock(s.code)">{{ s.name }}</button>
+      </div>
+      <div v-if="hotStocks.length" class="hot-scroll">
+        <button v-for="h in hotStocks" :key="h.code" class="hot-card" @click="goStock(h.code)">
+          <span class="hot-name">{{ h.name }}</span>
+          <span class="hot-price">{{ fmt(h.price, h.price < 1 ? 3 : 2) }}</span>
+          <span :class="(h.changePct ?? 0) >= 0 ? 'pnl-up' : 'pnl-down'">
+            {{ (h.changePct ?? 0) >= 0 ? '+' : '' }}{{ fmt(h.changePct) }}%
+          </span>
+        </button>
+      </div>
+    </div>
 
     <!-- 资产概览 -->
     <div v-if="portfolio" class="asset-bar">
@@ -196,6 +276,7 @@ onUnmounted(() => {
       <button :class="{ active: activeTab === 'portfolio' }" @click="activeTab = 'portfolio'">持仓</button>
       <button :class="{ active: activeTab === 'trades' }" @click="activeTab = 'trades'">交易记录</button>
       <button :class="{ active: activeTab === 'leaderboard' }" @click="activeTab = 'leaderboard'">排行榜</button>
+      <button :class="{ active: activeTab === 'orders' }" @click="activeTab = 'orders'; loadOrders()">委托</button>
     </div>
 
     <!-- Loading -->
@@ -249,6 +330,32 @@ onUnmounted(() => {
       <p v-else class="empty">暂无交易</p>
     </div>
 
+    <!-- 委托列表 -->
+    <div v-else-if="activeTab === 'orders'" class="table-wrap">
+      <table v-if="orders.length > 0">
+        <thead><tr><th>时间</th><th>股票</th><th>类型</th><th>委托价</th><th>数量</th><th>已成交</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr v-for="o in orders" :key="o.id ?? o.createdAt">
+            <td class="time">{{ new Date(o.createdAt).toLocaleString('zh-CN') }}</td>
+            <td>{{ o.name }}<br><span class="code">{{ o.code }}</span></td>
+            <td :class="o.type === 'BUY' ? 'type-buy' : 'type-sell'">{{ o.type === 'BUY' ? '买入' : '卖出' }}</td>
+            <td>{{ fmt(o.price) }}</td>
+            <td>{{ o.shares }} 股</td>
+            <td>{{ o.filledShares }} 股</td>
+            <td>
+              <span :class="o.status === 'FILLED' ? 'type-buy' : o.status === 'CANCELLED' ? 'muted' : 'type-sell'">
+                {{ o.status === 'PENDING' ? '待成交' : o.status === 'FILLED' ? '已成交' : o.status === 'PARTIAL' ? '部分成交' : '已撤单' }}
+              </span>
+            </td>
+            <td>
+              <button v-if="o.status === 'PENDING'" class="mini-btn cancel" @click="cancelOrderHandler(o.id!)">撤单</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p v-else class="empty">暂无委托</p>
+    </div>
+
     <!-- 排行榜 -->
     <div v-else class="table-wrap">
       <table v-if="leaderboard.length > 0">
@@ -278,6 +385,17 @@ onUnmounted(() => {
               </div>
             </div>
           </div>
+        </div>
+        <div class="trade-field">
+          <label>委托类型</label>
+          <div class="order-type-row">
+            <button :class="{ active: orderType === 'LIMIT' }" @click="orderType = 'LIMIT'">限价单</button>
+            <button :class="{ active: orderType === 'MARKET' }" @click="orderType = 'MARKET'">市价单</button>
+          </div>
+        </div>
+        <div v-if="orderType === 'LIMIT'" class="trade-field">
+          <label>委托价格</label>
+          <input v-model.number="limitPrice" type="number" step="0.001" placeholder="指定价格" />
         </div>
         <div v-if="tradePrice" class="trade-field">
           <label>当前价格</label>
@@ -327,6 +445,31 @@ onUnmounted(() => {
 }
 .asset-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
 .asset-value { font-size: 1.1rem; font-weight: 700; color: var(--text-color); }
+
+/* market bar */
+.market-bar { margin-bottom: 16px; }
+.market-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.market-tab {
+  background: var(--surface-2); border: 1px solid var(--glass-border); color: var(--text-muted);
+  padding: 8px 18px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;
+}
+.market-tab.active { background: var(--primary-color); color: #fff; border-color: transparent; }
+.popular-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.popular-chip {
+  background: var(--surface-2); border: 1px solid var(--glass-border); color: var(--text-color);
+  padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; transition: all 0.15s;
+}
+.popular-chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
+.hot-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-top: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.hot-scroll::-webkit-scrollbar { display: none; }
+.hot-card {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 14px; border-radius: 10px; border: 1px solid var(--glass-border);
+  background: var(--surface-2); cursor: pointer; transition: all 0.15s; min-width: 90px;
+}
+.hot-card:hover { border-color: var(--primary-color); transform: translateY(-2px); }
+.hot-name { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+.hot-price { font-size: 0.9rem; font-weight: 700; color: var(--text-color); }
 
 /* action bar */
 .action-bar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
@@ -409,6 +552,14 @@ td { color: var(--text-color); }
 
 .mini-btn { padding: 4px 10px; border-radius: 6px; border: none; font-size: 0.75rem; cursor: pointer; }
 .mini-btn.sell { background: rgba(34, 197, 94, 0.15); color: #16a34a; }
+.mini-btn.cancel { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+
+.order-type-row { display: flex; gap: 6px; }
+.order-type-row button {
+  flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--glass-border);
+  background: var(--surface-2); color: var(--text-muted); font-size: 0.82rem; cursor: pointer; transition: all 0.15s;
+}
+.order-type-row button.active { background: var(--primary-color); color: #fff; border-color: transparent; }
 
 .pnl-up { color: #dc2626 !important; }
 .pnl-down { color: #16a34a !important; }

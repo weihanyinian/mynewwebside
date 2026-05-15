@@ -61,6 +61,57 @@ public class StockDataService {
     return fetchYahooKline(toYahooSymbol(code), interval);
   }
 
+  // ---- hot stocks ----
+
+  public List<HotStock> getHotStocks(String market) {
+    return switch (market) {
+      case "us" -> fetchYahooHotStocks();
+      case "hk" -> fetchYahooHotStocksHK();
+      default -> fetchEastMoneyHotStocks();
+    };
+  }
+
+  private List<HotStock> fetchEastMoneyHotStocks() {
+    try {
+      String url = "https://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=10&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23&fields=f2,f3,f12,f14";
+      String body = restClient.get().uri(url).header("Referer", "https://quote.eastmoney.com").retrieve().body(String.class);
+      JsonNode arr = om.readTree(body).path("data").path("diff");
+      List<HotStock> list = new ArrayList<>();
+      if (arr.isArray()) for (JsonNode n : arr) {
+        String code = n.path("f12").asText();
+        String prefix = code.startsWith("6") ? "sh" : "sz";
+        list.add(new HotStock(prefix + code, n.path("f14").asText(),
+            new BigDecimal(n.path("f2").asText("0")), new BigDecimal(n.path("f3").asText("0"))));
+      }
+      return list;
+    } catch (Exception e) { log.warn("EastMoney hot stocks failed", e); return List.of(); }
+  }
+
+  private List<HotStock> fetchYahooHotStocks() {
+    String[] symbols = {"AAPL","TSLA","MSFT","NVDA","GOOGL","AMZN","META","AMD","NFLX","BABA"};
+    return fetchYahooHotQuotes(symbols);
+  }
+
+  private List<HotStock> fetchYahooHotStocksHK() {
+    String[] symbols = {"0700.HK","9988.HK","0941.HK","3690.HK","2318.HK","0388.HK","1810.HK","2269.HK","1211.HK","9618.HK"};
+    return fetchYahooHotQuotes(symbols);
+  }
+
+  private List<HotStock> fetchYahooHotQuotes(String[] symbols) {
+    List<HotStock> list = new ArrayList<>();
+    for (String sym : symbols) {
+      try {
+        Quote q = fetchYahooQuote(sym);
+        if (q.price().compareTo(BigDecimal.ZERO) > 0) {
+          list.add(new HotStock(sym, q.name(), q.price(), q.changePct()));
+        }
+      } catch (Exception ignored) {}
+    }
+    return list;
+  }
+
+  public record HotStock(String code, String name, BigDecimal price, BigDecimal changePct) {}
+
   // ---- capital flow (A-share only) ----
 
   public CapitalFlow getCapitalFlow(String code) {

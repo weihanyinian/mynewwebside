@@ -51,6 +51,13 @@ public class StockController {
     return ApiResponse.ok(dataService.getCapitalFlow(code));
   }
 
+  // ---- hot stocks ----
+
+  @GetMapping("/hot")
+  public ApiResponse<List<StockDataService.HotStock>> hot(@RequestParam(defaultValue = "cn") String market) {
+    return ApiResponse.ok(dataService.getHotStocks(market));
+  }
+
   // ---- search ----
 
   @GetMapping("/search")
@@ -91,5 +98,29 @@ public class StockController {
         .orElseThrow(() -> new BusinessException(401, "用户不存在")).getId();
   }
 
+  // ---- order management ----
+
+  @PostMapping("/order")
+  public ApiResponse<StockService.OrderDto> placeOrder(Principal principal, @RequestBody OrderRequest req) {
+    return ApiResponse.ok(stockService.placeOrder(resolveUserId(principal),
+        req.code(), req.type(), req.orderType(), req.limitPrice(), req.shares()));
+  }
+
+  @DeleteMapping("/order/{id}")
+  public ApiResponse<StockService.OrderDto> cancelOrder(Principal principal, @PathVariable Long id) {
+    return ApiResponse.ok(stockService.cancelOrder(resolveUserId(principal), id));
+  }
+
+  @GetMapping("/orders")
+  public ApiResponse<List<StockService.OrderDto>> orders(Principal principal) {
+    return ApiResponse.ok(stockService.getOrders(resolveUserId(principal)));
+  }
+
   public record TradeRequest(String code, int shares) {}
+  public record OrderRequest(String code, String type, String orderType, java.math.BigDecimal limitPrice, int shares) {
+    public OrderRequest {
+      if (orderType == null || orderType.isBlank()) orderType = "LIMIT";
+      if (limitPrice == null) limitPrice = java.math.BigDecimal.ZERO;
+    }
+  }
 }

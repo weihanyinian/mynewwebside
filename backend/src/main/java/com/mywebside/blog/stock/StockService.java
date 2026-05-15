@@ -19,13 +19,15 @@ public class StockService {
 
   private final StockPortfolioRepository portfolioRepo;
   private final StockTradeRepository tradeRepo;
+  private final StockOrderRepository orderRepo;
   private final StockDataService dataService;
   private final RestClient restClient;
 
   public StockService(StockPortfolioRepository portfolioRepo, StockTradeRepository tradeRepo,
-                      StockDataService dataService, RestClient.Builder rb) {
+                      StockOrderRepository orderRepo, StockDataService dataService, RestClient.Builder rb) {
     this.portfolioRepo = portfolioRepo;
     this.tradeRepo = tradeRepo;
+    this.orderRepo = orderRepo;
     this.dataService = dataService;
     this.restClient = rb.build();
   }
@@ -184,6 +186,101 @@ public class StockService {
     tradeRepo.save(trade);
 
     return new TradeResultDto("SELL", code, q.name(), shares, q.price(), fee, cash.add(total));
+  }
+
+  // ---- order management ----
+
+  @Transactional
+  public OrderDto placeOrder(Long userId, String rawCode, String type, String orderType,
+                             BigDecimal limitPrice, int shares) {
+    if (shares <= 0) throw new BusinessException(400, "委托数量必须大于0");
+    String code = normalizeCode(rawCode);
+    StockOrder.TradeType tt = "SELL".equalsIgnoreCase(type) ? StockOrder.TradeType.SELL : StockOrder.TradeType.BUY;
+    StockOrder.OrderType ot = "MARKET".equalsIgnoreCase(orderType) ? StockOrder.OrderType.MARKET : StockOrder.OrderType.LIMIT;
+
+    StockDataService.Quote q = dataService.fetchQuote(code);
+    if (q.price().compareTo(BigDecimal.ZERO) <= 0) throw new BusinessException(502, "获取行情失败");
+    BigDecimal price = ot == StockOrder.OrderType.MARKET ? q.price() : limitPrice;
+
+    if (tt == StockOrder.TradeType.BUY) {
+      BigDecimal cost = price.multiply(BigDecimal.valueOf(shares));
+      BigDecimal fee = cost.multiply(FEE_RATE).setScale(3, RoundingMode.HALF_UP);
+      if (fee.compareTo(new BigDecimal("5")) < 0) fee = new BigDecimal("5");
+      BigDecimal cash = getCash(userId);
+      if (cash.compareTo(cost.add(fee)) < 0) throw new BusinessException(400, "可用资金不足");
+    } else {
+      StockPortfolio holding = portfolioRepo.findByUserIdAndStockCode(userId, code)
+          .orElseThrow(() -> new BusinessException(400, "未持有该股票"));
+      if (holding.getShares() < shares) throw new BusinessException(400, "持仓不足");
+    }
+
+    if (ot == StockOrder.OrderType.MARKET) {
+      if (tt == StockOrder.TradeType.BUY) return toOrderDto(buy(userId, rawCode, shares), q);
+      else return toOrderDto(sell(userId, rawCode, shares), q);
+    }
+
+    StockOrder order = new StockOrder(userId, code, q.name(), tt, ot, price, shares);
+    orderRepo.save(order);
+    return OrderDto.from(order);
+  }
+
+  @Transactional
+  public OrderDto cancelOrder(Long userId, Long orderId) {
+    StockOrder order = orderRepo.findById(orderId)
+        .orElseThrow(() -> new BusinessException(404, "委托单不存在"));
+    if (!order.getUserId().equals(userId)) throw new BusinessException(403, "无权操作");
+    if (order.getStatus() != StockOrder.OrderStatus.PENDING) throw new BusinessException(400, "仅可撤销待成交委托");
+    order.setStatus(StockOrder.OrderStatus.CANCELLED);
+    order.setUpdatedAt(Instant.now());
+    orderRepo.save(order);
+    return OrderDto.from(order);
+  }
+
+  public List<OrderDto> getOrders(Long userId) {
+    return orderRepo.findByUserIdOrderByCreatedAtDesc(userId).stream()
+        .map(OrderDto::from).toList();
+  }
+
+  /** Scheduled: try to match pending limit orders against current market prices. */
+  @Transactional
+  public int matchOrders() {
+    List<StockOrder> pending = orderRepo.findByStatusInOrderByCreatedAtAsc(
+        java.util.List.of(StockOrder.OrderStatus.PENDING));
+    int matched = 0;
+    for (StockOrder o : pending) {
+      try {
+        StockDataService.Quote q = dataService.fetchQuote(o.getStockCode());
+        if (q.price().compareTo(BigDecimal.ZERO) <= 0) continue;
+        boolean shouldFill = false;
+        if (o.getType() == StockOrder.TradeType.BUY && q.price().compareTo(o.getPrice()) <= 0) shouldFill = true;
+        if (o.getType() == StockOrder.TradeType.SELL && q.price().compareTo(o.getPrice()) >= 0) shouldFill = true;
+        if (shouldFill) {
+          if (o.getType() == StockOrder.TradeType.BUY) buy(o.getUserId(), o.getStockCode(), o.getShares());
+          else sell(o.getUserId(), o.getStockCode(), o.getShares());
+          o.setStatus(StockOrder.OrderStatus.FILLED);
+          o.setFilledShares(o.getShares());
+          o.setUpdatedAt(Instant.now());
+          orderRepo.save(o);
+          matched++;
+        }
+      } catch (Exception e) { log.debug("Order {} match failed: {}", o.getId(), e.getMessage()); }
+    }
+    return matched;
+  }
+
+  private OrderDto toOrderDto(TradeResultDto t, StockDataService.Quote q) {
+    return new OrderDto(null, q.code(), q.name(), t.type(), "MARKET",
+        t.price(), t.shares(), t.shares(), "FILLED", java.time.Instant.now(), java.time.Instant.now());
+  }
+
+  public record OrderDto(Long id, String code, String name, String type, String orderType,
+      BigDecimal price, int shares, int filledShares, String status,
+      Instant createdAt, Instant updatedAt) {
+    public static OrderDto from(StockOrder o) {
+      return new OrderDto(o.getId(), o.getStockCode(), o.getStockName(), o.getType().name(),
+          o.getOrderType().name(), o.getPrice(), o.getShares(), o.getFilledShares(),
+          o.getStatus().name(), o.getCreatedAt(), o.getUpdatedAt());
+    }
   }
 
   private BigDecimal getCash(Long userId) {

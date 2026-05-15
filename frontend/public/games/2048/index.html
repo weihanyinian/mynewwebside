@@ -12,21 +12,21 @@
       #board {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: clamp(6px, 2vw, 10px);
-        max-width: min(92vw, 400px);
+        gap: clamp(8px, 2vw, 14px);
+        max-width: min(94vw, 560px);
         margin: 0 auto;
-        padding: 12px;
+        padding: clamp(14px, 3vw, 20px);
         border-radius: 16px;
         background: var(--moyu-panel);
       }
       .cell {
         aspect-ratio: 1;
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 800;
-        font-size: clamp(1rem, 5vw, 1.35rem);
+        font-size: clamp(1.4rem, 6vw, 2.2rem);
         border: 1px solid var(--moyu-glass-b);
       }
       .toolbar {

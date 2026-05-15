@@ -18,7 +18,7 @@
 
 ## 二、Phase 2 — 炒股模块增强（当前）
 
-### 2.1 美股 + 港股支持
+### 2.1 美股 + 港股支持 [x]
 
 **数据源:**
 - **美股**: Yahoo Finance unofficial API `query2.finance.yahoo.com/v8/finance/chart/{symbol}`
@@ -32,7 +32,7 @@
 - 美股: `AAPL`, `TSLA`, `MSFT`
 - 港股: `0700.HK`, `9988.HK`
 
-### 2.2 分时图 + K线图 (实时更新)
+### 2.2 分时图 + K线图 (实时更新) [x]
 
 **图表库:** ECharts (已随 Element Plus 引入)
 
@@ -50,7 +50,7 @@
 - MA5/MA10/MA20 均线叠加
 - Tab切换日K/周K/月K
 
-### 2.3 热门股票模块
+### 2.3 热门股票模块 [x]
 
 **数据源:**
 - A股热门: 东方财富 `push2.eastmoney.com/api/qt/clist/get` (涨幅榜/跌幅榜)
@@ -63,9 +63,9 @@
 - 点击跳转股票详情页
 - 颜色: 红涨绿跌 (A股惯例) / 绿涨红跌 (美股惯例可切换)
 
-### 2.4 委托订单系统
+### 2.4 委托订单系统 [x]
 
-### 2.3 委托订单系统
+### 2.3 委托订单系统 [x]
 
 **新增数据库表:**
 ```sql
@@ -97,7 +97,7 @@ CREATE TABLE stock_orders (
 - 卖出限价单: 现价 >= 委托价时成交
 - 参考项目: `ZaTribune/assets-matching-engine` (Spring Boot 3.4 + PriorityBlockingQueue)
 
-### 2.4 资金流向（仅A股）
+### 2.4 资金流向（仅A股） [x]
 
 **数据源:** 东方财富 API
 - 主力净流入: `https://push2.eastmoney.com/api/qt/stock/get?secid=1.600519&fields=f62,f64,f66,f72,f78,f184,f66`
@@ -108,7 +108,7 @@ CREATE TABLE stock_orders (
 - 仅A股支持，美股港股显示"暂无数据"
 - 在股票详情页展示
 
-### 2.5 股票详情页
+### 2.5 股票详情页 [x]
 
 **路由:** `/tools/stock/:code`
 
@@ -119,7 +119,7 @@ CREATE TABLE stock_orders (
 - 快速买入/卖出入口
 - 返回模拟炒股主页
 
-### 2.6 实时更新
+### 2.6 实时更新 [x]
 
 - 持仓页: 30秒自动刷新行情
 - 详情页K线: 60秒轮询最新数据

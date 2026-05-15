@@ -52,6 +52,10 @@ export interface KlineData {
   symbol: string; points: KlinePoint[]
 }
 
+export interface HotStockItem {
+  code: string; name: string; price: number; changePct: number
+}
+
 export interface CapitalFlow {
   superLarge: number | null; medium: number | null; retail: number | null
   small: number | null; note: string | null
@@ -76,6 +80,11 @@ export async function fetchIntraday(code: string): Promise<IntradayData> {
 
 export async function fetchKline(code: string, period = 'day'): Promise<KlineData> {
   const resp = await http.get<ApiResponse<KlineData>>('/api/stock/kline', { params: { code, period } })
+  return resp.data.data
+}
+
+export async function fetchHotStocks(market = 'cn'): Promise<HotStockItem[]> {
+  const resp = await http.get<ApiResponse<HotStockItem[]>>('/api/stock/hot', { params: { market } })
   return resp.data.data
 }
 
@@ -111,5 +120,28 @@ export async function buyStock(code: string, shares: number) {
 
 export async function sellStock(code: string, shares: number) {
   const resp = await http.post<ApiResponse<TradeResult>>('/api/stock/sell', { code, shares })
+  return resp.data.data
+}
+
+// ---- orders ----
+
+export interface OrderItem {
+  id: number | null; code: string; name: string; type: string; orderType: string
+  price: number; shares: number; filledShares: number; status: string
+  createdAt: string; updatedAt: string
+}
+
+export async function placeOrder(code: string, type: string, orderType: string, limitPrice: number, shares: number) {
+  const resp = await http.post<ApiResponse<OrderItem>>('/api/stock/order', { code, type, orderType, limitPrice, shares })
+  return resp.data.data
+}
+
+export async function cancelOrder(orderId: number) {
+  const resp = await http.delete<ApiResponse<OrderItem>>(`/api/stock/order/${orderId}`)
+  return resp.data.data
+}
+
+export async function fetchOrders() {
+  const resp = await http.get<ApiResponse<OrderItem[]>>('/api/stock/orders')
   return resp.data.data
 }
