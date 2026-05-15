@@ -262,8 +262,8 @@ public class StockDataService {
     public static Quote unavailable(String code) {
       return new Quote(code, "", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0, "", "");
     }
-    public BigDecimal change() { return price.subtract(prevClose); }
-    public BigDecimal changePct() {
+    @com.fasterxml.jackson.annotation.JsonProperty public BigDecimal change() { return price.subtract(prevClose); }
+    @com.fasterxml.jackson.annotation.JsonProperty public BigDecimal changePct() {
       return prevClose.compareTo(BigDecimal.ZERO) > 0
           ? change().divide(prevClose, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"))
           : BigDecimal.ZERO;

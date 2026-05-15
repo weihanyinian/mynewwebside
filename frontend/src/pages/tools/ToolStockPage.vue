@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
   fetchQuote, searchStocks, fetchPortfolio, fetchTrades, fetchLeaderboard,
@@ -8,6 +9,7 @@ import {
   type TradeHistoryItem, type LeaderboardEntry,
 } from '../../api/stock'
 
+const router = useRouter()
 const quoteCache = ref<Map<string, StockQuote>>(new Map())
 
 const searchKeyword = ref('')

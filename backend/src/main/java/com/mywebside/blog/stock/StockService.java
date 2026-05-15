@@ -187,9 +187,8 @@ public class StockService {
   }
 
   private BigDecimal getCash(Long userId) {
-    long count = tradeRepo.findByUserIdOrderByTradedAtDesc(userId).size();
-    if (count == 0) return INITIAL_CASH;
     List<StockTrade> trades = tradeRepo.findByUserIdOrderByTradedAtDesc(userId);
+    if (trades.isEmpty()) return INITIAL_CASH;
     BigDecimal cash = INITIAL_CASH;
     for (StockTrade t : trades) {
       if (t.getType() == StockTrade.TradeType.BUY) {

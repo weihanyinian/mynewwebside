@@ -146,7 +146,7 @@ async function loadData() {
   loading.value = false
 }
 
-watch(klinePeriod, () => { fetchKline(code.value, klinePeriod.value).then(d => { kline.value = d }) })
+watch(klinePeriod, () => { fetchKline(code.value, klinePeriod.value).then(d => { kline.value = d }).catch(() => {}) })
 
 async function doTrade(mode: 'buy' | 'sell') {
   try {
