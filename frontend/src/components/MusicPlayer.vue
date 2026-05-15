@@ -8,7 +8,8 @@ import QqCookieGuide from './music/QqCookieGuide.vue'
 import { useMusicPlayerStore } from '../stores/musicPlayer'
 import { useUserStore } from '../stores/user'
 import { useThemeStore } from '../stores/theme'
-import { neteaseLoginWithCookie, neteaseLogout, qqLoginCookie, qqLogout } from '../api/musicApi'
+import { neteaseLoginWithCookie, neteaseLogout, qqLoginCookie, qqLogout, searchNetease, searchQq } from '../api/musicApi'
+import type { MusicSearchHit } from '../api/musicApi'
 // ncm 扫码走独立 axios（withCredentials），与 Login.vue 一致
 // @ts-expect-error api.js 无 TS 声明，与 vue-tsc 兼容
 import { ncmApi } from '../api'
@@ -58,6 +59,7 @@ const displayTitle = computed(() => {
 const sourceLabel = computed(() => {
   if (music.source === 'library') return '📚 音乐库'
   if (music.source === 'playlist') {
+    if (music.dailyHotPlatform === 'netease_playlist') return '🎵 网易云歌单'
     if (music.dailyHotPlatform === 'netease') return '🔥 热歌 · 网易云'
     if (music.dailyHotPlatform === 'qq') return '🔥 热歌 · QQ'
     return '📋 歌单'
@@ -95,6 +97,23 @@ const qqCookieInput = ref('')
 const qqAuthErr = ref('')
 const qqAuthMsg = ref('')
 const qqLoginLoading = ref(false)
+
+/** 面板内「搜歌」：仅单曲，走本站已登录态下的 /api/music 搜索 */
+const searchQ = ref('')
+const searchPlatform = ref<'netease' | 'qq'>('netease')
+const searchLoading = ref(false)
+const searchErr = ref('')
+const searchHits = ref<MusicSearchHit[]>([])
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+let searchSeq = 0
+const SEARCH_DEBOUNCE_MS = 300
+
+function clearSearchDebounce() {
+  if (searchDebounceTimer != null) {
+    clearTimeout(searchDebounceTimer)
+    searchDebounceTimer = null
+  }
+}
 
 function pickNcmUnikey(inner: unknown): string {
   const o = inner as { data?: { unikey?: string }; unikey?: string }
@@ -379,10 +398,123 @@ function toggleExpand() {
   isExpanded.value = !isExpanded.value
 }
 
+function clearSearchResults() {
+  searchHits.value = []
+  searchErr.value = ''
+}
+
+function setSearchPlatform(p: 'netease' | 'qq') {
+  searchPlatform.value = p
+  clearSearchDebounce()
+  clearSearchResults()
+}
+
+
 function collapse() {
   isExpanded.value = false
   authPanelOpen.value = false
   stopQrPoll()
+  clearSearchDebounce()
+  clearSearchResults()
+  searchQ.value = ''
+}
+
+/** 输入防抖：随打字回传结果（无需点「搜索」） */
+function onSearchInput() {
+  clearSearchDebounce()
+  const q = searchQ.value.trim()
+  if (!q) {
+    searchSeq += 1
+    clearSearchResults()
+    return
+  }
+  searchDebounceTimer = setTimeout(() => {
+    searchDebounceTimer = null
+    void executeSongSearch(false)
+  }, SEARCH_DEBOUNCE_MS)
+}
+
+/**
+ * @param complainIfEmpty 为 true 时（点「搜索」或回车）关键词为空会提示；实时输入为空已在 onSearchInput 里静默清空
+ */
+async function executeSongSearch(complainIfEmpty: boolean) {
+  const q = searchQ.value.trim()
+  if (!q) {
+    clearSearchResults()
+    if (complainIfEmpty) searchErr.value = '请输入歌名或歌手'
+    return
+  }
+  if (!userStore.isLoggedIn) {
+    searchHits.value = []
+    searchErr.value = '请先登录本站后再搜索'
+    return
+  }
+  const seq = ++searchSeq
+  searchErr.value = ''
+  searchLoading.value = true
+  try {
+    const rows =
+      searchPlatform.value === 'netease'
+        ? await searchNetease(q, 30, 'song')
+        : await searchQq(q, 1, 20, 'song')
+    if (seq !== searchSeq) return
+    searchHits.value = rows.filter((h) => h.kind === 'song' && h.id > 0)
+    if (searchHits.value.length === 0) {
+      searchErr.value =
+        searchPlatform.value === 'netease'
+          ? '未找到匹配单曲。可换关键词、试 QQ 平台，或请管理员检查自建网易云 API（netease.proxy.base-url）是否可用'
+          : '未找到匹配单曲，可换平台或关键词再试'
+    }
+  } catch (e: unknown) {
+    if (seq !== searchSeq) return
+    searchHits.value = []
+    searchErr.value = e instanceof Error ? e.message : '搜索失败'
+  } finally {
+    if (seq === searchSeq) searchLoading.value = false
+  }
+}
+
+async function runSongSearch() {
+  clearSearchDebounce()
+  await executeSongSearch(true)
+}
+
+async function playSearchHit(hit: MusicSearchHit) {
+  if (hit.kind !== 'song') return
+  searchErr.value = ''
+  try {
+    if (searchPlatform.value === 'qq') {
+      if (!hit.mid) {
+        searchErr.value = '该结果缺少 songmid，无法播放'
+        return
+      }
+      await music.playTrack(
+        music.metaToQqTrack({
+          songmid: hit.mid,
+          name: hit.title,
+          artist: hit.subtitle,
+          cover: hit.cover,
+        }),
+      )
+    } else {
+      if (!hit.id) {
+        searchErr.value = '该结果缺少歌曲 ID'
+        return
+      }
+      await music.playTrack(
+        music.metaToTrack({
+          id: hit.id,
+          name: hit.title,
+          artist: hit.subtitle,
+          cover: hit.cover,
+        }),
+      )
+    }
+    clearSearchResults()
+    searchQ.value = ''
+  } catch (e: unknown) {
+    searchErr.value = e instanceof Error ? e.message : '播放失败'
+  }
 }
 
 function cyclePlayMode() {
@@ -487,6 +619,7 @@ onMounted(() => {
 onUnmounted(() => {
   cancelAnimationFrame(rafId)
   stopQrPoll()
+  clearSearchDebounce()
 })
 </script>
 
@@ -551,6 +684,70 @@ onUnmounted(() => {
             ✕
           </button>
         </header>
+
+        <section class="mp-search" aria-label="搜索歌曲">
+          <div class="mp-search__head">
+            <span class="mp-search__label">搜歌</span>
+            <div class="mp-search__tabs" role="tablist">
+              <button
+                type="button"
+                class="mp-search__tab"
+                :class="{ 'mp-search__tab--on': searchPlatform === 'netease' }"
+                role="tab"
+                :aria-selected="searchPlatform === 'netease'"
+                @click="setSearchPlatform('netease')"
+              >
+                网易
+              </button>
+              <button
+                type="button"
+                class="mp-search__tab"
+                :class="{ 'mp-search__tab--on': searchPlatform === 'qq' }"
+                role="tab"
+                :aria-selected="searchPlatform === 'qq'"
+                @click="setSearchPlatform('qq')"
+              >
+                QQ
+              </button>
+            </div>
+          </div>
+          <div class="mp-search__row">
+            <input
+              v-model="searchQ"
+              type="search"
+              class="mp-search__input"
+              placeholder="歌名或歌手"
+              maxlength="80"
+              autocomplete="off"
+              @input="onSearchInput"
+              @keydown.enter.prevent="runSongSearch"
+            />
+            <button
+              type="button"
+              class="mp-search__go"
+              :disabled="searchLoading || !userStore.isLoggedIn"
+              @click="runSongSearch"
+            >
+              {{ searchLoading ? '…' : '搜索' }}
+            </button>
+          </div>
+          <p v-if="!userStore.isLoggedIn" class="mp-search__hint">登录本站后可搜歌；QQ 播放需绑定 QQ Cookie。</p>
+          <p v-else-if="searchPlatform === 'qq'" class="mp-search__hint">
+            QQ 搜索依赖本机 <code>qq-music-api</code>（默认端口 3200）。<template v-if="!music.qqBound">播放需再点下方「QQ音乐登录」绑定 Cookie。</template>
+          </p>
+          <p v-if="searchErr" class="mp-search__err">{{ searchErr }}</p>
+          <ul v-if="searchHits.length" class="mp-search__list">
+            <li
+              v-for="(h, idx) in searchHits"
+              :key="`${searchPlatform}-${h.id}-${h.mid}-${idx}`"
+            >
+              <button type="button" class="mp-search__hit" @click="playSearchHit(h)">
+                <span class="mp-search__hit-title">{{ h.title }}</span>
+                <span class="mp-search__hit-sub">{{ h.subtitle || '—' }}</span>
+              </button>
+            </li>
+          </ul>
+        </section>
 
         <div ref="lyricBoxRef" class="mp-lyric" aria-live="polite">
           <template v-if="lrcLines.length">
@@ -638,7 +835,7 @@ onUnmounted(() => {
           <!-- 仅 QQ 音乐 -->
           <template v-else>
             <p class="mp-auth-box__hint">
-              QQ 音乐（<a href="https://github.com/jsososo/QQMusicApi" target="_blank" rel="noopener">QQMusicApi</a>）
+              QQ 音乐（<a href="https://sansenjian.github.io/qq-music-api/api/" target="_blank" rel="noopener">qq-music-api</a>）
             </p>
             <QqCookieGuide
               class="mp-qq-guide"
@@ -804,7 +1001,7 @@ onUnmounted(() => {
 
 .mp-panel {
   width: min(340px, calc(100vw - 100px));
-  max-height: min(520px, 70vh);
+  max-height: min(600px, 82vh);
   padding: 14px 16px 16px;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -909,10 +1106,189 @@ onUnmounted(() => {
   color: #fff;
 }
 
+.mp-search {
+  margin: 0 0 10px;
+  padding: 10px 10px 8px;
+  border-radius: 12px;
+  background: rgba(10, 18, 30, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  flex-shrink: 0;
+}
+
+.mp-search__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mp-search__label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.04em;
+}
+
+.mp-search__tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.mp-search__tab {
+  border: none;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.75);
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.mp-search__tab--on {
+  background: rgba(102, 217, 255, 0.35);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(102, 217, 255, 0.35);
+}
+
+.mp-search__row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.mp-search__input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f1f32;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.mp-search__input::placeholder {
+  color: rgba(15, 31, 50, 0.45);
+}
+
+.mp-search__input:focus {
+  outline: none;
+  border-color: rgba(102, 217, 255, 0.95);
+  box-shadow: 0 0 0 2px rgba(102, 217, 255, 0.22);
+}
+
+.mp-search__input:disabled {
+  opacity: 0.65;
+}
+
+.mp-search__go {
+  flex-shrink: 0;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(102, 217, 255, 0.55);
+  background: linear-gradient(135deg, rgba(102, 217, 255, 0.45), rgba(139, 127, 216, 0.42));
+  color: #0b1220;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.mp-search__go:hover:not(:disabled) {
+  transform: scale(1.02);
+  filter: brightness(1.05);
+}
+
+.mp-search__go:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mp-search__hint {
+  margin: 6px 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.mp-search__err {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  color: #ffb4b4;
+  line-height: 1.35;
+}
+
+.mp-search__list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  max-height: 132px;
+  overflow-y: auto;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.mp-search__list li {
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mp-search__list li:last-child {
+  border-bottom: none;
+}
+
+.mp-search__hit {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.12s ease;
+}
+
+.mp-search__hit:hover {
+  background: rgba(102, 217, 255, 0.16);
+}
+
+.mp-search__hit-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-search__hit-sub {
+  font-size: 0.68rem;
+  opacity: 0.82;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .mp-lyric {
   flex: 1;
-  min-height: 120px;
-  max-height: 200px;
+  min-height: 88px;
+  max-height: 160px;
   overflow-y: auto;
   margin-bottom: 10px;
   padding: 6px 4px;

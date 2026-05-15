@@ -94,7 +94,7 @@ services:
       VIEW_COUNTER_REDIS: ${VIEW_COUNTER_REDIS:-false}
       NETEASE_PROXY_BASE_URL: http://ncm-api:3000
       NCM_BASE_URL: http://ncm-api:3000
-      QQ_MUSIC_PROXY_BASE_URL: http://qq-music-api:3300
+      QQ_MUSIC_PROXY_BASE_URL: http://qq-music-api:3200
       AI_COMPANION_ENABLED: ${AI_COMPANION_ENABLED:-false}
       AI_COMPANION_API_KEY: ${AI_COMPANION_API_KEY:-}
     networks: [app]

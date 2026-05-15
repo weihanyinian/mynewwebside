@@ -22,6 +22,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * 调用可配置的网易云第三方 API（与歌单代理同源），支持带 Cookie 的请求。
+ *
+ * <p>上游实现为 <a href="https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced">api-enhanced</a>
+ * 发布的 npm 包 {@code @neteasecloudmusicapienhanced/api}：播放地址优先走增强接口
+ * {@code GET /song/url/v1}（{@code level} 音质），与旧版 {@code GET /song/url?br=} 自动回退兼容。</p>
  */
 @Component
 public class NeteaseBinaryifyClient {
@@ -119,25 +123,79 @@ public class NeteaseBinaryifyClient {
     throw new RestClientException("request failed");
   }
 
+  /**
+   * 获取可播放地址：优先 {@code /song/url/v1}（与 api-enhanced 模块 {@code song_url_v1.js} 一致），
+   * 无有效 URL 或请求失败时再回退 {@code /song/url?br=}（{@code song_url.js} → enhance/player/url）。
+   */
   public JsonNode songUrl(long songId, int br, String cookieHeaderOrNull) throws RestClientException {
+    String level = brToSongUrlLevel(br);
+    String uriV1 = UriComponentsBuilder.fromUriString("/song/url/v1")
+        .queryParam("id", songId)
+        .queryParam("level", level)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
+        .toUriString();
+    try {
+      JsonNode v1 = getJson(uriV1, cookieHeaderOrNull);
+      if (isPlayableSongUrlResponse(v1)) {
+        return v1;
+      }
+      log.debug("song/url/v1 无有效播放链(songId={}, level={})，回退 /song/url", songId, level);
+    } catch (RestClientException e) {
+      log.debug("song/url/v1 请求失败，回退 /song/url: {}", e.getMessage());
+    }
     String uri = UriComponentsBuilder.fromUriString("/song/url")
         .queryParam("id", songId)
         .queryParam("br", br)
-        .build(true)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, cookieHeaderOrNull);
+  }
+
+  /** 将码率映射为 api-enhanced {@code song_url_v1} 的 {@code level} 参数。 */
+  private static String brToSongUrlLevel(int br) {
+    if (br <= 128_000) {
+      return "standard";
+    }
+    if (br <= 320_000) {
+      return "exhigh";
+    }
+    return "lossless";
+  }
+
+  private static boolean isPlayableSongUrlResponse(JsonNode root) {
+    if (root == null || root.path("code").asInt(-1) != 200) {
+      return false;
+    }
+    JsonNode data = root.get("data");
+    if (data == null) {
+      return false;
+    }
+    JsonNode first = data.isArray() && data.size() > 0 ? data.get(0) : data;
+    if (first == null || first.isNull()) {
+      return false;
+    }
+    String url = first.path("url").asText("");
+    if (!url.isBlank()) {
+      return true;
+    }
+    // v1 解灰场景下偶见仅填充 proxyUrl
+    String proxyUrl = first.path("proxyUrl").asText("");
+    return !proxyUrl.isBlank();
   }
 
   public JsonNode lyric(long songId) throws RestClientException {
     String uri = UriComponentsBuilder.fromUriString("/lyric")
         .queryParam("id", songId)
-        .build(true)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, null);
   }
 
   /**
-   * 对应 {@code GET /cloudsearch}（<a href="https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api">增强 API</a>）。
+   * 对应 {@code GET /cloudsearch}（api-enhanced 模块 {@code cloudsearch.js}）。
    * type：1 单曲、10 专辑、100 歌手、1000 歌单。
    */
   public JsonNode cloudSearch(String keywords, int limit, int searchType) throws RestClientException {
@@ -145,7 +203,23 @@ public class NeteaseBinaryifyClient {
         .queryParam("keywords", keywords)
         .queryParam("limit", Math.min(Math.max(limit, 1), 100))
         .queryParam("type", searchType)
-        .build(true)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
+        .toUriString();
+    return getJson(uri, null);
+  }
+
+  /**
+   * 旧版综合搜索 {@code /search}（api-enhanced {@code module/search.js} → {@code /api/search/get}）。
+   * 部分部署上 {@code /cloudsearch} 偶发空结果或路由未挂载，可作回退。
+   */
+  public JsonNode searchMultimatch(String keywords, int limit, int searchType) throws RestClientException {
+    String uri = UriComponentsBuilder.fromUriString("/search")
+        .queryParam("keywords", keywords)
+        .queryParam("limit", Math.min(Math.max(limit, 1), 100))
+        .queryParam("type", searchType)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, null);
   }
@@ -155,7 +229,8 @@ public class NeteaseBinaryifyClient {
         .queryParam("uid", uid)
         .queryParam("offset", offset)
         .queryParam("limit", limit)
-        .build(true)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, cookieHeader);
   }
@@ -163,7 +238,8 @@ public class NeteaseBinaryifyClient {
   public JsonNode likelist(long uid, String cookieHeader) throws RestClientException {
     String uri = UriComponentsBuilder.fromUriString("/likelist")
         .queryParam("uid", uid)
-        .build(true)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, cookieHeader);
   }
@@ -173,7 +249,8 @@ public class NeteaseBinaryifyClient {
         .queryParam("uid", uid)
         .queryParam("type", type)
         .queryParam("limit", limit)
-        .build(true)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, cookieHeader);
   }
@@ -181,7 +258,8 @@ public class NeteaseBinaryifyClient {
   public JsonNode songDetail(String idsCommaSeparated) throws RestClientException {
     String uri = UriComponentsBuilder.fromUriString("/song/detail")
         .queryParam("ids", idsCommaSeparated)
-        .build(true)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, null);
   }
@@ -190,7 +268,8 @@ public class NeteaseBinaryifyClient {
     String uri = UriComponentsBuilder.fromUriString("/playlist/track/all")
         .queryParam("id", playlistId)
         .queryParam("limit", limit)
-        .build(true)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, cookieHeaderOrNull);
   }
@@ -220,6 +299,10 @@ public class NeteaseBinaryifyClient {
       } catch (RestClientException e) {
         last = e;
         log.warn("网易云代理请求失败(第{}次): {}", attempt, e.getMessage());
+        JsonNode fallback = tryFallbackGetJson(relativeUri, cookieHeaderOrNull);
+        if (fallback != null) {
+          return fallback;
+        }
       } catch (Exception e) {
         log.warn("网易云代理响应解析失败", e);
         throw new RestClientException("parse failed", e);
@@ -289,15 +372,8 @@ public class NeteaseBinaryifyClient {
   }
 
   private boolean canUseFallback() {
-    return properties.isLocalFallbackEnabled() && isLocalBaseUrl(primaryBaseUrl) && fallbackRestClient != null;
-  }
-
-  private static boolean isLocalBaseUrl(String baseUrl) {
-    if (baseUrl == null) {
-      return false;
-    }
-    String u = baseUrl.toLowerCase();
-    return u.contains("127.0.0.1") || u.contains("localhost");
+    // 主代理（公网镜像等）不可达或返回错误时，只要配置了与主地址不同的备用 base 即可回退（常见：主用 Vercel、备用本机 3000）
+    return properties.isLocalFallbackEnabled() && fallbackRestClient != null;
   }
 
   private static String normalizeBaseUrl(String raw) {

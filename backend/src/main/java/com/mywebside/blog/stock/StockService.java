@@ -1,6 +1,8 @@
 package com.mywebside.blog.stock;
 
 import com.mywebside.blog.common.BusinessException;
+import com.mywebside.blog.persistence.entity.UserEntity;
+import com.mywebside.blog.persistence.mapper.UserEntityMapper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -21,14 +23,17 @@ public class StockService {
   private final StockTradeRepository tradeRepo;
   private final StockOrderRepository orderRepo;
   private final StockDataService dataService;
+  private final UserEntityMapper userMapper;
   private final RestClient restClient;
 
   public StockService(StockPortfolioRepository portfolioRepo, StockTradeRepository tradeRepo,
-                      StockOrderRepository orderRepo, StockDataService dataService, RestClient.Builder rb) {
+                      StockOrderRepository orderRepo, StockDataService dataService,
+                      UserEntityMapper userMapper, RestClient.Builder rb) {
     this.portfolioRepo = portfolioRepo;
     this.tradeRepo = tradeRepo;
     this.orderRepo = orderRepo;
     this.dataService = dataService;
+    this.userMapper = userMapper;
     this.restClient = rb.build();
   }
 
@@ -37,8 +42,8 @@ public class StockService {
     return dataService.fetchQuote(normalizeCode(rawCode));
   }
 
-  /** Search stocks by keyword (A-shares via Tencent, US via Yahoo). */
-  public List<StockSearchResult> search(String keyword) {
+  /** Search stocks by keyword (A-shares via Tencent, US/HK via Yahoo). Optional {@code market}: cn | us | hk | all. */
+  public List<StockSearchResult> search(String keyword, String market) {
     if (keyword == null || keyword.isBlank()) return Collections.emptyList();
     List<StockSearchResult> results = new ArrayList<>();
 
@@ -53,12 +58,39 @@ public class StockService {
     // US/HK stock search via Yahoo
     try {
       String yahooBody = restClient.get()
-          .uri("https://query1.finance.yahoo.com/v1/finance/search?q=" + keyword.trim() + "&quotesCount=10")
+          .uri("https://query1.finance.yahoo.com/v1/finance/search?q=" + keyword.trim() + "&quotesCount=12")
           .header("User-Agent", "Mozilla/5.0").retrieve().body(String.class);
       if (yahooBody != null && !yahooBody.isBlank()) results.addAll(parseYahooSearch(yahooBody));
     } catch (Exception e) { log.debug("Yahoo search failed: {}", e.getMessage()); }
 
-    return results;
+    LinkedHashMap<String, StockSearchResult> dedup = new LinkedHashMap<>();
+    for (StockSearchResult r : results) {
+      String key = r.fullCode().toLowerCase(Locale.ROOT);
+      dedup.putIfAbsent(key, r);
+    }
+    results = new ArrayList<>(dedup.values());
+
+    String m = market == null || market.isBlank() ? "all" : market.toLowerCase(Locale.ROOT);
+    if ("cn".equals(m)) {
+      return results.stream().filter(StockService::isCnBoardSearchCode).limit(20).toList();
+    }
+    if ("us".equals(m)) {
+      return results.stream().filter(r -> !isCnBoardSearchCode(r) && !isHkSearchCode(r)).limit(20).toList();
+    }
+    if ("hk".equals(m)) {
+      return results.stream().filter(StockService::isHkSearchCode).limit(20).toList();
+    }
+    return results.stream().limit(25).toList();
+  }
+
+  private static boolean isCnBoardSearchCode(StockSearchResult r) {
+    String f = r.fullCode().toLowerCase(Locale.ROOT);
+    return f.startsWith("sh") || f.startsWith("sz");
+  }
+
+  private static boolean isHkSearchCode(StockSearchResult r) {
+    String f = r.fullCode().toUpperCase(Locale.ROOT);
+    return f.endsWith(".HK") || f.contains(".HK");
   }
 
   public PortfolioSummary getPortfolio(Long userId) {
@@ -112,14 +144,27 @@ public class StockService {
     return pnlByUser.entrySet().stream()
         .sorted(Map.Entry.<Long, BigDecimal>comparingByValue().reversed())
         .limit(20)
-        .map(e -> new LeaderboardEntry(e.getKey(), e.getValue()))
+        .map(e -> {
+          String display = userMapper.findById(e.getKey())
+              .map(StockService::displayNameForUser)
+              .orElse("用户" + e.getKey());
+          return new LeaderboardEntry(e.getKey(), display, e.getValue());
+        })
         .toList();
+  }
+
+  private static String displayNameForUser(UserEntity u) {
+    String nick = u.getNickname();
+    if (nick != null && !nick.isBlank()) return nick.trim();
+    return u.getUsername();
   }
 
   @Transactional
   public TradeResultDto buy(Long userId, String rawCode, int shares) {
     if (shares <= 0) throw new BusinessException(400, "买入股数必须大于0");
-    StockDataService.Quote q = dataService.fetchQuote(normalizeCode(rawCode));
+    String code = normalizeCode(rawCode);
+    validateLotShares(code, shares);
+    StockDataService.Quote q = dataService.fetchQuote(code);
     if (q.price().compareTo(BigDecimal.ZERO) <= 0) throw new BusinessException(502, "获取股票行情失败");
 
     BigDecimal cost = q.price().multiply(BigDecimal.valueOf(shares));
@@ -130,7 +175,6 @@ public class StockService {
     BigDecimal cash = getCash(userId);
     if (cash.compareTo(total) < 0) throw new BusinessException(400, "可用资金不足");
 
-    String code = normalizeCode(rawCode);
     StockPortfolio holding = portfolioRepo.findByUserIdAndStockCode(userId, code).orElse(null);
     if (holding != null) {
       BigDecimal oldTotal = holding.getAvgCost().multiply(BigDecimal.valueOf(holding.getShares()));
@@ -150,13 +194,14 @@ public class StockService {
     tradeRepo.save(trade);
 
     BigDecimal remaining = cash.subtract(total);
-    return new TradeResultDto("BUY", code, q.name(), shares, q.price(), fee, remaining);
+    return new TradeResultDto("BUY", code, q.name(), shares, q.price(), fee, remaining, cost);
   }
 
   @Transactional
   public TradeResultDto sell(Long userId, String rawCode, int shares) {
     if (shares <= 0) throw new BusinessException(400, "卖出股数必须大于0");
     String code = normalizeCode(rawCode);
+    validateLotShares(code, shares);
     StockPortfolio holding = portfolioRepo.findByUserIdAndStockCode(userId, code)
         .orElseThrow(() -> new BusinessException(400, "未持有该股票"));
     if (holding.getShares() < shares) throw new BusinessException(400, "持仓不足");
@@ -185,7 +230,7 @@ public class StockService {
     trade.setProfitLoss(profitLoss);
     tradeRepo.save(trade);
 
-    return new TradeResultDto("SELL", code, q.name(), shares, q.price(), fee, cash.add(total));
+    return new TradeResultDto("SELL", code, q.name(), shares, q.price(), fee, cash.add(total), revenue);
   }
 
   // ---- order management ----
@@ -195,8 +240,13 @@ public class StockService {
                              BigDecimal limitPrice, int shares) {
     if (shares <= 0) throw new BusinessException(400, "委托数量必须大于0");
     String code = normalizeCode(rawCode);
+    validateLotShares(code, shares);
     StockOrder.TradeType tt = "SELL".equalsIgnoreCase(type) ? StockOrder.TradeType.SELL : StockOrder.TradeType.BUY;
     StockOrder.OrderType ot = "MARKET".equalsIgnoreCase(orderType) ? StockOrder.OrderType.MARKET : StockOrder.OrderType.LIMIT;
+
+    if (ot == StockOrder.OrderType.LIMIT && (limitPrice == null || limitPrice.compareTo(BigDecimal.ZERO) <= 0)) {
+      throw new BusinessException(400, "请输入有效的限价");
+    }
 
     StockDataService.Quote q = dataService.fetchQuote(code);
     if (q.price().compareTo(BigDecimal.ZERO) <= 0) throw new BusinessException(502, "获取行情失败");
@@ -283,6 +333,24 @@ public class StockService {
     }
   }
 
+  /** A 股沪深主板/创业板等常见代码：委托数量须为 100 股的整数倍（与真实交易习惯一致）。 */
+  static void validateLotShares(String normalizedCode, int shares) {
+    String c = normalizedCode.toLowerCase(Locale.ROOT);
+    if (!isCnSixDigitBoardCode(c)) return;
+    if (shares < 100 || shares % 100 != 0) {
+      throw new BusinessException(400, "A股委托数量须为100股的整数倍");
+    }
+  }
+
+  static boolean isCnSixDigitBoardCode(String c) {
+    if (!(c.startsWith("sh") || c.startsWith("sz"))) return false;
+    if (c.length() != 8) return false;
+    for (int i = 2; i < 8; i++) {
+      if (!Character.isDigit(c.charAt(i))) return false;
+    }
+    return true;
+  }
+
   private BigDecimal getCash(Long userId) {
     List<StockTrade> trades = tradeRepo.findByUserIdOrderByTradedAtDesc(userId);
     if (trades.isEmpty()) return INITIAL_CASH;
@@ -297,9 +365,24 @@ public class StockService {
     return cash;
   }
 
+  /**
+   * 统一证券代码：沪深 sh/sz +6 位；港股 xxxx.hk（Yahoo）；美股等保持小写 ticker。
+   * 注意：纯数字须先识别 6 位 A 股，再识别 1～5 位港股，避免「00700」被误判为深市。
+   */
   static String normalizeCode(String raw) {
-    String s = raw.trim().toLowerCase();
+    String s = raw.trim().toLowerCase(Locale.ROOT);
     if (s.startsWith("sh") || s.startsWith("sz")) return s;
+    if (s.endsWith(".hk")) return s;
+    if (s.matches("\\d{6}")) {
+      if (s.charAt(0) == '6') return "sh" + s;
+      if (s.charAt(0) == '0' || s.charAt(0) == '3' || s.charAt(0) == '2') return "sz" + s;
+      return s;
+    }
+    if (s.matches("\\d{1,5}")) {
+      int v = Integer.parseInt(s);
+      if (v > 9999) return v + ".hk";
+      return String.format("%04d", v) + ".hk";
+    }
     if (s.startsWith("6")) return "sh" + s;
     if (s.startsWith("0") || s.startsWith("3") || s.startsWith("2")) return "sz" + s;
     return s;
@@ -354,8 +437,8 @@ public class StockService {
   public record PortfolioSummary(BigDecimal cash, BigDecimal marketValue, BigDecimal totalAssets,
       BigDecimal totalPnl, BigDecimal totalPnlPct, List<HoldingDto> holdings) {}
   public record TradeResultDto(String type, String code, String name, int shares,
-      BigDecimal price, BigDecimal fee, BigDecimal cashAfter) {}
+      BigDecimal price, BigDecimal fee, BigDecimal cashAfter, BigDecimal grossAmount) {}
   public record TradeHistoryDto(String code, String name, String type, int shares,
       BigDecimal price, BigDecimal fee, BigDecimal profitLoss, Instant time) {}
-  public record LeaderboardEntry(Long userId, BigDecimal totalPnl) {}
+  public record LeaderboardEntry(Long userId, String displayName, BigDecimal totalPnl) {}
 }

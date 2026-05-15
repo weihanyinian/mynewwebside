@@ -4,6 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * 网易云第三方 Binaryify 类 API 根地址（可自建或部署），用于登录、歌单、播放链接等。
+ * <p>推荐自建 <a href="https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced">api-enhanced</a>
+ *（npm {@code @neteasecloudmusicapienhanced/api}，本仓库 {@code ncm-api/} 或 Docker {@code moefurina/ncm-api}）。</p>
  */
 @ConfigurationProperties(prefix = "netease.proxy")
 public class NeteaseProxyProperties {
@@ -34,14 +36,15 @@ public class NeteaseProxyProperties {
   private int retryCount = 1;
 
   /**
-   * 当主代理（例如 localhost:3000）不可达时，是否自动回退到公共代理。
+   * 是否启用备用 {@link #fallbackBaseUrl}：主代理连接失败、HTTP 错误等时会自动尝试一次备用地址。
    */
   private boolean localFallbackEnabled = true;
 
   /**
-   * 本地代理不可达时使用的回退地址。
+   * 主代理不可达或业务失败时尝试的备用根地址（须与 {@link #baseUrl} 不同才会启用）。
+   * 默认本机 api-enhanced（3000）；公网镜像易失效时请先本地 {@code npm start}。
    */
-  private String fallbackBaseUrl = "https://netease-cloud-music-api-five-roan-58.vercel.app";
+  private String fallbackBaseUrl = "http://127.0.0.1:3000";
 
   public String getBaseUrl() {
     return baseUrl;

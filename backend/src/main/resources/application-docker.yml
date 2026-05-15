@@ -23,4 +23,4 @@ ncm:
 
 qq:
   proxy:
-    base-url: ${QQ_MUSIC_PROXY_BASE_URL:http://qq-music-api:3300}
+    base-url: ${QQ_MUSIC_PROXY_BASE_URL:http://qq-music-api:3200}

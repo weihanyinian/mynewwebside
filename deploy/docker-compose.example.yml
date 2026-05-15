@@ -67,7 +67,7 @@ services:
       retries: 3
       start_period: 15s
 
-  # QQ 音乐接口（https://github.com/jsososo/QQMusicApi）
+  # QQ 音乐接口（https://github.com/sansenjian/qq-music-api ，文档见 https://sansenjian.github.io/qq-music-api/api/ ）
   qq-music-api:
     build:
       context: ../docker/qq-music-api
@@ -109,7 +109,7 @@ services:
       VIEW_COUNTER_REDIS: ${VIEW_COUNTER_REDIS:-false}
       NETEASE_PROXY_BASE_URL: http://ncm-api:3000
       NCM_BASE_URL: http://ncm-api:3000
-      QQ_MUSIC_PROXY_BASE_URL: http://qq-music-api:3300
+      QQ_MUSIC_PROXY_BASE_URL: http://qq-music-api:3200
       AI_COMPANION_ENABLED: ${AI_COMPANION_ENABLED:-false}
       AI_COMPANION_API_KEY: ${AI_COMPANION_API_KEY:-}
     networks: [app]

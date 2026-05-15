@@ -190,7 +190,7 @@ public class NeteaseSessionService {
     if (ex instanceof ResourceAccessException) {
       return "无法连接网易云第三方 API（当前 netease.proxy.base-url="
           + proxyProperties.getBaseUrl()
-          + "）。请确认已启动 @neteasecloudmusicapienhanced/api（npm / Docker 镜像 moefurina/ncm-api，默认 3000），"
+          + "）。请确认已启动 api-enhanced（GitHub NeteaseCloudMusicApiEnhanced/api-enhanced；npm @neteasecloudmusicapienhanced/api 或 Docker moefurina/ncm-api，默认 3000），"
           + "且后端能访问该地址；若 Spring Boot 在容器内而 API 在宿主机，请改用 host.docker.internal 等，勿仅用 127.0.0.1。";
     }
     String msg = ex.getMessage() == null ? "" : ex.getMessage();

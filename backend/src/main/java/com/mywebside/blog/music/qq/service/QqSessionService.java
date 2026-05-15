@@ -61,17 +61,16 @@ public class QqSessionService {
 
     String nickname = null;
     try {
-      JsonNode detail = qqClient.userDetail(uin, cookie);
-      JsonNode data = detail.path("data");
-      nickname = data.path("hostname").asText("");
-      if (nickname.isBlank()) {
-        nickname = data.path("nick").asText("");
-      }
-      if (nickname.isBlank()) {
-        nickname = data.path("creator").path("hostname").asText("");
+      JsonNode detail = qqClient.userPlaylists(uin, 0, 1, cookie);
+      if (detail.path("code").asInt(-1) == 0) {
+        JsonNode data = detail.path("data");
+        nickname = textPick(data, "nickname", "nick", "userName", "user_name");
+        if (nickname == null || nickname.isBlank()) {
+          nickname = data.path("user").path("nick").asText("");
+        }
       }
     } catch (RestClientException ignored) {
-      // 主页接口失败时仍保存 Cookie，播放可能仍可用
+      // 用户歌单接口失败时仍保存 Cookie，播放可能仍可用
     }
 
     QqUserSessionEntity entity = repository.findById(siteUsername).orElseGet(QqUserSessionEntity::new);
@@ -100,6 +99,21 @@ public class QqSessionService {
       return "";
     }
     return raw.trim().replaceFirst("^\uFEFF", "");
+  }
+
+  private static String textPick(JsonNode n, String... keys) {
+    if (n == null || n.isMissingNode()) {
+      return null;
+    }
+    for (String k : keys) {
+      if (n.hasNonNull(k)) {
+        String t = n.get(k).asText("");
+        if (!t.isBlank()) {
+          return t;
+        }
+      }
+    }
+    return null;
   }
 
   private static String extractUin(String cookieHeader) {

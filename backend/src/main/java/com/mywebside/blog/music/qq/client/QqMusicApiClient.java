@@ -3,6 +3,7 @@ package com.mywebside.blog.music.qq.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mywebside.blog.music.qq.config.QqMusicProxyProperties;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.net.http.HttpClient;
 import org.springframework.http.HttpHeaders;
@@ -14,7 +15,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * 调用本地/容器内 {@link QqMusicProxyProperties#getBaseUrl()} 部署的
- * <a href="https://github.com/jsososo/QQMusicApi">QQMusicApi</a>。
+ * <a href="https://sansenjian.github.io/qq-music-api/api/">sansenjian/qq-music-api</a>
+ *（默认端口 3200，见项目 README）。
  */
 @Component
 public class QqMusicApiClient {
@@ -40,53 +42,87 @@ public class QqMusicApiClient {
   }
 
   /**
-   * QQ 音乐搜索。{@code t} 与上游一致：0 单曲、2 歌单、8 专辑、9 歌手（见 QQMusicApi {@code routes/search.js}）。
+   * 综合搜索，对应 {@code GET /getSearchByKey}。
+   *
+   * @see <a href="https://sansenjian.github.io/qq-music-api/api/search.html">搜索 API</a>
    */
-  public JsonNode search(String keyword, int pageNo, int pageSize, int t) throws RestClientException {
-    String uri = UriComponentsBuilder.fromPath("/search/")
+  public JsonNode searchByKey(String keyword, int limit, int page, Integer catZhida) throws RestClientException {
+    UriComponentsBuilder b = UriComponentsBuilder.fromPath("/getSearchByKey")
         .queryParam("key", keyword)
-        .queryParam("pageNo", pageNo)
-        .queryParam("pageSize", Math.min(Math.max(pageSize, 1), 50))
-        .queryParam("t", t)
-        .build(true)
-        .toUriString();
-    return getJson(uri, null);
+        .queryParam("limit", Math.min(Math.max(limit, 1), 50))
+        .queryParam("page", Math.max(1, page));
+    if (catZhida != null) {
+      b.queryParam("catZhida", catZhida);
+    }
+    return getJson(b.build(false).encode(StandardCharsets.UTF_8).toUriString(), null);
   }
 
-  public JsonNode songUrl(String songmid, String type, String cookieHeaderOrNull) throws RestClientException {
-    String uri = UriComponentsBuilder.fromPath("/song/url")
-        .queryParam("id", songmid)
-        .queryParam("type", type != null && !type.isBlank() ? type : "128")
-        .queryParam("ownCookie", 1)
-        .build(true)
-        .toUriString();
-    return getJson(uri, cookieHeaderOrNull);
+  /**
+   * 播放地址，对应 {@code GET /getMusicPlay}。
+   *
+   * @see <a href="https://sansenjian.github.io/qq-music-api/api/music.html">音乐 API</a>
+   */
+  public JsonNode musicPlay(String songmid, Long songid, String cookieHeaderOrNull) throws RestClientException {
+    UriComponentsBuilder b = UriComponentsBuilder.fromPath("/getMusicPlay")
+        .queryParam("songmid", songmid);
+    if (songid != null && songid > 0) {
+      b.queryParam("songid", songid);
+    }
+    return getJson(b.build(false).encode(StandardCharsets.UTF_8).toUriString(), cookieHeaderOrNull);
   }
 
-  /** QQ 音乐巅峰榜，对应上游 {@code GET /top/}。 */
-  public JsonNode topList(int topId, int pageNo, int pageSize) throws RestClientException {
-    String uri = UriComponentsBuilder.fromPath("/top/")
-        .queryParam("id", topId)
-        .queryParam("pageNo", Math.max(1, pageNo))
-        .queryParam("pageSize", Math.min(Math.max(pageSize, 1), 100))
-        .build(true)
-        .toUriString();
-    return getJson(uri, null);
+  /**
+   * 排行榜，对应 {@code GET /getRanks}。
+   *
+   * @see <a href="https://sansenjian.github.io/qq-music-api/api/rank.html">排行榜 API</a>
+   */
+  public JsonNode getRanks(Integer topId, int limit, int page) throws RestClientException {
+    UriComponentsBuilder b = UriComponentsBuilder.fromPath("/getRanks")
+        .queryParam("limit", Math.min(Math.max(limit, 1), 100))
+        .queryParam("page", Math.max(1, page));
+    if (topId != null && topId > 0) {
+      b.queryParam("topId", topId);
+    }
+    return getJson(b.build(false).encode(StandardCharsets.UTF_8).toUriString(), null);
   }
 
-  public JsonNode lyric(String songmid) throws RestClientException {
-    String uri = UriComponentsBuilder.fromPath("/lyric/")
+  /**
+   * 歌词，对应 {@code GET /getLyric}；{@code isFormat=1} 返回解析后的 LRC 文本。
+   */
+  public JsonNode lyric(String songmid, boolean format) throws RestClientException {
+    String uri = UriComponentsBuilder.fromPath("/getLyric")
         .queryParam("songmid", songmid)
-        .build(true)
+        .queryParam("isFormat", format ? 1 : 0)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, null);
   }
 
-  /** 校验 Cookie 并尝试拉取昵称（公开主页接口）。 */
-  public JsonNode userDetail(String qqUin, String cookieHeaderOrNull) throws RestClientException {
-    String uri = UriComponentsBuilder.fromPath("/user/detail")
-        .queryParam("id", qqUin)
-        .build(true)
+  /**
+   * 智能搜索（smartbox），部分环境下比 {@link #searchByKey} 更稳定；对应 {@code GET /getSmartbox}。
+   */
+  public JsonNode getSmartbox(String keyword) throws RestClientException {
+    String uri = UriComponentsBuilder.fromPath("/getSmartbox")
+        .queryParam("key", keyword)
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
+        .toUriString();
+    return getJson(uri, null);
+  }
+
+  /**
+   * 用户歌单（校验 Cookie / 拉取基础资料），对应 {@code GET /user/getUserPlaylists}。
+   *
+   * @see <a href="https://sansenjian.github.io/qq-music-api/api/user.html">用户 API</a>
+   */
+  public JsonNode userPlaylists(String uin, int offset, int limit, String cookieHeaderOrNull) throws RestClientException {
+    String uri = UriComponentsBuilder.fromPath("/user/getUserPlaylists")
+        .queryParam("uin", uin)
+        .queryParam("offset", Math.max(0, offset))
+        .queryParam("limit", Math.min(Math.max(limit, 1), 50))
+        .build(false)
+        .encode(StandardCharsets.UTF_8)
         .toUriString();
     return getJson(uri, cookieHeaderOrNull);
   }

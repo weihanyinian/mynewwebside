@@ -1,6 +1,7 @@
 package com.mywebside.blog.music.netease.proxy.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import com.mywebside.blog.common.BusinessException;
 import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
 import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
@@ -12,11 +13,15 @@ import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 
 @Service
 public class NeteaseMusicProxyService {
+
+  private static final Logger log = LoggerFactory.getLogger(NeteaseMusicProxyService.class);
 
   private final NeteaseBinaryifyClient client;
   private final NeteaseProxyProperties properties;
@@ -61,18 +66,37 @@ public class NeteaseMusicProxyService {
    */
   public List<MusicSearchHitDto> searchHits(String keyword, int limit, String type) {
     int cloudType = cloudSearchType(type);
+    List<MusicSearchHitDto> hits = List.of();
     try {
       JsonNode root = client.cloudSearch(keyword, limit, cloudType);
-      return switch (cloudType) {
-        case 1 -> parseCloudSongHits(root);
-        case 100 -> parseCloudArtistHits(root);
-        case 10 -> parseCloudAlbumHits(root);
-        case 1000 -> parseCloudPlaylistHits(root);
-        default -> List.of();
-      };
+      hits = parseByCloudType(root, cloudType);
     } catch (RestClientException e) {
+      log.warn("网易云 cloudsearch 请求失败: {}", e.getMessage());
+    }
+    if (!hits.isEmpty()) {
+      return hits;
+    }
+    try {
+      JsonNode legacy = client.searchMultimatch(keyword, limit, cloudType);
+      hits = parseByCloudType(legacy, cloudType);
+      if (!hits.isEmpty()) {
+        log.debug("网易云搜索已用 /search 回退: q={}", keyword);
+      }
+      return hits;
+    } catch (RestClientException e) {
+      log.warn("网易云 /search 回退请求失败: {}", e.getMessage());
       return List.of();
     }
+  }
+
+  private List<MusicSearchHitDto> parseByCloudType(JsonNode root, int cloudType) {
+    return switch (cloudType) {
+      case 1 -> parseCloudSongHits(root);
+      case 100 -> parseCloudArtistHits(root);
+      case 10 -> parseCloudAlbumHits(root);
+      case 1000 -> parseCloudPlaylistHits(root);
+      default -> List.of();
+    };
   }
 
   private static int cloudSearchType(String raw) {
@@ -87,13 +111,52 @@ public class NeteaseMusicProxyService {
     };
   }
 
-  private List<MusicSearchHitDto> parseCloudSongHits(JsonNode root) {
-    int code = root.path("code").asInt(-1);
-    if (code != 200) {
-      return List.of();
+  /** 兼容 {@code {result:{...}}}、{@code {body:{result:{...}}}} 等包装 */
+  private static JsonNode cloudResultNode(JsonNode root) {
+    if (root == null || root.isNull()) {
+      return MissingNode.getInstance();
     }
-    JsonNode songs = root.path("result").path("songs");
-    if (!songs.isArray()) {
+    JsonNode body = root.path("body");
+    if (body.isObject()) {
+      if (!body.path("result").isMissingNode()) {
+        return body.path("result");
+      }
+      if (body.path("songs").isArray()) {
+        return body;
+      }
+    }
+    return root.path("result");
+  }
+
+  private static boolean isCloudSearchSuccess(JsonNode root, String listKey) {
+    if (root == null || root.isNull()) {
+      return false;
+    }
+    JsonNode res = cloudResultNode(root);
+    JsonNode list = res.path(listKey);
+    if (list.isArray() && !list.isEmpty()) {
+      return true;
+    }
+    int c = root.path("code").asInt(-999);
+    if (c == 200) {
+      return true;
+    }
+    if (root.path("code").isTextual() && "200".equals(root.path("code").asText().trim())) {
+      return true;
+    }
+    return root.path("status").asInt(-999) == 200;
+  }
+
+  private List<MusicSearchHitDto> parseCloudSongHits(JsonNode root) {
+    if (!isCloudSearchSuccess(root, "songs")) {
+      log.debug("cloudsearch 单曲未成功: code={} msg={}", root.path("code"), root.path("msg"));
+    }
+    JsonNode res = cloudResultNode(root);
+    JsonNode songs = res.path("songs");
+    if (!songs.isArray() || songs.isEmpty()) {
+      songs = root.path("songs");
+    }
+    if (!songs.isArray() || songs.isEmpty()) {
       return List.of();
     }
     List<MusicSearchHitDto> out = new ArrayList<>();
@@ -111,12 +174,15 @@ public class NeteaseMusicProxyService {
   }
 
   private List<MusicSearchHitDto> parseCloudArtistHits(JsonNode root) {
-    int code = root.path("code").asInt(-1);
-    if (code != 200) {
-      return List.of();
+    if (!isCloudSearchSuccess(root, "artists")) {
+      log.debug("cloudsearch 歌手未成功: code={}", root.path("code"));
     }
-    JsonNode artists = root.path("result").path("artists");
-    if (!artists.isArray()) {
+    JsonNode res = cloudResultNode(root);
+    JsonNode artists = res.path("artists");
+    if (!artists.isArray() || artists.isEmpty()) {
+      artists = root.path("artists");
+    }
+    if (!artists.isArray() || artists.isEmpty()) {
       return List.of();
     }
     List<MusicSearchHitDto> out = new ArrayList<>();
@@ -138,12 +204,15 @@ public class NeteaseMusicProxyService {
   }
 
   private List<MusicSearchHitDto> parseCloudAlbumHits(JsonNode root) {
-    int code = root.path("code").asInt(-1);
-    if (code != 200) {
-      return List.of();
+    if (!isCloudSearchSuccess(root, "albums")) {
+      log.debug("cloudsearch 专辑未成功: code={}", root.path("code"));
     }
-    JsonNode albums = root.path("result").path("albums");
-    if (!albums.isArray()) {
+    JsonNode res = cloudResultNode(root);
+    JsonNode albums = res.path("albums");
+    if (!albums.isArray() || albums.isEmpty()) {
+      albums = root.path("albums");
+    }
+    if (!albums.isArray() || albums.isEmpty()) {
       return List.of();
     }
     List<MusicSearchHitDto> out = new ArrayList<>();
@@ -161,12 +230,15 @@ public class NeteaseMusicProxyService {
   }
 
   private List<MusicSearchHitDto> parseCloudPlaylistHits(JsonNode root) {
-    int code = root.path("code").asInt(-1);
-    if (code != 200) {
-      return List.of();
+    if (!isCloudSearchSuccess(root, "playlists")) {
+      log.debug("cloudsearch 歌单未成功: code={}", root.path("code"));
     }
-    JsonNode pls = root.path("result").path("playlists");
-    if (!pls.isArray()) {
+    JsonNode res = cloudResultNode(root);
+    JsonNode pls = res.path("playlists");
+    if (!pls.isArray() || pls.isEmpty()) {
+      pls = root.path("playlists");
+    }
+    if (!pls.isArray() || pls.isEmpty()) {
       return List.of();
     }
     List<MusicSearchHitDto> out = new ArrayList<>();
@@ -305,6 +377,9 @@ public class NeteaseMusicProxyService {
     }
     JsonNode first = data.isArray() && data.size() > 0 ? data.get(0) : data;
     String url = first.path("url").asText(null);
+    if (url == null || url.isBlank()) {
+      url = first.path("proxyUrl").asText(null);
+    }
     if (url == null || url.isBlank()) {
       return new SongUrlDto(null, false, "NO_COPYRIGHT", "无版权或需登录后播放");
     }

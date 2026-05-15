@@ -5,7 +5,7 @@
 - `backend/` Spring Boot 3 + MySQL 后端（RESTful）
 - `frontend/` Vue 3 + Vite + Element Plus 前端（前台 + 简易后台）
 - `ncm-api/` 本机启动 [@neteasecloudmusicapienhanced/api](https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api)（默认端口 3000），供音乐模块上游使用
-- `docker/` 镜像构建：`backend`、`frontend`、[QQMusicApi](https://github.com/jsososo/QQMusicApi) 封装目录 `qq-music-api/` 等；**无 compose / .env**；编排见 **`deploy/README.md`**
+- `docker/` 镜像构建：`backend`、`frontend`、[qq-music-api](https://github.com/sansenjian/qq-music-api)（[API 文档](https://sansenjian.github.io/qq-music-api/api/)）封装目录 `qq-music-api/` 等；**无 compose / .env**；编排见 **`deploy/README.md`**
 - `mysql/schema.sql` MySQL 建表语句
 
 ## 后端能力

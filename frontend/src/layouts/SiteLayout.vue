@@ -291,6 +291,7 @@ onUnmounted(() => {
 
     <SiteGlassFooter />
     <SiteBackToTop />
+    <GlobalSearch ref="searchRef" />
   </div>
 </template>
 

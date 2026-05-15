@@ -1,4 +1,4 @@
-﻿# 模板：仅启动网易云增强 API（本地配合 Vite + Spring Boot）。可复制为 deploy/docker-compose.ncm-only.yml 再改端口等（该文件名已 gitignore）
+﻿# 模板：仅启动网易云 api-enhanced（https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced）。可复制为 deploy/docker-compose.ncm-only.yml 再改端口等（该文件名已 gitignore）
 # 不复制也可直接用：docker compose -f deploy/docker-compose.ncm-only.example.yml up -d
 name: ncm-dev
 
@@ -11,6 +11,11 @@ services:
       - "3000:3000"
     environment:
       PORT: "3000"
+      ENABLE_GENERAL_UNBLOCK: "true"
+      ENABLE_FLAC: "true"
+      SELECT_MAX_BR: "false"
+      FOLLOW_SOURCE_ORDER: "true"
+      ENABLE_PROXY: "false"
       http_proxy: ""
       https_proxy: ""
       HTTP_PROXY: ""

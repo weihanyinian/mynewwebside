@@ -48,7 +48,8 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     lyricTLrc: '',
     source: 'playlist' as PlaySource,
     playlistTracks: [] as PlayerTrack[],
-    dailyHotPlatform: null as 'netease' | 'qq' | null,
+    /** 当前「歌单」来源：网易云默认歌单 / 热歌榜，或 QQ 热歌（仅用于展示） */
+    dailyHotPlatform: null as 'netease' | 'qq' | 'netease_playlist' | null,
     playMode: 'shuffle' as PlayMode,
     volume: 0.65,
   }),
@@ -127,6 +128,18 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     },
 
     // ---- song loading & auto-skip ----
+
+    /** 按当前队列下标重新拉取播放地址与歌词（用于播放键重试、绑定账号后刷新等） */
+    async loadCurrentUrl() {
+      if (this.queue.length === 0) {
+        await this.loadDefaultPlaylist()
+      }
+      if (this.queue.length === 0) return
+      if (this.currentIndex < 0 || this.currentIndex >= this.queue.length) {
+        this.currentIndex = 0
+      }
+      await this.loadSong(this.currentIndex)
+    },
 
     async loadSong(index: number) {
       const t = this.queue[index]
@@ -231,7 +244,7 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
 
     // ---- playlist loading ----
 
-    _applyPlaylistRows(rows: SongMeta[], platform: 'netease' | 'qq' | null) {
+    _applyPlaylistRows(rows: SongMeta[], platform: 'netease' | 'qq' | 'netease_playlist' | null) {
       this.playlistTracks = rows.map((r) => this.rowToPlayerTrack(r))
       this.queue = this.playlistTracks.slice()
       this.currentIndex = 0
@@ -241,11 +254,12 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     },
 
     async loadDefaultPlaylist() {
-      const day = new Date().getDate()
-      const preferNeteaseFirst = day % 2 === 1
-
       const loadHot = async (source: 'netease' | 'qq') => {
-        try { return await fetchHotTracks(source, 80) } catch { return [] as SongMeta[] }
+        try {
+          return await fetchHotTracks(source, 80)
+        } catch {
+          return [] as SongMeta[]
+        }
       }
 
       const tryApplyHot = async (rows: SongMeta[], platform: 'netease' | 'qq') => {
@@ -256,22 +270,22 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
       }
 
       try {
-        const [firstRows, secondRows] = preferNeteaseFirst
-          ? await Promise.all([loadHot('netease'), loadHot('qq')])
-          : await Promise.all([loadHot('qq'), loadHot('netease')])
-
-        const firstPlatform = preferNeteaseFirst ? 'netease' as const : 'qq' as const
-        const secondPlatform = preferNeteaseFirst ? 'qq' as const : 'netease' as const
-
-        if (await tryApplyHot(firstRows, firstPlatform)) return
-        if (await tryApplyHot(secondRows, secondPlatform)) return
-
-        const rows = await fetchPublicPlaylist(DEFAULT_NETEASE_PLAYLIST_ID, false)
-        if (rows.length > 0) {
-          this._applyPlaylistRows(rows, null)
+        // 优先：配置的网易云公开歌单（与 VITE_DEFAULT_NETEASE_PLAYLIST_ID / 后端 default-playlist-id 一致）
+        let playlistRows: SongMeta[] = []
+        try {
+          playlistRows = await fetchPublicPlaylist(DEFAULT_NETEASE_PLAYLIST_ID, false)
+        } catch {
+          /* 歌单拉取失败则回退热歌，不阻断 */
+        }
+        if (playlistRows.length > 0) {
+          this._applyPlaylistRows(playlistRows, 'netease_playlist')
           await this.loadSong(this.currentIndex)
           return
         }
+
+        if (await tryApplyHot(await loadHot('netease'), 'netease')) return
+        if (await tryApplyHot(await loadHot('qq'), 'qq')) return
+
         this.loadError = '歌单暂无曲目'
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e)

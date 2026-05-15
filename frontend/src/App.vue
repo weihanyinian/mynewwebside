@@ -1,12 +1,27 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, defineAsyncComponent, onMounted, shallowRef } from 'vue'
 import { useRoute } from 'vue-router'
 import SiteLayout from './layouts/SiteLayout.vue'
 import AdminLayout from './layouts/AdminLayout.vue'
-import AvatarBadge from './components/AvatarBadge.vue'
-import MusicPlayer from './components/MusicPlayer.vue'
+
 const route = useRoute()
 const isAdmin = computed(() => route.path.startsWith('/admin'))
+
+/** 音乐播放器与头像浮标非首屏关键路径：空闲后再挂载，减轻首包解析与首帧工作 */
+const showDeferredChrome = shallowRef(false)
+onMounted(() => {
+  const run = () => {
+    showDeferredChrome.value = true
+  }
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(run, { timeout: 1800 })
+  } else {
+    setTimeout(run, 300)
+  }
+})
+
+const AvatarBadge = defineAsyncComponent(() => import('./components/AvatarBadge.vue'))
+const MusicPlayer = defineAsyncComponent(() => import('./components/MusicPlayer.vue'))
 </script>
 
 <template>
@@ -21,7 +36,7 @@ const isAdmin = computed(() => route.path.startsWith('/admin'))
         </SiteLayout>
       </transition>
     </router-view>
-    <template v-if="!isAdmin">
+    <template v-if="!isAdmin && showDeferredChrome">
       <AvatarBadge />
       <MusicPlayer />
     </template>
@@ -29,19 +44,19 @@ const isAdmin = computed(() => route.path.startsWith('/admin'))
 </template>
 
 <style>
-/* 【页面过渡】路由切换：淡入淡出 + 轻微位移 */
+/* 【页面过渡】略缩短时长，减少路由切换「拖沓感」 */
 .page-fade-slide-enter-active,
 .page-fade-slide-leave-active {
   transition:
-    opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .page-fade-slide-enter-from {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(12px);
 }
 .page-fade-slide-leave-to {
   opacity: 0;
-  transform: translateY(-12px);
+  transform: translateY(-8px);
 }
 </style>

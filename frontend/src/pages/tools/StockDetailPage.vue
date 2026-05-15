@@ -26,8 +26,33 @@ const capitalFlow = ref<CapitalFlow | null>(null)
 const klinePeriod = ref<'day' | 'week' | 'month'>('day')
 const loading = ref(true)
 const tradeShares = ref(100)
-const showBuy = ref(false)
-const showSell = ref(false)
+const FEE_RATE = 0.0003
+
+function isCnSixDigitCode(code: string): boolean {
+  const c = code.trim().toLowerCase()
+  if (/^(sh|sz)\d{6}$/.test(c)) return true
+  if (/^\d{6}$/.test(c)) {
+    const d0 = c.charAt(0)
+    return d0 === '6' || d0 === '0' || d0 === '3' || d0 === '2'
+  }
+  return false
+}
+
+const isCn = computed(() => isCnSixDigitCode(code.value))
+const isHk = computed(() => code.value.trim().toLowerCase().endsWith('.hk'))
+
+/** 行情数字为数据源币种，模拟撮合仍按数值计入本站账户 */
+const priceUnit = computed(() => (isCn.value ? 'CNY' : isHk.value ? 'HKD' : 'USD'))
+
+const priceDecimals = computed(() => {
+  const p = quote.value?.price
+  if (p == null) return 2
+  return p > 0 && p < 5 ? 3 : 2
+})
+
+function estFeeFromGross(gross: number): number {
+  return Math.max(5, Math.round(gross * FEE_RATE * 1000) / 1000)
+}
 
 const changeClass = computed(() => {
   if (!quote.value) return ''
@@ -135,11 +160,12 @@ let refreshTimer: ReturnType<typeof setInterval> | null = null
 
 async function loadData() {
   try {
+    const cn = isCnSixDigitCode(code.value)
     const [q, id, kl, cf] = await Promise.all([
       fetchQuote(code.value).catch(() => null),
       fetchIntraday(code.value).catch(() => null),
       fetchKline(code.value, klinePeriod.value).catch(() => null),
-      fetchCapitalFlow(code.value).catch(() => null),
+      cn ? fetchCapitalFlow(code.value).catch(() => null) : Promise.resolve(null),
     ])
     quote.value = q; intraday.value = id; kline.value = kl; capitalFlow.value = cf
   } catch { /* ignore */ }
@@ -148,12 +174,33 @@ async function loadData() {
 
 watch(klinePeriod, () => { fetchKline(code.value, klinePeriod.value).then(d => { kline.value = d }).catch(() => {}) })
 
+watch(code, () => {
+  loading.value = true
+  void loadData()
+})
+
 async function doTrade(mode: 'buy' | 'sell') {
+  if (!quote.value) return
+  const sym = code.value
+  if (isCnSixDigitCode(sym)) {
+    const s = tradeShares.value
+    if (s < 100 || s % 100 !== 0) {
+      ElMessage.warning('沪深A股委托数量须为100股的整数倍')
+      return
+    }
+  }
   try {
     const fn = mode === 'buy' ? buyStock : sellStock
-    await fn(code.value, tradeShares.value)
-    ElMessage.success(mode === 'buy' ? '买入成功' : '卖出成功')
-  } catch (e: unknown) { ElMessage.error(e instanceof Error ? e.message : '交易失败') }
+    const result = await fn(sym, tradeShares.value)
+    const gross = result.grossAmount != null ? fmt(result.grossAmount) : fmt((result.price ?? 0) * result.shares)
+    ElMessage.success(
+      mode === 'buy'
+        ? `买入成交：${result.shares} 股 @${fmt(result.price)}，成交额 ${gross}，佣金 ${fmt(result.fee)}，余额 ${fmt(result.cashAfter)}`
+        : `卖出成交：${result.shares} 股 @${fmt(result.price)}，成交额 ${gross}，佣金 ${fmt(result.fee)}，余额 ${fmt(result.cashAfter)}`,
+    )
+  } catch (e: unknown) {
+    ElMessage.error(e instanceof Error ? e.message : '交易失败')
+  }
 }
 
 onMounted(() => {
@@ -183,10 +230,12 @@ onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer) })
     <div v-if="loading" class="loading">加载中...</div>
 
     <template v-else-if="quote">
+      <p v-if="!isCn" class="fx-hint">当前标的为{{ isHk ? '港股' : '美股' }}，价格为 <strong>{{ priceUnit }}</strong>；下方「元」指模拟账户统一计价单位（与行情数值一致）。</p>
       <div class="quote-bar" :class="changeClass">
         <div class="quote-main">
-          <span class="price">{{ fmt(quote.price, 3) }}</span>
-          <span class="change">{{ (quote.changePct ?? 0) >= 0 ? '+' : '' }}{{ fmt(quote.change) }} ({{ (quote.changePct ?? 0) >= 0 ? '+' : '' }}{{ fmt(quote.changePct) }}%)</span>
+          <span class="price">{{ fmt(quote.price, priceDecimals) }}</span>
+          <span class="px-unit">{{ priceUnit }}</span>
+          <span class="change">{{ (quote.changePct ?? 0) >= 0 ? '+' : '' }}{{ fmt(quote.change, priceDecimals) }} ({{ (quote.changePct ?? 0) >= 0 ? '+' : '' }}{{ fmt(quote.changePct) }}%)</span>
         </div>
         <div class="quote-sub">
           <span>开 {{ fmt(quote.open) }}</span>
@@ -224,8 +273,8 @@ onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer) })
       </div>
 
       <!-- 资金流向 + 交易 -->
-      <div class="bottom-row">
-        <div class="flow-section">
+      <div class="bottom-row" :class="{ 'bottom-row--trade-only': !isCn }">
+        <div v-if="isCn" class="flow-section">
           <h3>资金流向</h3>
           <VChart v-if="Object.keys(flowOption).length" :option="flowOption" autoresize class="flow-chart" />
           <p v-else class="no-data">{{ capitalFlow?.note || '暂无数据' }}</p>
@@ -236,12 +285,22 @@ onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer) })
           <div class="trade-card">
             <div class="trade-row">
               <label>数量（股）</label>
-              <input v-model.number="tradeShares" type="number" min="100" step="100" />
+              <input
+                v-model.number="tradeShares"
+                type="number"
+                :min="isCnSixDigitCode(code) ? 100 : 1"
+                :step="isCnSixDigitCode(code) ? 100 : 1"
+              />
             </div>
             <div class="trade-row" v-if="quote">
-              <label>预估金额</label>
+              <label>预估成交额</label>
               <span class="est">{{ fmt(quote.price * tradeShares) }} 元</span>
             </div>
+            <div class="trade-row" v-if="quote">
+              <label>预估佣金</label>
+              <span class="est">{{ fmt(estFeeFromGross(quote.price * tradeShares)) }} 元（万三，单笔最低5元）</span>
+            </div>
+            <p v-if="quote && isCnSixDigitCode(quote.code)" class="lot-hint">沪深A股：须为 100 股的整数倍</p>
             <div class="trade-btns">
               <button class="btn-buy" @click="doTrade('buy')">买入</button>
               <button class="btn-sell" @click="doTrade('sell')">卖出</button>
@@ -271,8 +330,12 @@ onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer) })
 .quote-bar { padding: 16px 20px; border-radius: 14px; margin-bottom: 20px; background: var(--surface-2); border: 1px solid var(--glass-border); }
 .quote-bar.up { border-left: 4px solid #ef4444; }
 .quote-bar.down { border-left: 4px solid #22c55e; }
-.quote-main { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.fx-hint { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 12px; line-height: 1.45; }
+.fx-hint strong { color: var(--text-color); font-weight: 600; }
+
+.quote-main { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
 .price { font-size: 2rem; font-weight: 800; }
+.px-unit { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--glass-border); }
 .quote-bar.up .price, .quote-bar.up .change { color: #ef4444; }
 .quote-bar.down .price, .quote-bar.down .change { color: #22c55e; }
 .change { font-size: 1.1rem; font-weight: 600; }
@@ -296,6 +359,7 @@ onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer) })
 
 /* bottom row */
 .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.bottom-row--trade-only { grid-template-columns: 1fr; }
 .flow-section h3, .trade-section h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 8px; color: var(--text-muted); }
 .flow-chart { width: 100%; height: 200px; background: var(--surface-1); border-radius: 12px; border: 1px solid var(--glass-border); }
 
@@ -318,6 +382,8 @@ onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer) })
 .btn-buy:hover { background: rgba(239, 68, 68, 0.28); }
 .btn-sell { background: rgba(34, 197, 94, 0.15); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.3); }
 .btn-sell:hover { background: rgba(34, 197, 94, 0.28); }
+
+.lot-hint { margin: 0 0 8px; font-size: 0.78rem; color: var(--text-muted); }
 
 @media (max-width: 768px) {
   .bottom-row { grid-template-columns: 1fr; }

@@ -2,7 +2,7 @@
 /**
  * 网易云：绑定账号、歌单、喜欢、最近播放；点击曲目在全局播放器播放。
  */
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '../../stores/user'
 import { useMusicPlayerStore } from '../../stores/musicPlayer'
@@ -48,6 +48,9 @@ const searchLoading = ref(false)
 const searchErr = ref('')
 const searchInfo = ref('')
 const searchResults = ref<MusicSearchHit[]>([])
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+let searchSeq = 0
+const SEARCH_DEBOUNCE_MS = 300
 
 const qqCookieDraft = ref('')
 const qqBindLoading = ref(false)
@@ -56,9 +59,45 @@ const qqBindMsg = ref('')
 
 const siteTitle = computed(() => t('pages.musicTitle'))
 
+function clearSearchDebounce() {
+  if (searchDebounceTimer != null) {
+    clearTimeout(searchDebounceTimer)
+    searchDebounceTimer = null
+  }
+}
+
 function setSearchPlatform(p: 'netease' | 'qq') {
   searchPlatform.value = p
+  clearSearchDebounce()
   searchResults.value = []
+  searchErr.value = ''
+}
+
+function onSearchInput() {
+  clearSearchDebounce()
+  const q = searchQ.value.trim()
+  if (!q) {
+    searchSeq += 1
+    searchResults.value = []
+    searchErr.value = ''
+    searchInfo.value = ''
+    return
+  }
+  searchDebounceTimer = setTimeout(() => {
+    searchDebounceTimer = null
+    void executeSearch()
+  }, SEARCH_DEBOUNCE_MS)
+}
+
+function setSearchKind(k: 'song' | 'artist' | 'album' | 'playlist') {
+  searchKind.value = k
+  clearSearchDebounce()
+  const q = searchQ.value.trim()
+  if (!q || !userStore.isLoggedIn) return
+  searchDebounceTimer = setTimeout(() => {
+    searchDebounceTimer = null
+    void executeSearch()
+  }, SEARCH_DEBOUNCE_MS)
 }
 
 function toPlayerTrack(m: SongMeta) {
@@ -146,8 +185,9 @@ async function playAll(list: SongMeta[]) {
   )
 }
 
-async function runSearch() {
+async function executeSearch() {
   if (!userStore.isLoggedIn) {
+    searchResults.value = []
     searchErr.value = t('pages.musicSearchNeedLogin')
     return
   }
@@ -156,20 +196,29 @@ async function runSearch() {
     searchResults.value = []
     return
   }
+  const seq = ++searchSeq
   searchLoading.value = true
   searchErr.value = ''
   searchInfo.value = ''
   try {
-    if (searchPlatform.value === 'netease') {
-      searchResults.value = await searchNetease(q, 30, searchKind.value)
-    } else {
-      searchResults.value = await searchQq(q, 1, 25, searchKind.value)
-    }
+    const rows =
+      searchPlatform.value === 'netease'
+        ? await searchNetease(q, 30, searchKind.value)
+        : await searchQq(q, 1, 25, searchKind.value)
+    if (seq !== searchSeq) return
+    searchResults.value = rows
   } catch (e: unknown) {
+    if (seq !== searchSeq) return
+    searchResults.value = []
     searchErr.value = e instanceof Error ? e.message : t('pages.loadError')
   } finally {
-    searchLoading.value = false
+    if (seq === searchSeq) searchLoading.value = false
   }
+}
+
+async function runSearch() {
+  clearSearchDebounce()
+  await executeSearch()
 }
 
 function kindLabel(k: MusicSearchHit['kind']) {
@@ -271,6 +320,10 @@ onMounted(async () => {
   userStore.hydrateFromStorage()
   await loadAll()
 })
+
+onUnmounted(() => {
+  clearSearchDebounce()
+})
 </script>
 
 <template>
@@ -310,7 +363,7 @@ onMounted(async () => {
             type="button"
             class="music-tab music-tab--sm"
             :class="{ 'music-tab--on': searchKind === 'song' }"
-            @click="searchKind = 'song'"
+            @click="setSearchKind('song')"
           >
             {{ t('pages.musicSearchKindSong') }}
           </button>
@@ -318,7 +371,7 @@ onMounted(async () => {
             type="button"
             class="music-tab music-tab--sm"
             :class="{ 'music-tab--on': searchKind === 'artist' }"
-            @click="searchKind = 'artist'"
+            @click="setSearchKind('artist')"
           >
             {{ t('pages.musicSearchKindArtist') }}
           </button>
@@ -326,7 +379,7 @@ onMounted(async () => {
             type="button"
             class="music-tab music-tab--sm"
             :class="{ 'music-tab--on': searchKind === 'album' }"
-            @click="searchKind = 'album'"
+            @click="setSearchKind('album')"
           >
             {{ t('pages.musicSearchKindAlbum') }}
           </button>
@@ -334,7 +387,7 @@ onMounted(async () => {
             type="button"
             class="music-tab music-tab--sm"
             :class="{ 'music-tab--on': searchKind === 'playlist' }"
-            @click="searchKind = 'playlist'"
+            @click="setSearchKind('playlist')"
           >
             {{ t('pages.musicSearchKindPlaylist') }}
           </button>
@@ -345,6 +398,7 @@ onMounted(async () => {
             type="search"
             class="music-input music-search-input"
             :placeholder="t('pages.musicSearchPlaceholder')"
+            @input="onSearchInput"
             @keydown.enter.prevent="runSearch"
           />
           <button type="button" class="music-submit music-search-btn" :disabled="searchLoading" @click="runSearch">

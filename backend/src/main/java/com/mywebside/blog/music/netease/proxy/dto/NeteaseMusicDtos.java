@@ -8,7 +8,8 @@ public final class NeteaseMusicDtos {
 
   /**
    * 与 {@code login_cellphone} 参数一致：{@code phone}、{@code password}、可选 {@code countrycode}（默认 86）。
-   * 文档：<a href="https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api">@neteasecloudmusicapienhanced/api</a>
+   * 上游：<a href="https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced">api-enhanced</a>（npm
+   * <a href="https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api">@neteasecloudmusicapienhanced/api</a>）
    */
   public record NeteaseLoginRequest(
       @NotBlank String phone,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -64,6 +64,9 @@ const { isHashActive, scrollToSection } = useSectionObserver(
 )
 const { heroParallaxY, isNavScrolled, pointerX, pointerY } = useHeroMotion()
 
+/** 全屏背景 MP4 体积大：首帧后再挂，避免与首屏 CSS/字体竞争带宽 */
+const bgVideoReady = ref(false)
+
 function scrollTo(id: string) {
   scrollToSection(id, 92)
 }
@@ -108,6 +111,15 @@ function onSiteLogoClick() {
 }
 
 onMounted(() => {
+  const enableBg = () => {
+    bgVideoReady.value = true
+  }
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(enableBg, { timeout: 1600 })
+  } else {
+    setTimeout(enableBg, 500)
+  }
+
   visitStore.initHomeVisit()
   void worksStore.fetchWorksFromBackend()
   if (route.hash) {
@@ -132,6 +144,7 @@ onMounted(() => {
   >
     <!-- 背景 MP4：Shadow 内挂载；片名见 script 中 HOME_BG_* -->
     <SiteBackgroundVideos
+      v-if="bgVideoReady"
       :is-dark="isDarkMode"
       :light-src="homeBgLightSrc"
       :dark-src="homeBgDarkSrc"

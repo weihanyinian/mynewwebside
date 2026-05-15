@@ -88,12 +88,13 @@ oj:
     rapid-api-key: ""
     rapid-api-host: ""
 
-# 网易云第三方 API（推荐 @neteasecloudmusicapienhanced/api；Docker: moefurina/ncm-api）
+# 网易云第三方 API（api-enhanced：https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced ；npm @neteasecloudmusicapienhanced/api ；Docker moefurina/ncm-api）
 netease:
   proxy:
-    # 本地推荐: 仓库根目录 ncm-api/ 下 npm install && npm start（默认 3000），见 ncm-api/README.md
+    # 本地：仓库根目录 ncm-api/ 下 npm install && npm start（默认 3000），见 ncm-api/README.md
     # Docker: moefurina/ncm-api:latest，见 deploy/docker-compose.example.yml 或 deploy/docker-compose.ncm-only.example.yml
-    base-url: ${NETEASE_PROXY_BASE_URL:https://netease-cloud-music-api-five-roan-58.vercel.app}
+    # 公网演示站易失效；生产请自建 api-enhanced（如 http://127.0.0.1:3000）并设置 NETEASE_PROXY_BASE_URL
+    base-url: ${NETEASE_PROXY_BASE_URL:http://127.0.0.1:3000}
     # 当 base-url 为 127.0.0.1/localhost 且本机 3000 未监听时，自动改用 fallback-base-url（避免仅开前端时出现 502）
     local-fallback-enabled: ${NETEASE_LOCAL_FALLBACK_ENABLED:true}
     fallback-base-url: ${NETEASE_FALLBACK_BASE_URL:https://netease-cloud-music-api-five-roan-58.vercel.app}
@@ -106,15 +107,15 @@ netease:
     retry-count: ${NETEASE_PROXY_RETRY_COUNT:1}
 
 ncm:
-  # @neteasecloudmusicapienhanced/api 地址
+  # api-enhanced HTTP 根地址（与 netease.proxy 通常相同），供 /api/ncm 扫码等 Session 代理
   base-url: ${NCM_BASE_URL:http://127.0.0.1:3000}
 
-# QQ 音乐第三方 API（Express 服务，见 https://github.com/jsososo/QQMusicApi ；默认端口 3300）
+# QQ 音乐第三方 API（Koa2，见 https://github.com/sansenjian/qq-music-api 与 https://sansenjian.github.io/qq-music-api/api/ ；默认端口 3200）
 qq:
   proxy:
-    base-url: ${QQ_MUSIC_PROXY_BASE_URL:http://127.0.0.1:3300}
-    # QQMusicApi /top/ 的 topId，默认 4（流行指数榜）
-    hot-chart-top-id: ${QQ_HOT_CHART_TOP_ID:4}
+    base-url: ${QQ_MUSIC_PROXY_BASE_URL:http://127.0.0.1:3200}
+    # QQ 热歌榜 topId（与 /getRanks?topId= 一致，默认 62 热歌榜，见 sansenjian 文档）
+    hot-chart-top-id: ${QQ_HOT_CHART_TOP_ID:62}
   music:
     open:
       enabled: false

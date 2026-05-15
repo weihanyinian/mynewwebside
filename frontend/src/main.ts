@@ -1,7 +1,5 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
 import './style.css'
 import './styles/design-tokens.css'
 import './styles/site-ui.css'
@@ -20,5 +18,9 @@ app.use(pinia)
 // 【主题】首屏前同步 localStorage → DOM，避免路由切换闪回日间
 useThemeStore().initTheme()
 useUserStore().hydrateFromStorage()
-initUmami()
-app.use(router).use(ElementPlus).use(i18n).mount('#app')
+if (typeof requestIdleCallback === 'function') {
+  requestIdleCallback(() => initUmami(), { timeout: 4000 })
+} else {
+  setTimeout(() => initUmami(), 1)
+}
+app.use(router).use(i18n).mount('#app')

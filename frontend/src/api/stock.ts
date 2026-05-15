@@ -25,6 +25,7 @@ export interface PortfolioSummary {
 export interface TradeResult {
   type: string; code: string; name: string; shares: number
   price: number; fee: number; cashAfter: number
+  grossAmount?: number
 }
 
 export interface TradeHistoryItem {
@@ -32,7 +33,7 @@ export interface TradeHistoryItem {
   price: number; fee: number; profitLoss: number; time: string
 }
 
-export interface LeaderboardEntry { userId: number; totalPnl: number }
+export interface LeaderboardEntry { userId: number; totalPnl: number; displayName?: string }
 
 // ---- intraday / k-line ----
 
@@ -93,8 +94,8 @@ export async function fetchCapitalFlow(code: string): Promise<CapitalFlow> {
   return resp.data.data
 }
 
-export async function searchStocks(keyword: string) {
-  const resp = await http.get<ApiResponse<StockSearchResult[]>>('/api/stock/search', { params: { keyword } })
+export async function searchStocks(keyword: string, market: 'cn' | 'us' | 'hk' | 'all' = 'all') {
+  const resp = await http.get<ApiResponse<StockSearchResult[]>>('/api/stock/search', { params: { keyword, market } })
   return resp.data.data
 }
 

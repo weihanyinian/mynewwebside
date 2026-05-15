@@ -20,8 +20,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 直连 {@code @neteasecloudmusicapienhanced/api}（默认 http://127.0.0.1:3000），供 Login.vue 等使用 HttpSession 存 Cookie。
- * 文档：https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api
+ * 直连 api-enhanced 服务（默认 http://127.0.0.1:3000），供扫码登录等使用 HttpSession 存 Cookie。
+ * 源码与部署：<a href="https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced">api-enhanced</a>；
+ * npm：<a href="https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api">@neteasecloudmusicapienhanced/api</a>
  */
 @Validated
 @RestController

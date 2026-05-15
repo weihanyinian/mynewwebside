@@ -61,8 +61,10 @@ public class StockController {
   // ---- search ----
 
   @GetMapping("/search")
-  public ApiResponse<List<StockService.StockSearchResult>> search(@RequestParam String keyword) {
-    return ApiResponse.ok(stockService.search(keyword));
+  public ApiResponse<List<StockService.StockSearchResult>> search(
+      @RequestParam String keyword,
+      @RequestParam(defaultValue = "all") String market) {
+    return ApiResponse.ok(stockService.search(keyword, market));
   }
 
   // ---- portfolio & trading ----

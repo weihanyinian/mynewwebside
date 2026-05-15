@@ -141,7 +141,7 @@ export async function searchNetease(q: string, limit = 30, type = 'song') {
   return data.data
 }
 
-/** QQ 音乐搜索（依赖后端可访问 QQMusicApi）；type 同上 */
+/** QQ 音乐搜索（依赖后端可访问 sansenjian/qq-music-api）；type 同上 */
 export async function searchQq(q: string, page = 1, pageSize = 20, type = 'song') {
   const { data } = await http.get<ApiResponse<MusicSearchHit[]>>('/api/music/qq/search', {
     params: { q, page, pageSize, type },
