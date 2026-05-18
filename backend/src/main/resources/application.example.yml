@@ -51,7 +51,7 @@ app:
     - "代码与文字，都是留给自己和访客的路标。"
     - "今日宜：读一页书，写一行诗。"
   bootstrap-admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
-  bootstrap-admin-sync-on-startup: false
+  bootstrap-admin-sync-on-startup: ${APP_BOOTSTRAP_ADMIN_SYNC_ON_STARTUP:false}
   # 必须通过环境变量注入，勿提交真实密钥
   jwt:
     secret: ${JWT_SECRET:}

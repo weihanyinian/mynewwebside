@@ -23,10 +23,15 @@ frontend/dist/
 
 # 部署环境变量与编排（不提交，避免 pull 覆盖服务器）
 .env
+deploy/.env
+deploy/docker-compose.yml
+deploy/docker-compose.images.yml
+deploy/docker-compose.ncm-only.yml
 docker/.env
 docker/docker-compose.yml
 docker/docker-compose.images.yml
 docker/docker-compose.ncm-only.yml
+deploy/dist/
 
 # 离线镜像包
 *.tar
