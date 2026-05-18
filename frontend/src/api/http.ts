@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import axios, { type AxiosError } from 'axios'
 import { clearToken, getToken } from '../utils/token'
 
 export type ApiResponse<T> = {

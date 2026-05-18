@@ -80,10 +80,6 @@ function scrollToHeading(id: string) {
   tocOpen.value = false
 }
 
-function backToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
 let observer: IntersectionObserver | null = null
 
 async function setupTocObserver() {

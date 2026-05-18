@@ -81,7 +81,7 @@ function flip(id: number) {
 
 const formatTime = (s: number) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
 const cols = computed(() => diffMap[difficulty.value].cols)
-const highText = computed(() => `最佳 ${bestScore[difficulty.value] ? formatTime(bestScore[difficulty.value]!) : '—'} · 已配 ${matchedCnt.value}/${diffMap[difficulty.value].pairs}`)
+const highText = computed(() => `最佳 ${bestScore.value[difficulty.value] ? formatTime(bestScore.value[difficulty.value]!) : '—'} · 已配 ${matchedCnt.value}/${diffMap[difficulty.value].pairs}`)
 
 onUnmounted(() => { if (timer) clearInterval(timer) })
 </script>

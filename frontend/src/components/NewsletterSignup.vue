@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { http, type ApiResponse } from '../api/http'
+import { http } from '../api/http'
 
 const email = ref('')
 const subscribing = ref(false)
