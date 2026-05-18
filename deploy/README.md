@@ -115,15 +115,28 @@ cp deploy/docker-compose.example.yml deploy/docker-compose.yml
 
 ## 5. 创建 `deploy/.env`（全文模板，必做）
 
-在服务器上**不要**从任何「example」复制；请**新建**文件 `deploy/.env`，内容与下面**完全一致结构**，并把**所有必须修改项**换成你自己的值。
+仓库已提供 **`deploy/.env.example`**（含默认密码与 JWT，可提交 Git）。在服务器上生成**不提交**的 `deploy/.env`：
 
-在仓库根目录 `/opt/mywebsite` 执行：
+```bash
+cd /opt/mywebsite
+cp deploy/.env.example deploy/.env
+# 生产务必修改 MYSQL_*、JWT_SECRET、APP_CORS_ALLOWED_ORIGINS
+chmod 600 deploy/.env
+```
+
+或使用一键脚本（同时生成 `deploy/docker-compose.yml`）：
+
+```bash
+bash deploy/setup-quick.sh
+```
+
+也可手动新建 `deploy/.env`，结构与下面**完全一致**，并把**所有必须修改项**换成你自己的值：
 
 ```bash
 nano deploy/.env
 ```
 
-**将下面整个代码框内的内容粘贴进编辑器**，保存退出（nano：`Ctrl+O` 回车，`Ctrl+X`）。
+**将下面整个代码框内的内容粘贴进编辑器**（若已用 `.env.example` 可跳过），保存退出（nano：`Ctrl+O` 回车，`Ctrl+X`）。
 
 ```dotenv
 # ============ MySQL（官方镜像会创建库 + 用户）============

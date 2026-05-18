@@ -27,10 +27,14 @@ deploy/.env
 # 兼容旧路径
 docker/.env
 
-# deploy 下由 *.example.yml 复制的实际 compose，勿提交，避免 pull 覆盖服务器
+# deploy 下由 *.example 复制的实际 compose / 环境变量，勿提交，避免 pull 覆盖服务器
 deploy/docker-compose.yml
 deploy/docker-compose.images.yml
 deploy/docker-compose.ncm-only.yml
+deploy/dist/
+*.tar
+
+# deploy/.env.example 可提交；含真实密码的 deploy/.env 勿提交（见上一行 deploy/.env）
 # 兼容旧路径（若本地仍留有）
 docker/docker-compose.yml
 docker/docker-compose.images.yml
