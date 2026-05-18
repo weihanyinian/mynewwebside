@@ -21,24 +21,15 @@ frontend/dist/
 # Cursor / local agent
 .workbuddy/
 
-# 部署环境变量与本地编排（说明见 deploy/README.md）
+# 部署环境变量与编排（不提交，避免 pull 覆盖服务器）
 .env
-deploy/.env
-# 兼容旧路径
 docker/.env
-
-# deploy 下由 *.example 复制的实际 compose / 环境变量，勿提交，避免 pull 覆盖服务器
-deploy/docker-compose.yml
-deploy/docker-compose.images.yml
-deploy/docker-compose.ncm-only.yml
-deploy/dist/
-*.tar
-
-# deploy/.env.example 可提交；含真实密码的 deploy/.env 勿提交（见上一行 deploy/.env）
-# 兼容旧路径（若本地仍留有）
 docker/docker-compose.yml
 docker/docker-compose.images.yml
 docker/docker-compose.ncm-only.yml
+
+# 离线镜像包
+*.tar
 
 # Local config
 backend/src/main/resources/application.yml
