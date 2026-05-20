@@ -21,17 +21,17 @@ frontend/dist/
 # Cursor / local agent
 .workbuddy/
 
-# 部署环境变量与编排（已提交，一次性部署用）
-# docker/.env
-# docker/docker-compose.yml
-# docker/docker-compose.ncm-only.yml
-# backend/src/main/resources/application.yml
+# 部署敏感文件（含密钥，不提交）
+docker/.env
+deploy/.env
+
+# 后端本地配置（含密钥默认值，不提交）
+backend/src/main/resources/application.yml
 
 # 离线镜像包
 *.tar
 
-# Local config (application.yml 已提交，供一次性部署)
-# backend/src/main/resources/application.yml
+# Local config
 frontend/.env.local
 frontend/.env.*.local
 
