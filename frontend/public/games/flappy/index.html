@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>像素鸟</title>
+<link rel="stylesheet" href="../_shared/base.css" />
+<style>
+  body { background: var(--moyu-panel); }
+  .score-bar {
+    display:flex;justify-content:space-between;align-items:center;
+    width:100%;max-width:340px;padding:4px 0;color:var(--moyu-fg);font-weight:700;font-size:.95rem;
+  }
+</style>
+</head>
+<body>
+<div class="moyu-game-root">
+  <p class="moyu-hint">点击屏幕 / 按空格键让小鸟飞起，穿过管道得分，撞到管道或地面结束</p>
+  <div class="score-bar">
+    <span id="score">得分: 0</span>
+    <span id="hi">最高: 0</span>
+  </div>
+  <canvas id="c" class="moyu-canvas"></canvas>
+  <button class="moyu-btn moyu-btn--primary" id="restartBtn" style="margin-top:8px">重新开始</button>
+</div>
+<script src="../_shared/bridge.js"></script>
+<script>
+(function(){
+  var W=320, H=480;
+  var canvas=document.getElementById('c');
+  canvas.width=W; canvas.height=H;
+  var ctx=canvas.getContext('2d');
+  var scoreEl=document.getElementById('score'), hiEl=document.getElementById('hi');
+
+  var GRAVITY=0.45, JUMP=-7.5, PIPE_W=50, PIPE_GAP=130, PIPE_SPEED=2.2, PIPE_INTERVAL=100;
+  var bird, pipes, score, hi, running, frame, started;
+
+  function init(){
+    bird={x:70,y:H/2,vy:0,r:14};
+    pipes=[]; score=0; frame=0; running=true; started=false;
+    hi=MOYU.getHi(); updateUI();
+    MOYU.post({type:'playing'});
+    draw();
+  }
+
+  function updateUI(){
+    scoreEl.textContent='得分: '+score;
+    hiEl.textContent='最高: '+hi;
+    MOYU.stats('得分 '+score+' / 最高 '+hi);
+  }
+
+  function jump(){
+    if(!running)return;
+    if(!started)started=true;
+    bird.vy=JUMP;
+  }
+
+  function spawnPipe(){
+    var minTop=60, maxTop=H-PIPE_GAP-80;
+    var topH=minTop+Math.random()*(maxTop-minTop);
+    pipes.push({x:W, topH:topH, scored:false});
+  }
+
+  function tick(){
+    if(!running||!started)return;
+    frame++;
+    bird.vy+=GRAVITY;
+    bird.y+=bird.vy;
+    if(frame%PIPE_INTERVAL===0)spawnPipe();
+    // move pipes
+    for(var i=pipes.length-1;i>=0;i--){
+      pipes[i].x-=PIPE_SPEED;
+      if(!pipes[i].scored && pipes[i].x+PIPE_W<bird.x){
+        pipes[i].scored=true; score++;
+      }
+      if(pipes[i].x+PIPE_W<-10)pipes.splice(i,1);
+    }
+    // collision
+    if(bird.y+bird.r>H-10||bird.y-bird.r<0){die();return;}
+    for(var j=0;j<pipes.length;j++){
+      var p=pipes[j];
+      if(bird.x+bird.r>p.x && bird.x-bird.r<p.x+PIPE_W){
+        if(bird.y-bird.r<p.topH || bird.y+bird.r>p.topH+PIPE_GAP){die();return;}
+      }
+    }
+    updateUI(); draw();
+  }
+
+  function die(){
+    running=false;
+    MOYU.setHi(score); hi=MOYU.getHi(); updateUI();
+    MOYU.gameover();
+    // draw game over text
+    var isDark=document.documentElement.classList.contains('moyu-dark');
+    ctx.fillStyle=isDark?'rgba(15,23,42,0.6)':'rgba(255,255,255,0.6)';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=isDark?'#f87171':'#dc2626';
+    ctx.font='bold 28px system-ui'; ctx.textAlign='center';
+    ctx.fillText('游戏结束',W/2,H/2-10);
+    ctx.fillStyle=isDark?'#f0f9ff':'#0f172a';
+    ctx.font='bold 18px system-ui';
+    ctx.fillText('得分: '+score,W/2,H/2+25);
+  }
+
+  function draw(){
+    var isDark=document.documentElement.classList.contains('moyu-dark');
+    // sky
+    ctx.fillStyle=isDark?'#0f172a':'#e0f2fe';
+    ctx.fillRect(0,0,W,H);
+    // ground
+    ctx.fillStyle=isDark?'#1e293b':'#86efac';
+    ctx.fillRect(0,H-10,W,10);
+    // pipes
+    var pipeColor=isDark?'#38bdf8':'#22c55e';
+    var pipeBorder=isDark?'#0ea5e9':'#16a34a';
+    pipes.forEach(function(p){
+      ctx.fillStyle=pipeColor;
+      ctx.fillRect(p.x,0,PIPE_W,p.topH);
+      ctx.fillRect(p.x,p.topH+PIPE_GAP,PIPE_W,H-p.topH-PIPE_GAP-10);
+      ctx.strokeStyle=pipeBorder; ctx.lineWidth=2;
+      ctx.strokeRect(p.x,0,PIPE_W,p.topH);
+      ctx.strokeRect(p.x,p.topH+PIPE_GAP,PIPE_W,H-p.topH-PIPE_GAP-10);
+    });
+    // bird
+    ctx.save();
+    ctx.translate(bird.x,bird.y);
+    var angle=Math.min(Math.max(bird.vy*3,-30),30)*Math.PI/180;
+    ctx.rotate(angle);
+    ctx.fillStyle=isDark?'#fbbf24':'#f59e0b';
+    ctx.beginPath();ctx.arc(0,0,bird.r,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=isDark?'#f59e0b':'#d97706';ctx.lineWidth=2;ctx.stroke();
+    // eye
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(5,-4,4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0f172a';ctx.beginPath();ctx.arc(6,-4,2,0,Math.PI*2);ctx.fill();
+    // beak
+    ctx.fillStyle=isDark?'#fb923c':'#ea580c';
+    ctx.beginPath();ctx.moveTo(bird.r-2,-3);ctx.lineTo(bird.r+8,0);ctx.lineTo(bird.r-2,3);ctx.fill();
+    ctx.restore();
+  }
+
+  var raf;
+  function loop(){
+    tick();
+    if(running)raf=requestAnimationFrame(loop);
+  }
+
+  function startLoop(){
+    if(raf)cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(loop);
+  }
+
+  document.addEventListener('keydown',function(e){
+    if(e.code==='Space'||e.key===' '){e.preventDefault();jump();}
+  });
+  canvas.addEventListener('click',jump);
+  canvas.addEventListener('touchstart',function(e){e.preventDefault();jump();},{passive:false});
+  document.getElementById('restartBtn').addEventListener('click',function(){init();startLoop();});
+
+  init(); startLoop();
+})();
+</script>
+</body>
+</html>

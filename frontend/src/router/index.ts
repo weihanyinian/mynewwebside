@@ -41,6 +41,9 @@ const StatsPage = () => import('../pages/public/StatsPage.vue')
 const MusicCenterPage = () => import('../pages/music/MusicCenterPage.vue')
 const MbtiTestPage = () => import('../pages/tools/MbtiTestPage.vue')
 const GameMemoryCard = () => import('../pages/moyu/GameMemoryCard.vue')
+const GameSnake = () => import('../pages/moyu/GameSnake.vue')
+const GameFlappy = () => import('../pages/moyu/GameFlappy.vue')
+const GamePuzzle15 = () => import('../pages/moyu/GamePuzzle15.vue')
 const GameDoudizhu = () => import('../views/GameBoard.vue')
 const MemoriesPage = () => import('../pages/public/MemoriesPage.vue')
 const WorksShowcasePage = () => import('../pages/public/WorksShowcasePage.vue')
@@ -79,6 +82,9 @@ export const router = createRouter({
     { path: '/memories', component: MemoriesPage, meta: { requiresAuth: true } },
     { path: '/tools/mbti', component: MbtiTestPage },
     { path: '/moyu/memory-card', component: GameMemoryCard },
+    { path: '/moyu/snake', component: GameSnake },
+    { path: '/moyu/flappy', component: GameFlappy },
+    { path: '/moyu/puzzle15', component: GamePuzzle15 },
     { path: '/moyu/doudizhu', component: GameDoudizhu },
     { path: '/admin/login', redirect: '/login' },
     { path: '/tools', component: ToolsHubPage },
