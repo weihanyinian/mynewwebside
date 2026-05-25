@@ -6,7 +6,6 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '../../stores/user'
 import { useMusicPlayerStore } from '../../stores/musicPlayer'
-import QqCookieGuide from '../../components/music/QqCookieGuide.vue'
 import {
   fetchNeteaseStatus,
   neteaseLogout,
@@ -16,9 +15,6 @@ import {
   fetchPlaylistTracks,
   fetchPublicPlaylist,
   searchNetease,
-  searchQq,
-  qqLoginCookie,
-  qqLogout,
   type SongMeta,
   type PlaylistItem,
   type MusicSearchHit,
@@ -41,7 +37,7 @@ const expandedPid = ref<number | null>(null)
 const expandedTracks = ref<SongMeta[]>([])
 const tracksLoading = ref(false)
 
-const searchPlatform = ref<'netease' | 'qq'>('netease')
+const searchPlatform = ref<'netease'>('netease')
 const searchKind = ref<'song' | 'artist' | 'album' | 'playlist'>('song')
 const searchQ = ref('')
 const searchLoading = ref(false)
@@ -52,11 +48,6 @@ let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
 let searchSeq = 0
 const SEARCH_DEBOUNCE_MS = 300
 
-const qqCookieDraft = ref('')
-const qqBindLoading = ref(false)
-const qqBindErr = ref('')
-const qqBindMsg = ref('')
-
 const siteTitle = computed(() => t('pages.musicTitle'))
 
 function clearSearchDebounce() {
@@ -66,7 +57,7 @@ function clearSearchDebounce() {
   }
 }
 
-function setSearchPlatform(p: 'netease' | 'qq') {
+function setSearchPlatform(p: 'netease') {
   searchPlatform.value = p
   clearSearchDebounce()
   searchResults.value = []
@@ -201,10 +192,7 @@ async function executeSearch() {
   searchErr.value = ''
   searchInfo.value = ''
   try {
-    const rows =
-      searchPlatform.value === 'netease'
-        ? await searchNetease(q, 30, searchKind.value)
-        : await searchQq(q, 1, 25, searchKind.value)
+    const rows = await searchNetease(q, 30, searchKind.value)
     if (seq !== searchSeq) return
     searchResults.value = rows
   } catch (e: unknown) {
@@ -237,19 +225,7 @@ function kindLabel(k: MusicSearchHit['kind']) {
 async function onSearchHitClick(hit: MusicSearchHit) {
   searchInfo.value = ''
   if (hit.kind === 'song') {
-    if (searchPlatform.value === 'netease') {
-      await playSong({ id: hit.id, name: hit.title, artist: hit.subtitle, cover: hit.cover })
-    } else {
-      if (!hit.mid) return
-      await music.playTrack(
-        music.metaToQqTrack({
-          songmid: hit.mid,
-          name: hit.title,
-          artist: hit.subtitle,
-          cover: hit.cover,
-        }),
-      )
-    }
+    await playSong({ id: hit.id, name: hit.title, artist: hit.subtitle, cover: hit.cover })
     return
   }
   if (hit.kind === 'artist') {
@@ -265,54 +241,14 @@ async function onSearchHitClick(hit: MusicSearchHit) {
     return
   }
   if (hit.kind === 'playlist') {
-    if (searchPlatform.value === 'netease' && hit.id > 0) {
+    if (hit.id > 0) {
       try {
         const tracks = await fetchPublicPlaylist(String(hit.id))
         await playAll(tracks)
       } catch {
         searchErr.value = t('pages.loadError')
       }
-    } else if (searchPlatform.value === 'qq') {
-      searchInfo.value = t('pages.musicSearchQqPlaylistHint')
-      searchKind.value = 'song'
-      searchQ.value = hit.title
     }
-  }
-}
-
-async function onQqBind() {
-  if (!userStore.isLoggedIn) return
-  const ck = qqCookieDraft.value.trim()
-  if (!ck) {
-    qqBindErr.value = '请粘贴 Cookie'
-    return
-  }
-  qqBindLoading.value = true
-  qqBindErr.value = ''
-  qqBindMsg.value = ''
-  try {
-    await qqLoginCookie(ck)
-    await music.refreshNeteaseStatus()
-    qqBindMsg.value = t('pages.musicQqBindOk')
-    qqCookieDraft.value = ''
-  } catch (e: unknown) {
-    qqBindErr.value = e instanceof Error ? e.message : t('pages.loadError')
-  } finally {
-    qqBindLoading.value = false
-  }
-}
-
-async function onQqUnbind() {
-  qqBindLoading.value = true
-  qqBindErr.value = ''
-  qqBindMsg.value = ''
-  try {
-    await qqLogout()
-    await music.refreshNeteaseStatus()
-  } catch (e: unknown) {
-    qqBindErr.value = e instanceof Error ? e.message : t('pages.loadError')
-  } finally {
-    qqBindLoading.value = false
   }
 }
 
@@ -340,24 +276,6 @@ onUnmounted(() => {
     <template v-else>
       <section class="glass-card music-search">
         <h2 class="music-h2">{{ t('pages.musicSearchTitle') }}</h2>
-        <div class="music-search-platform">
-          <button
-            type="button"
-            class="music-tab"
-            :class="{ 'music-tab--on': searchPlatform === 'netease' }"
-            @click="setSearchPlatform('netease')"
-          >
-            {{ t('pages.musicSearchPlatformNetease') }}
-          </button>
-          <button
-            type="button"
-            class="music-tab"
-            :class="{ 'music-tab--on': searchPlatform === 'qq' }"
-            @click="setSearchPlatform('qq')"
-          >
-            {{ t('pages.musicSearchPlatformQq') }}
-          </button>
-        </div>
         <div class="music-search-kind">
           <button
             type="button"
@@ -430,35 +348,6 @@ onUnmounted(() => {
             </div>
           </button>
         </div>
-      </section>
-
-      <section class="glass-card music-bind">
-        <h2 class="music-h2">{{ t('pages.musicQqAccount') }}</h2>
-        <p v-if="music.qqBound" class="music-status">
-          {{ t('pages.musicQqBoundAs') }} <strong>{{ music.qqNickname || '—' }}</strong>
-          <button type="button" class="mp-btn" :disabled="qqBindLoading" @click="onQqUnbind">
-            {{ t('pages.musicQqUnbind') }}
-          </button>
-        </p>
-        <QqCookieGuide v-else class="music-qq-guide" />
-        <textarea
-          v-model="qqCookieDraft"
-          class="music-textarea"
-          rows="3"
-          :placeholder="t('pages.musicQqCookiePh')"
-          :disabled="qqBindLoading"
-        />
-        <button
-          v-if="!music.qqBound"
-          type="button"
-          class="music-submit"
-          :disabled="qqBindLoading"
-          @click="onQqBind"
-        >
-          {{ qqBindLoading ? t('pages.loading') : t('pages.musicQqBind') }}
-        </button>
-        <p v-if="qqBindErr" class="music-err">{{ qqBindErr }}</p>
-        <p v-else-if="qqBindMsg" class="music-muted">{{ qqBindMsg }}</p>
       </section>
 
       <section class="glass-card music-bind">
@@ -608,11 +497,7 @@ onUnmounted(() => {
   opacity: 0.95;
 }
 
-.music-qq-guide {
-  margin-bottom: 0.75rem;
-}
-
-.music-form {
+.music-err {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -721,24 +606,6 @@ onUnmounted(() => {
   color: #eaf8ff;
 }
 
-.music-qq-cmd {
-  margin: 0.35rem 0 0.5rem;
-  font-size: 0.88rem;
-}
-
-.music-qq-cmd code {
-  display: inline-block;
-  padding: 0.2rem 0.45rem;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.06);
-  font-family: ui-monospace, monospace;
-  font-size: 0.85em;
-}
-
-:root[data-theme='dark'] .music-qq-cmd code {
-  background: rgba(255, 255, 255, 0.1);
-}
-
 :root[data-theme='dark'] .music-input {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
@@ -768,6 +635,13 @@ onUnmounted(() => {
   background: transparent;
   cursor: pointer;
   font-size: 0.85rem;
+}
+
+.music-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 320px;
 }
 
 .music-err {

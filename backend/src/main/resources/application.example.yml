@@ -110,12 +110,8 @@ ncm:
   # api-enhanced HTTP 根地址（与 netease.proxy 通常相同），供 /api/ncm 扫码等 Session 代理
   base-url: ${NCM_BASE_URL:http://127.0.0.1:3000}
 
-# QQ 音乐第三方 API（Koa2，见 https://github.com/sansenjian/qq-music-api 与 https://sansenjian.github.io/qq-music-api/api/ ；默认端口 3200）
-qq:
-  proxy:
-    base-url: ${QQ_MUSIC_PROXY_BASE_URL:http://127.0.0.1:3200}
-    # QQ 热歌榜 topId（与 /getRanks?topId= 一致，默认 62 热歌榜，见 sansenjian 文档）
-    hot-chart-top-id: ${QQ_HOT_CHART_TOP_ID:62}
+# 网易云音乐开放平台 API（见 netease.music.open 前缀）
+netease:
   music:
     open:
       enabled: false

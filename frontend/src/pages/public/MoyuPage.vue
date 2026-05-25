@@ -1,21 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import BackToHomeButton from '../../components/BackToHomeButton.vue'
+import { MOYU_GAMES } from '../../config/moyuGames'
 
 const router = useRouter()
-
-const games = [
-  { path: '/moyu/2048', name: '2048', icon: '2048', desc: '合并数字，挑战 2048（支持撤销）' },
-  { path: '/moyu/snake', name: '贪吃蛇', icon: 'SNK', desc: '方向键/滑动控制，吃食物变长' },
-  { path: '/moyu/flappy', name: '像素鸟', icon: 'FLP', desc: '点击/空格飞起，穿越管道' },
-  { path: '/moyu/puzzle15', name: '数字华容道', icon: '15P', desc: '滑动方块，按 1~15 排列' },
-  { path: '/moyu/doudizhu', name: '斗地主', icon: 'DDZ', desc: '完整叫地主与出牌流程，含电脑 AI' },
-  { path: '/moyu/tetris', name: '俄罗斯方块', icon: 'TET', desc: '经典下落，触摸键 + 滑动' },
-  { path: '/moyu/minesweeper', name: '扫雷', icon: 'MIN', desc: '多难度 · 长按插旗 · 计时' },
-  { path: '/moyu/breakout', name: '打砖块', icon: 'BRK', desc: '滑动挡板 + 左右键' },
-  { path: '/moyu/gomoku', name: '五子棋', icon: 'GMK', desc: '大屏棋盘 · 触摸落子' },
-  { path: '/moyu/memory-card', name: '记忆翻牌', icon: 'MEM', desc: '翻牌配对 · 记忆力挑战 · 计时排名' },
-] as const
+const games = MOYU_GAMES
 
 function go(path: string) {
   router.push(path)
@@ -30,7 +19,7 @@ function go(path: string) {
     <div class="header">
       <h1 class="title">维寒一念 · 摸鱼中心</h1>
       <p class="subtitle">
-        10 款经典小游戏，纯静态页面与本地逻辑混合；最高分本地保存；随站点主题切换。
+        {{ games.length }} 款经典小游戏，纯静态页面与本地逻辑混合；最高分本地保存；随站点主题切换。
       </p>
     </div>
 

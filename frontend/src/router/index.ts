@@ -10,11 +10,6 @@ const CategoriesPage = () => import('../pages/public/CategoriesPage.vue')
 const TagsPage = () => import('../pages/public/TagsPage.vue')
 const MessageWallPage = () => import('../pages/public/MessageWallPage.vue')
 const MoyuPage = () => import('../pages/public/MoyuPage.vue')
-const Game2048 = () => import('../pages/moyu/Game2048.vue')
-const GameTetris = () => import('../pages/moyu/GameTetris.vue')
-const GameMinesweeper = () => import('../pages/moyu/GameMinesweeper.vue')
-const GameBreakout = () => import('../pages/moyu/GameBreakout.vue')
-const GameGomoku = () => import('../pages/moyu/GameGomoku.vue')
 const OjView = () => import('../pages/oj/OjView.vue')
 const OjProblemList = () => import('../pages/oj/OjProblemList.vue')
 const OjProblemDetail = () => import('../pages/oj/OjProblemDetail.vue')
@@ -41,9 +36,7 @@ const StatsPage = () => import('../pages/public/StatsPage.vue')
 const MusicCenterPage = () => import('../pages/music/MusicCenterPage.vue')
 const MbtiTestPage = () => import('../pages/tools/MbtiTestPage.vue')
 const GameMemoryCard = () => import('../pages/moyu/GameMemoryCard.vue')
-const GameSnake = () => import('../pages/moyu/GameSnake.vue')
-const GameFlappy = () => import('../pages/moyu/GameFlappy.vue')
-const GamePuzzle15 = () => import('../pages/moyu/GamePuzzle15.vue')
+const MoyuIframeGame = () => import('../pages/moyu/MoyuIframeGame.vue')
 const GameDoudizhu = () => import('../views/GameBoard.vue')
 const MemoriesPage = () => import('../pages/public/MemoriesPage.vue')
 const WorksShowcasePage = () => import('../pages/public/WorksShowcasePage.vue')
@@ -61,13 +54,9 @@ export const router = createRouter({
     { path: '/tags', component: TagsPage },
     { path: '/message', component: MessageWallPage },
     { path: '/moyu', component: MoyuPage },
-    { path: '/moyu/2048', component: Game2048 },
-    { path: '/moyu/tetris', component: GameTetris },
-    { path: '/moyu/minesweeper', component: GameMinesweeper },
-    { path: '/moyu/trex', redirect: '/moyu' },
-    { path: '/moyu/flappy', redirect: '/moyu' },
-    { path: '/moyu/breakout', component: GameBreakout },
-    { path: '/moyu/gomoku', component: GameGomoku },
+    { path: '/moyu/memory-card', component: GameMemoryCard },
+    { path: '/moyu/doudizhu', component: GameDoudizhu },
+    { path: '/moyu/:gameId', component: MoyuIframeGame },
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage, meta: { guestOnly: true } },
     { path: '/archives', redirect: '/blog' },
@@ -81,11 +70,6 @@ export const router = createRouter({
     { path: '/music', component: MusicCenterPage, meta: { requiresAuth: true } },
     { path: '/memories', component: MemoriesPage, meta: { requiresAuth: true } },
     { path: '/tools/mbti', component: MbtiTestPage },
-    { path: '/moyu/memory-card', component: GameMemoryCard },
-    { path: '/moyu/snake', component: GameSnake },
-    { path: '/moyu/flappy', component: GameFlappy },
-    { path: '/moyu/puzzle15', component: GamePuzzle15 },
-    { path: '/moyu/doudizhu', component: GameDoudizhu },
     { path: '/admin/login', redirect: '/login' },
     { path: '/tools', component: ToolsHubPage },
     { path: '/tools/reaction', component: ToolReactionPage },

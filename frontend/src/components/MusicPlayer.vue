@@ -4,11 +4,10 @@
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import QqCookieGuide from './music/QqCookieGuide.vue'
 import { useMusicPlayerStore } from '../stores/musicPlayer'
 import { useUserStore } from '../stores/user'
 import { useThemeStore } from '../stores/theme'
-import { neteaseLoginWithCookie, neteaseLogout, qqLoginCookie, qqLogout, searchNetease, searchQq } from '../api/musicApi'
+import { neteaseLoginWithCookie, neteaseLogout, searchNetease } from '../api/musicApi'
 import type { MusicSearchHit } from '../api/musicApi'
 // ncm 扫码走独立 axios（withCredentials），与 Login.vue 一致
 // @ts-expect-error api.js 无 TS 声明，与 vue-tsc 兼容
@@ -43,8 +42,8 @@ const duration = ref(0)
 const lyricBoxRef = ref<HTMLElement | null>(null)
 const authBoxRef = ref<HTMLElement | null>(null)
 
-/** 绑定面板当前平台：与顶部两个登录按钮对应，互不混排 */
-const authPanelTab = ref<'netease' | 'qq'>('netease')
+/** 绑定面板当前平台 */
+const authPanelTab = ref<'netease'>('netease')
 const lrcLines = computed<BilingualLrcLine[]>(() => parseBilingualLrc(music.lyricLrc || '', music.lyricTLrc || ''))
 const activeLine = computed(() => activeBilingualLrcIndex(lrcLines.value, currentTime.value))
 
@@ -61,7 +60,6 @@ const sourceLabel = computed(() => {
   if (music.source === 'playlist') {
     if (music.dailyHotPlatform === 'netease_playlist') return '🎵 网易云歌单'
     if (music.dailyHotPlatform === 'netease') return '🔥 热歌 · 网易云'
-    if (music.dailyHotPlatform === 'qq') return '🔥 热歌 · QQ'
     return '📋 歌单'
   }
   return '🎲 随机'
@@ -89,18 +87,8 @@ const neteaseLabel = computed(() =>
   music.neteaseBound ? `🎵 ${music.neteaseNickname || '已绑定'}` : '🎵 网易云登录',
 )
 
-const qqLoginLabel = computed(() =>
-  music.qqBound ? `🎼 ${music.qqNickname || 'QQ已绑定'}` : '🎼 QQ音乐登录',
-)
-
-const qqCookieInput = ref('')
-const qqAuthErr = ref('')
-const qqAuthMsg = ref('')
-const qqLoginLoading = ref(false)
-
 /** 面板内「搜歌」：仅单曲，走本站已登录态下的 /api/music 搜索 */
 const searchQ = ref('')
-const searchPlatform = ref<'netease' | 'qq'>('netease')
 const searchLoading = ref(false)
 const searchErr = ref('')
 const searchHits = ref<MusicSearchHit[]>([])
@@ -232,7 +220,7 @@ function toggleSource() {
   }
 }
 
-/** 网易云：再次点击（且当前为网易标签）收起绑定面板 */
+/** 网易云：再次点击收起绑定面板 */
 function onNeteaseLoginClick() {
   if (authPanelOpen.value && authPanelTab.value === 'netease') {
     authPanelOpen.value = false
@@ -246,62 +234,6 @@ function onNeteaseLoginClick() {
   void nextTick(() => {
     authBoxRef.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   })
-}
-
-/** QQ：再次点击（且当前为 QQ 标签）收起绑定面板 */
-function onQqLoginClick() {
-  if (authPanelOpen.value && authPanelTab.value === 'qq') {
-    authPanelOpen.value = false
-    return
-  }
-  stopQrPoll()
-  authPanelTab.value = 'qq'
-  authPanelOpen.value = true
-  neteaseAuthErr.value = ''
-  neteaseAuthMsg.value = ''
-  void nextTick(() => {
-    authBoxRef.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  })
-}
-
-async function submitQqCookie() {
-  if (!userStore.isLoggedIn) {
-    qqAuthErr.value = '请先登录本站账号'
-    return
-  }
-  const ck = qqCookieInput.value.trim()
-  if (!ck) {
-    qqAuthErr.value = '请粘贴 Cookie'
-    return
-  }
-  qqLoginLoading.value = true
-  qqAuthErr.value = ''
-  qqAuthMsg.value = ''
-  try {
-    await qqLoginCookie(ck)
-    await music.refreshNeteaseStatus()
-    qqAuthMsg.value = music.qqNickname ? `QQ 音乐已绑定：${music.qqNickname}` : 'QQ 音乐已绑定'
-    qqCookieInput.value = ''
-  } catch (e: unknown) {
-    qqAuthErr.value = e instanceof Error ? e.message : '绑定失败'
-  } finally {
-    qqLoginLoading.value = false
-  }
-}
-
-async function submitQqLogout() {
-  qqLoginLoading.value = true
-  qqAuthErr.value = ''
-  qqAuthMsg.value = ''
-  try {
-    await qqLogout()
-    await music.refreshNeteaseStatus()
-    qqAuthMsg.value = '已解绑 QQ 音乐'
-  } catch (e: unknown) {
-    qqAuthErr.value = e instanceof Error ? e.message : '解绑失败'
-  } finally {
-    qqLoginLoading.value = false
-  }
 }
 
 async function submitNeteaseLogout() {
@@ -403,13 +335,6 @@ function clearSearchResults() {
   searchErr.value = ''
 }
 
-function setSearchPlatform(p: 'netease' | 'qq') {
-  searchPlatform.value = p
-  clearSearchDebounce()
-  clearSearchResults()
-}
-
-
 function collapse() {
   isExpanded.value = false
   authPanelOpen.value = false
@@ -453,17 +378,11 @@ async function executeSongSearch(complainIfEmpty: boolean) {
   searchErr.value = ''
   searchLoading.value = true
   try {
-    const rows =
-      searchPlatform.value === 'netease'
-        ? await searchNetease(q, 30, 'song')
-        : await searchQq(q, 1, 20, 'song')
+    const rows = await searchNetease(q, 30, 'song')
     if (seq !== searchSeq) return
     searchHits.value = rows.filter((h) => h.kind === 'song' && h.id > 0)
     if (searchHits.value.length === 0) {
-      searchErr.value =
-        searchPlatform.value === 'netease'
-          ? '未找到匹配单曲。可换关键词、试 QQ 平台，或请管理员检查自建网易云 API（netease.proxy.base-url）是否可用'
-          : '未找到匹配单曲，可换平台或关键词再试'
+      searchErr.value = '未找到匹配单曲。可换关键词，或请管理员检查自建网易云 API（netease.proxy.base-url）是否可用'
     }
   } catch (e: unknown) {
     if (seq !== searchSeq) return
@@ -483,33 +402,18 @@ async function playSearchHit(hit: MusicSearchHit) {
   if (hit.kind !== 'song') return
   searchErr.value = ''
   try {
-    if (searchPlatform.value === 'qq') {
-      if (!hit.mid) {
-        searchErr.value = '该结果缺少 songmid，无法播放'
-        return
-      }
-      await music.playTrack(
-        music.metaToQqTrack({
-          songmid: hit.mid,
-          name: hit.title,
-          artist: hit.subtitle,
-          cover: hit.cover,
-        }),
-      )
-    } else {
-      if (!hit.id) {
-        searchErr.value = '该结果缺少歌曲 ID'
-        return
-      }
-      await music.playTrack(
-        music.metaToTrack({
-          id: hit.id,
-          name: hit.title,
-          artist: hit.subtitle,
-          cover: hit.cover,
-        }),
-      )
+    if (!hit.id) {
+      searchErr.value = '该结果缺少歌曲 ID'
+      return
     }
+    await music.playTrack(
+      music.metaToTrack({
+        id: hit.id,
+        name: hit.title,
+        artist: hit.subtitle,
+        cover: hit.cover,
+      }),
+    )
     clearSearchResults()
     searchQ.value = ''
   } catch (e: unknown) {
@@ -675,9 +579,6 @@ onUnmounted(() => {
               <span v-if="userStore.isLoggedIn && music.neteaseBound" class="mp-panel__sub">
                 网易云：{{ music.neteaseNickname || '已登录' }}
               </span>
-              <span v-if="userStore.isLoggedIn && music.qqBound" class="mp-panel__sub">
-                QQ 音乐：{{ music.qqNickname || '已登录' }}
-              </span>
             </div>
           </div>
           <button type="button" class="mp-panel__close" aria-label="收起" @click="collapse">
@@ -688,28 +589,6 @@ onUnmounted(() => {
         <section class="mp-search" aria-label="搜索歌曲">
           <div class="mp-search__head">
             <span class="mp-search__label">搜歌</span>
-            <div class="mp-search__tabs" role="tablist">
-              <button
-                type="button"
-                class="mp-search__tab"
-                :class="{ 'mp-search__tab--on': searchPlatform === 'netease' }"
-                role="tab"
-                :aria-selected="searchPlatform === 'netease'"
-                @click="setSearchPlatform('netease')"
-              >
-                网易
-              </button>
-              <button
-                type="button"
-                class="mp-search__tab"
-                :class="{ 'mp-search__tab--on': searchPlatform === 'qq' }"
-                role="tab"
-                :aria-selected="searchPlatform === 'qq'"
-                @click="setSearchPlatform('qq')"
-              >
-                QQ
-              </button>
-            </div>
           </div>
           <div class="mp-search__row">
             <input
@@ -731,15 +610,12 @@ onUnmounted(() => {
               {{ searchLoading ? '…' : '搜索' }}
             </button>
           </div>
-          <p v-if="!userStore.isLoggedIn" class="mp-search__hint">登录本站后可搜歌；QQ 播放需绑定 QQ Cookie。</p>
-          <p v-else-if="searchPlatform === 'qq'" class="mp-search__hint">
-            QQ 搜索依赖本机 <code>qq-music-api</code>（默认端口 3200）。<template v-if="!music.qqBound">播放需再点下方「QQ音乐登录」绑定 Cookie。</template>
-          </p>
+          <p v-if="!userStore.isLoggedIn" class="mp-search__hint">登录本站后可搜歌。</p>
           <p v-if="searchErr" class="mp-search__err">{{ searchErr }}</p>
           <ul v-if="searchHits.length" class="mp-search__list">
             <li
               v-for="(h, idx) in searchHits"
-              :key="`${searchPlatform}-${h.id}-${h.mid}-${idx}`"
+              :key="`${h.id}-${h.mid}-${idx}`"
             >
               <button type="button" class="mp-search__hit" @click="playSearchHit(h)">
                 <span class="mp-search__hit-title">{{ h.title }}</span>
@@ -769,15 +645,6 @@ onUnmounted(() => {
           <button
             type="button"
             class="mp-mini"
-            :class="{ 'mp-mini--active': authPanelOpen && authPanelTab === 'qq' }"
-            title="QQ 音乐登录"
-            @click="onQqLoginClick"
-          >
-            {{ qqLoginLabel }}
-          </button>
-          <button
-            type="button"
-            class="mp-mini"
             :class="{ 'mp-mini--active': authPanelOpen && authPanelTab === 'netease' }"
             title="网易云账号"
             @click="onNeteaseLoginClick"
@@ -788,8 +655,8 @@ onUnmounted(() => {
         </div>
 
         <div v-if="authPanelOpen" ref="authBoxRef" class="mp-auth-box">
-          <!-- 仅网易云 -->
-          <template v-if="authPanelTab === 'netease'">
+          <!-- 网易云 -->
+          <template>
             <p class="mp-auth-box__hint">网易云音乐</p>
             <p class="mp-auth-box__qr-hint mp-auth-box__qr-hint--muted" style="margin: 0 0 8px">
               {{
@@ -830,47 +697,6 @@ onUnmounted(() => {
             </div>
             <p v-if="neteaseAuthErr" class="mp-auth-box__err">{{ neteaseAuthErr }}</p>
             <p v-else-if="neteaseAuthMsg" class="mp-auth-box__ok">{{ neteaseAuthMsg }}</p>
-          </template>
-
-          <!-- 仅 QQ 音乐 -->
-          <template v-else>
-            <p class="mp-auth-box__hint">
-              QQ 音乐（<a href="https://sansenjian.github.io/qq-music-api/api/" target="_blank" rel="noopener">qq-music-api</a>）
-            </p>
-            <QqCookieGuide
-              class="mp-qq-guide"
-              compact
-              :require-site-user="!userStore.isLoggedIn"
-            />
-            <textarea
-              v-model="qqCookieInput"
-              class="mp-auth-box__textarea"
-              rows="3"
-              placeholder="uin=…; qm_keyst=…"
-              :disabled="!userStore.isLoggedIn || qqLoginLoading"
-            />
-            <div class="mp-auth-box__actions">
-              <button
-                type="button"
-                class="mp-mini"
-                :disabled="!userStore.isLoggedIn || qqLoginLoading"
-                @click="submitQqCookie"
-              >
-                {{ qqLoginLoading ? '处理中…' : '绑定 QQ Cookie' }}
-              </button>
-              <button
-                v-if="music.qqBound"
-                type="button"
-                class="mp-mini"
-                :disabled="qqLoginLoading"
-                @click="submitQqLogout"
-              >
-                解绑 QQ
-              </button>
-            </div>
-            <p v-if="qqAuthErr" class="mp-auth-box__err">{{ qqAuthErr }}</p>
-            <p v-else-if="qqAuthMsg" class="mp-auth-box__ok">{{ qqAuthMsg }}</p>
-          </template>
         </div>
 
         <div class="mp-controls">
@@ -1419,10 +1245,6 @@ onUnmounted(() => {
 
 .mp-auth-box__qr-hint--muted {
   opacity: 0.8;
-}
-
-.mp-qq-guide {
-  margin: 0 0 8px;
 }
 
 .mp-auth-box__inline-code {

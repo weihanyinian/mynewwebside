@@ -5,12 +5,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.mywebside.blog.common.ApiResponse;
 import com.mywebside.blog.music.netease.proxy.client.NeteaseBinaryifyClient;
 import com.mywebside.blog.music.netease.proxy.config.NeteaseProxyProperties;
-import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongMetaDto;
 import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.SongUrlDto;
+import com.mywebside.blog.music.netease.proxy.dto.NeteaseMusicDtos.LyricDto;
 import com.mywebside.blog.music.netease.proxy.service.NeteaseMusicProxyService;
-import com.mywebside.blog.music.qq.dto.QqMusicDtos.QqSongMetaDto;
-import com.mywebside.blog.music.qq.service.QqMusicProxyService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +34,6 @@ public class MusicController {
   private final NeteaseBinaryifyClient neteaseBinaryifyClient;
   private final NeteaseMusicProxyService neteaseMusicProxyService;
   private final NeteaseProxyProperties neteaseProxyProperties;
-  private final QqMusicProxyService qqMusicProxyService;
 
   private final Cache<String, List<PlaylistTrack>> playlistCache;
   private final Cache<String, List<PlaylistTrack>> hotCache;
@@ -44,13 +41,11 @@ public class MusicController {
   public MusicController(
       NeteaseBinaryifyClient neteaseBinaryifyClient,
       NeteaseMusicProxyService neteaseMusicProxyService,
-      NeteaseProxyProperties neteaseProxyProperties,
-      QqMusicProxyService qqMusicProxyService
+      NeteaseProxyProperties neteaseProxyProperties
   ) {
     this.neteaseBinaryifyClient = neteaseBinaryifyClient;
     this.neteaseMusicProxyService = neteaseMusicProxyService;
     this.neteaseProxyProperties = neteaseProxyProperties;
-    this.qqMusicProxyService = qqMusicProxyService;
     this.playlistCache = Caffeine.newBuilder()
         .expireAfterWrite(CACHE_TTL_MINUTES, TimeUnit.MINUTES)
         .maximumSize(CACHE_MAX_SIZE)
@@ -74,7 +69,6 @@ public class MusicController {
     }
     List<PlaylistTrack> tracks =
         switch (source == null ? "" : source.trim().toLowerCase()) {
-          case "qq" -> loadHotQq(lim);
           case "netease" -> loadHotNetease(lim);
           default -> Collections.emptyList();
         };
@@ -151,20 +145,6 @@ public class MusicController {
       return tracksFromMetas(neteaseMusicProxyService.parsePlaylistSongs(root));
     } catch (RestClientException | NumberFormatException e) {
       log.warn("加载网易云热歌榜失败: {}", pid, e);
-      return Collections.emptyList();
-    }
-  }
-
-  private List<PlaylistTrack> loadHotQq(int limit) {
-    try {
-      List<QqSongMetaDto> metas = qqMusicProxyService.hotChartTracks(limit);
-      List<PlaylistTrack> tracks = new ArrayList<>();
-      for (QqSongMetaDto m : metas) {
-        tracks.add(new PlaylistTrack(0L, m.name(), m.artist(), m.cover(), m.songmid()));
-      }
-      return tracks;
-    } catch (Exception e) {
-      log.warn("加载 QQ 热歌榜失败", e);
       return Collections.emptyList();
     }
   }

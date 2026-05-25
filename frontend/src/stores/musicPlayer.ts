@@ -3,9 +3,6 @@ import {
   fetchHotTracks,
   fetchNeteaseStatus,
   fetchPublicPlaylist,
-  fetchQqLyric,
-  fetchQqSongUrl,
-  fetchQqStatus,
   fetchSongLyric,
   fetchSongUrl,
   type SongMeta,
@@ -13,19 +10,15 @@ import {
 import { DEFAULT_NETEASE_BR, DEFAULT_NETEASE_PLAYLIST_ID } from '../config/music'
 import { getToken } from '../utils/token'
 
-export type MusicSource = 'netease' | 'qq'
+export type PlaySource = 'random' | 'playlist' | 'library'
+export type PlayMode = 'sequence' | 'loop_one' | 'shuffle'
 
 export type PlayerTrack = {
   id: number
   title: string
   artist: string
   cover: string
-  source: MusicSource
-  qqSongMid?: string
 }
-
-export type PlaySource = 'random' | 'playlist' | 'library'
-export type PlayMode = 'sequence' | 'loop_one' | 'shuffle'
 
 const PREF_KEY = 'mp_player_pref_v1'
 const MAX_AUTO_SKIP = 5
@@ -37,8 +30,6 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
   state: () => ({
     neteaseBound: false,
     neteaseNickname: null as string | null,
-    qqBound: false,
-    qqNickname: null as string | null,
     queue: [] as PlayerTrack[],
     currentIndex: -1,
     resolvedUrl: '',
@@ -48,8 +39,8 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     lyricTLrc: '',
     source: 'playlist' as PlaySource,
     playlistTracks: [] as PlayerTrack[],
-    /** 当前「歌单」来源：网易云默认歌单 / 热歌榜，或 QQ 热歌（仅用于展示） */
-    dailyHotPlatform: null as 'netease' | 'qq' | 'netease_playlist' | null,
+    /** 当前「歌单」来源：网易云默认歌单 / 热歌榜 */
+    dailyHotPlatform: null as 'netease' | 'netease_playlist' | null,
     playMode: 'shuffle' as PlayMode,
     volume: 0.65,
   }),
@@ -66,32 +57,16 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     // ---- track construction ----
 
     metaToTrack(m: { id: number; name: string; artist: string; cover: string }): PlayerTrack {
-      return { id: m.id, title: m.name, artist: m.artist, cover: m.cover, source: 'netease' }
-    },
-
-    metaToQqTrack(m: { songmid: string; name: string; artist: string; cover: string }): PlayerTrack {
-      return { id: 0, title: m.name, artist: m.artist, cover: m.cover, source: 'qq', qqSongMid: m.songmid }
+      return { id: m.id, title: m.name, artist: m.artist, cover: m.cover }
     },
 
     rowToPlayerTrack(row: SongMeta): PlayerTrack {
-      if (row.songmid) {
-        return this.metaToQqTrack({ songmid: row.songmid, name: row.name, artist: row.artist, cover: row.cover })
-      }
       return this.metaToTrack(row)
     },
 
     // ---- shared URL resolution (eliminates 4x duplication between loadSong / tryAutoSkip) ----
 
     async _resolveTrackUrl(t: PlayerTrack): Promise<{ url: string; error?: string; canSkip?: boolean }> {
-      if (t.source === 'qq') {
-        if (!t.qqSongMid) return { url: '', error: '缺少 QQ songmid' }
-        if (!getToken() || !this.qqBound) {
-          return { url: '', error: '播放 QQ 音乐请先在本站绑定 QQ Cookie（音乐中心或播放器内）' }
-        }
-        const dto = await fetchQqSongUrl(t.qqSongMid, '128')
-        if (dto.playable && dto.url) return { url: dto.url }
-        return { url: '', error: dto.reasonMessage || 'QQ 音乐暂时无法播放', canSkip: true }
-      }
       if (!t.id) return { url: '' }
       const useAuth = !!getToken() && this.neteaseBound
       const targetBr = useAuth ? DEFAULT_NETEASE_BR : 128000
@@ -110,12 +85,6 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
       const t = this.currentTrack
       if (!t) { this.lyricLrc = ''; this.lyricTLrc = ''; return }
       try {
-        if (t.source === 'qq' && t.qqSongMid) {
-          const data = await fetchQqLyric(t.qqSongMid)
-          this.lyricLrc = data.lrc || ''
-          this.lyricTLrc = data.tlyric || ''
-          return
-        }
         if (!t.id) { this.lyricLrc = ''; this.lyricTLrc = ''; return }
         const useAuth = !!getToken() && this.neteaseBound
         const data = await fetchSongLyric(t.id, useAuth)
@@ -244,7 +213,7 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
 
     // ---- playlist loading ----
 
-    _applyPlaylistRows(rows: SongMeta[], platform: 'netease' | 'qq' | 'netease_playlist' | null) {
+    _applyPlaylistRows(rows: SongMeta[], platform: 'netease' | 'netease_playlist' | null) {
       this.playlistTracks = rows.map((r) => this.rowToPlayerTrack(r))
       this.queue = this.playlistTracks.slice()
       this.currentIndex = 0
@@ -254,15 +223,15 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
     },
 
     async loadDefaultPlaylist() {
-      const loadHot = async (source: 'netease' | 'qq') => {
+      const loadHot = async () => {
         try {
-          return await fetchHotTracks(source, 80)
+          return await fetchHotTracks('netease', 80)
         } catch {
           return [] as SongMeta[]
         }
       }
 
-      const tryApplyHot = async (rows: SongMeta[], platform: 'netease' | 'qq') => {
+      const tryApplyHot = async (rows: SongMeta[], platform: 'netease' | 'netease_playlist') => {
         if (rows.length === 0) return false
         this._applyPlaylistRows(rows, platform)
         await this.loadSong(this.currentIndex)
@@ -283,8 +252,7 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
           return
         }
 
-        if (await tryApplyHot(await loadHot('netease'), 'netease')) return
-        if (await tryApplyHot(await loadHot('qq'), 'qq')) return
+        if (await tryApplyHot(await loadHot(), 'netease')) return
 
         this.loadError = '歌单暂无曲目'
       } catch (e: unknown) {
@@ -316,27 +284,15 @@ export const useMusicPlayerStore = defineStore('musicPlayer', {
       if (!getToken()) {
         this.neteaseBound = false
         this.neteaseNickname = null
-        this.qqBound = false
-        this.qqNickname = null
         return
       }
-      const [neteaseResult, qqResult] = await Promise.allSettled([
-        fetchNeteaseStatus(),
-        fetchQqStatus(),
-      ])
-      if (neteaseResult.status === 'fulfilled') {
-        this.neteaseBound = neteaseResult.value.bound
-        this.neteaseNickname = neteaseResult.value.neteaseNickname
-      } else {
+      try {
+        const result = await fetchNeteaseStatus()
+        this.neteaseBound = result.bound
+        this.neteaseNickname = result.neteaseNickname
+      } catch {
         this.neteaseBound = false
         this.neteaseNickname = null
-      }
-      if (qqResult.status === 'fulfilled') {
-        this.qqBound = qqResult.value.bound
-        this.qqNickname = qqResult.value.qqNickname
-      } else {
-        this.qqBound = false
-        this.qqNickname = null
       }
     },
 

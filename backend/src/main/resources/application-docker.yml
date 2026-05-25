@@ -20,7 +20,3 @@ netease:
 
 ncm:
   base-url: ${NCM_BASE_URL:http://127.0.0.1:3000}
-
-qq:
-  proxy:
-    base-url: ${QQ_MUSIC_PROXY_BASE_URL:http://qq-music-api:3200}

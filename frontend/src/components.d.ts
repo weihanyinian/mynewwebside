@@ -53,7 +53,6 @@ declare module 'vue' {
     NewsletterSignup: typeof import('./components/NewsletterSignup.vue')['default']
     PlayArea: typeof import('./components/PlayArea.vue')['default']
     PlayerHand: typeof import('./components/PlayerHand.vue')['default']
-    QqCookieGuide: typeof import('./components/music/QqCookieGuide.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SiteBackgroundVideos: typeof import('./components/site/SiteBackgroundVideos.vue')['default']
