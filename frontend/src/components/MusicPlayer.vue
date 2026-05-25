@@ -656,8 +656,7 @@ onUnmounted(() => {
 
         <div v-if="authPanelOpen" ref="authBoxRef" class="mp-auth-box">
           <!-- 网易云 -->
-          <template>
-            <p class="mp-auth-box__hint">网易云音乐</p>
+          <p class="mp-auth-box__hint">网易云音乐</p>
             <p class="mp-auth-box__qr-hint mp-auth-box__qr-hint--muted" style="margin: 0 0 8px">
               {{
                 userStore.isLoggedIn
