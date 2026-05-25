@@ -105,13 +105,7 @@ netease:
     default-br: ${NETEASE_DEFAULT_BR:320000}
     # 上游失败重试次数（不含首次）
     retry-count: ${NETEASE_PROXY_RETRY_COUNT:1}
-
-ncm:
-  # api-enhanced HTTP 根地址（与 netease.proxy 通常相同），供 /api/ncm 扫码等 Session 代理
-  base-url: ${NCM_BASE_URL:http://127.0.0.1:3000}
-
-# 网易云音乐开放平台 API（见 netease.music.open 前缀）
-netease:
+  # 网易云音乐开放平台 API（与 proxy 同在 netease 下，避免 YAML 重复键）
   music:
     open:
       enabled: false
@@ -137,6 +131,10 @@ netease:
         template: "{appId}\n{timestamp}\n{nonce}\n{bodySha256Hex}"
         encrypt-body: false
         aes-key-length: 16
+
+ncm:
+  # api-enhanced HTTP 根地址（与 netease.proxy 通常相同），供 /api/ncm 扫码等 Session 代理
+  base-url: ${NCM_BASE_URL:http://127.0.0.1:3000}
 
 # Actuator 健康检查（生产不暴露详细信息）
 management:
