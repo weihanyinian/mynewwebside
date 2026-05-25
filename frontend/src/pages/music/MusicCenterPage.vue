@@ -37,7 +37,6 @@ const expandedPid = ref<number | null>(null)
 const expandedTracks = ref<SongMeta[]>([])
 const tracksLoading = ref(false)
 
-const searchPlatform = ref<'netease'>('netease')
 const searchKind = ref<'song' | 'artist' | 'album' | 'playlist'>('song')
 const searchQ = ref('')
 const searchLoading = ref(false)
@@ -55,13 +54,6 @@ function clearSearchDebounce() {
     clearTimeout(searchDebounceTimer)
     searchDebounceTimer = null
   }
-}
-
-function setSearchPlatform(p: 'netease') {
-  searchPlatform.value = p
-  clearSearchDebounce()
-  searchResults.value = []
-  searchErr.value = ''
 }
 
 function onSearchInput() {
