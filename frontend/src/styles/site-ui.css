@@ -421,9 +421,9 @@ html.dark-mode .site-pill--secondary {
   }
 }
 
-/* 顶栏内层：允许折行以便移动端第二行展开菜单 */
+/* 顶栏内层：桌面端不折行（标签横向滚动），移动端由汉堡菜单接管 */
 .glass-nav .nav-inner {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 /* ---------- 顶栏：移动端汉堡 + 折叠菜单 ---------- */
