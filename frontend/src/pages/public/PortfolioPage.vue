@@ -3,11 +3,9 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { goToSiteHome } from '../../utils/siteHome'
 import HitokotoCard from '../../components/HitokotoCard.vue'
 import SiteBackgroundVideos from '../../components/site/SiteBackgroundVideos.vue'
 import { useThemeStore } from '../../stores/theme'
-import { useUserStore } from '../../stores/user'
 import { useWorksStore } from '../../stores/works'
 import { useVisitStore } from '../../stores/visit'
 import MessageWallSection from './sections/MessageWallSection.vue'
@@ -21,15 +19,12 @@ import { HOME_BG_LIGHT_SRC, HOME_BG_DARK_SRC } from '../../config/homeBackground
 
 const router = useRouter()
 const route = useRoute()
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 /** 【主题】与 SiteLayout 共用 Pinia，首页仅负责局部 dark-theme 类 */
 const themeStore = useThemeStore()
 const { isDarkMode } = storeToRefs(themeStore)
 
-const userStore = useUserStore()
-const isLoggedIn = computed(() => userStore.isLoggedIn)
-const isAdminUser = computed(() => userStore.isAdmin)
 const worksStore = useWorksStore()
 const visitStore = useVisitStore()
 
@@ -39,15 +34,6 @@ const githubRepo =
 /** 日间浅色 / 夜间深色，片名见 `config/homeBackgroundVideos.ts` */
 const homeBgLightSrc = HOME_BG_LIGHT_SRC
 const homeBgDarkSrc = HOME_BG_DARK_SRC
-
-function logout() {
-  userStore.logout()
-  router.push('/login')
-}
-
-function toggleLocale() {
-  locale.value = locale.value === 'zh' ? 'en' : 'zh'
-}
 
 const works = computed(() => worksStore.filteredWorks)
 const workCategories = computed(() => worksStore.categories)
@@ -62,7 +48,7 @@ const { isHashActive, scrollToSection } = useSectionObserver(
   computed(() => route.hash),
   HOME_SECTION_IDS,
 )
-const { heroParallaxY, isNavScrolled, pointerX, pointerY } = useHeroMotion()
+const { heroParallaxY, pointerX, pointerY } = useHeroMotion()
 
 /** 全屏背景 MP4 体积大：首帧后再挂，避免与首屏 CSS/字体竞争带宽 */
 const bgVideoReady = ref(false)
@@ -100,14 +86,6 @@ function onWorkCardActivate(work: HomeWorkItem, e?: Event) {
     return
   }
   onWorkClick(work.link)
-}
-
-function onSiteLogoClick() {
-  if (route.path === '/') {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  } else {
-    goToSiteHome(router)
-  }
 }
 
 onMounted(() => {
@@ -155,130 +133,6 @@ onMounted(() => {
     <div class="bg-neon-orb bg-neon-orb--a" aria-hidden="true" />
     <div class="bg-neon-orb bg-neon-orb--b" aria-hidden="true" />
     <div class="bg-neon-orb bg-neon-orb--c" aria-hidden="true" />
-
-    <!-- Navbar -->
-    <nav class="glass-nav site-nav-unified" :class="{ 'nav-scrolled': isNavScrolled }">
-      <div class="nav-inner">
-        <div class="nav-left">
-          <div
-            class="logo brand-logo"
-            role="link"
-            tabindex="0"
-            :title="locale === 'zh' ? '返回顶部 / 主页' : 'Home / top'"
-            @click="onSiteLogoClick"
-            @keydown.enter.prevent="onSiteLogoClick"
-          >
-            <span class="brand-logo__text">{{ t('nav.logo') }}</span>
-          </div>
-          <div class="nav-social" role="navigation" :aria-label="t('sidebar.social')">
-            <a
-              class="nav-social-link"
-              href="https://github.com/weihanyinian"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <svg class="nav-social-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path
-                  fill="currentColor"
-                  d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.207 11.385.6.113.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.087.745.084.729.084.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.304 3.495.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.98-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.565 21.796 24 17.302 24 12c0-6.63-5.373-12-12-12Z"
-                />
-              </svg>
-              GitHub
-            </a>
-            <a class="nav-social-link" href="mailto:1012308753@qq.com">
-              <svg class="nav-social-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path
-                  fill="currentColor"
-                  d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Zm0 4-8 4.99L4 8V6l8 5 8-5v2Z"
-                />
-              </svg>
-              Email
-            </a>
-          </div>
-        </div>
-        <div id="portfolio-nav-links" class="links site-nav-links">
-          <a
-            href="#about"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isHashActive('#about') }"
-            @click.prevent="scrollTo('about')"
-          >{{ t('nav.about') }}</a>
-          <a
-            href="#works"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isHashActive('#works') }"
-            @click.prevent="scrollTo('works')"
-          >{{ t('nav.works') }}</a>
-          <a
-            href="#blog"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isHashActive('#blog') }"
-            @click.prevent="scrollTo('blog')"
-          >{{ t('nav.blog') }}</a>
-          <a
-            href="#contact"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isHashActive('#contact') }"
-            @click.prevent="scrollTo('contact')"
-          >{{ t('nav.contact') }}</a>
-          <a
-            href="#message"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isHashActive('#message') }"
-            @click.prevent="scrollTo('message')"
-          >{{ t('nav.message') }}</a>
-          <a
-            href="#tools"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': isHashActive('#tools') }"
-            @click.prevent="scrollTo('tools')"
-          >{{ t('nav.tools') }}</a>
-          <a
-            href="#"
-            class="site-pill site-pill--nav lang-toggle site-pill--keep-mobile"
-            :title="t('home.langToggle')"
-            @click.prevent="toggleLocale()"
-          >
-            {{ locale === 'zh' ? 'EN' : '中' }}
-          </a>
-          <a
-            href="#"
-            class="nav-social-link nav-theme-icon"
-            :title="t('home.themeToggle')"
-            @click.prevent="themeStore.toggleTheme()"
-          >
-            {{ !isDarkMode ? '夜' : '昼' }}
-          </a>
-          <a
-            v-if="isAdminUser"
-            href="#"
-            class="site-pill site-pill--nav site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path.startsWith('/admin') }"
-            @click.prevent="router.push('/admin')"
-          >{{ t('nav.admin') }}</a>
-          <a
-            v-if="!isLoggedIn"
-            href="#"
-            class="site-pill site-pill--nav site-nav-auth site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path === '/login' }"
-            @click.prevent="router.push('/login')"
-          >{{ t('nav.login') }}</a>
-          <a
-            v-if="!isLoggedIn"
-            href="#"
-            class="site-pill site-pill--nav site-nav-auth site-pill--keep-mobile"
-            :class="{ 'site-pill--active': route.path === '/register' }"
-            @click.prevent="router.push('/register')"
-          >{{ t('nav.register') }}</a>
-          <a
-            v-if="isLoggedIn"
-            href="#"
-            class="site-pill site-pill--nav site-nav-auth site-pill--keep-mobile"
-            @click.prevent="logout"
-          >{{ t('nav.logout') }}</a>
-        </div>
-      </div>
-    </nav>
 
     <!-- Hero Section -->
     <HomeHero
@@ -408,7 +262,10 @@ onMounted(() => {
 
 .portfolio-bg-scrim {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
   pointer-events: none;
   transition: background 0.45s ease;
@@ -416,7 +273,10 @@ onMounted(() => {
 
 .portfolio-bg-noise {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
   pointer-events: none;
   opacity: 0.03;
@@ -428,7 +288,10 @@ onMounted(() => {
 
 .portfolio-bg-scanline {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: -1;
   pointer-events: none;
   opacity: 0.018;
@@ -545,23 +408,6 @@ h2 {
   -webkit-background-clip: unset;
 }
 
-/* 顶栏：整块毛玻璃由 nav 承担；勿在子级再叠 backdrop-filter 以免嵌套失效 */
-.glass-nav {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px) saturate(1.12);
-  -webkit-backdrop-filter: blur(20px) saturate(1.12);
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
-  transition: transform 0.32s ease, box-shadow 0.32s ease, background 0.3s ease;
-}
-.dark-theme .glass-nav {
-  background: rgba(15, 23, 42, 0.38);
-  backdrop-filter: blur(22px) saturate(1.12);
-  -webkit-backdrop-filter: blur(22px) saturate(1.12);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
-}
-
 /* 内容玻璃：略提高不透明度 + 模糊，正文更易辨认 */
 .glass-card {
   background: rgba(255, 255, 255, 0.22);
@@ -577,152 +423,11 @@ h2 {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
 }
 
-/* Navigation */
-.glass-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1200;
-  border-radius: 0 0 16px 16px;
-}
-.portfolio-container .glass-nav.site-nav-unified {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 8px 32px 0 rgba(74, 144, 226, 0.15);
-}
-.portfolio-container .glass-nav.site-nav-unified.nav-scrolled {
-  background: rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(22px) saturate(1.12);
-  -webkit-backdrop-filter: blur(22px) saturate(1.12);
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    0 14px 36px rgba(15, 23, 42, 0.12);
-}
-.portfolio-container.dark-theme .glass-nav.site-nav-unified {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 8px 32px 0 rgba(0, 0, 0, 0.5);
-}
-.portfolio-container.dark-theme .glass-nav.site-nav-unified.nav-scrolled {
-  background: rgba(15, 23, 42, 0.48);
-  backdrop-filter: blur(24px) saturate(1.12);
-  -webkit-backdrop-filter: blur(24px) saturate(1.12);
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 14px 36px rgba(0, 0, 0, 0.45);
-}
-.nav-inner {
-  max-width: min(1400px, 100%);
-  margin: 0 auto;
-  padding: 12px 16px;
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  box-sizing: border-box;
-}
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  min-width: 0;
-}
-.nav-social {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.nav-social-link {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 999px;
-  text-decoration: none;
-  color: #0f172a;
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: opacity 0.2s, transform 0.2s;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.dark-theme .nav-social-link {
-  color: #cbd5e1;
-  background: rgba(16, 18, 27, 0.65);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-.nav-social-link:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-.brand-logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  min-width: 0;
-}
-.brand-logo__text {
-  font-size: clamp(1rem, 2.2vw, 1.35rem);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  flex-shrink: 0;
-  color: #0f172a;
-  -webkit-text-fill-color: currentColor;
-  background: none;
-}
-.dark-theme .brand-logo__text {
-  color: #e2e8f0;
-  -webkit-text-fill-color: currentColor;
-  background: none;
-}
-.links {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 5px;
-  align-items: center;
-  justify-content: flex-end;
-  flex: 1;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-.links::-webkit-scrollbar { height: 3px; }
-.links::-webkit-scrollbar-thumb { background: rgba(102, 217, 255, 0.35); border-radius: 3px; }
-.links a.site-pill { text-decoration: none; flex-shrink: 0; }
-
 /* Anchor scroll offset */
 #hero, #about, #works, #blog, #contact, #message, #tools {
   scroll-margin-top: 5.5rem;
 }
 
-.section-sub {
-  text-align: center;
-  max-width: 640px;
-  margin: -1rem auto 1.5rem;
-  font-size: 0.92rem;
-  font-weight: 450;
-  opacity: 0.92;
-  line-height: 1.75;
-  letter-spacing: 0.02em;
-  color: rgba(15, 23, 42, 0.92);
-}
-.dark-theme .section-sub {
-  color: rgba(226, 232, 240, 0.9);
-}
 .center { text-align: center; }
 
 .home-hub-card {
@@ -803,143 +508,11 @@ h2 {
   gap: 12px;
   justify-content: center;
 }
-/* Hero Section */
-.hero {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 0 20px;
-  padding-top: 80px;
-}
-.hero-content {
-  will-change: transform;
-  transition: transform 0.15s ease-out;
-}
-.hero-glass-card {
-  position: relative;
-  padding: clamp(28px, 4.2vw, 46px) clamp(22px, 4vw, 56px);
-  border-radius: 28px;
-  background: var(--hero-glass-bg);
-  border: 1px solid var(--hero-glass-border);
-  backdrop-filter: blur(22px) saturate(1.12);
-  -webkit-backdrop-filter: blur(22px) saturate(1.12);
-  box-shadow: var(--hero-glass-shadow);
-}
-.hero-title {
-  position: relative;
-  font-size: clamp(1.75rem, 4.8vw, 2.85rem);
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-  margin-bottom: 1rem;
-  font-weight: 700;
-  color: var(--hero-title-color);
-  text-shadow: var(--hero-title-shadow);
-}
-.hero-title::before,
-.hero-title::after {
-  display: none;
-}
-.hero-title--animate {
-  animation: hero-title-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  opacity: 0;
-}
-@keyframes hero-title-in {
-  from { opacity: 0; transform: translateY(28px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.hero-name-float {
-  display: inline-block;
-  color: var(--hero-name-color);
-  font-weight: 700;
-  -webkit-text-fill-color: currentColor;
-  background: none;
-  text-shadow: var(--hero-name-shadow);
-  animation: hero-name-float 4.8s ease-in-out infinite;
-  animation-delay: 0.4s;
-  -webkit-text-stroke: 0;
-  filter: none;
-}
-.hero-title:hover .hero-name-float {
-  animation: hero-name-float 4.8s ease-in-out infinite;
-  color: var(--hero-name-hover-color);
-}
-@keyframes hero-name-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-7px); }
-}
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: center;
-}
-.hero-actions--cta .site-pill {
-  position: relative;
-  overflow: hidden;
-  min-height: 46px;
-  font-size: 0.9rem;
-  padding-left: 1.35rem;
-  padding-right: 1.35rem;
-  border: 1px solid transparent;
-  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, background 0.24s ease;
-}
-.hero-actions--cta .site-pill--active {
-  background:
-    linear-gradient(120deg, rgba(110, 231, 255, 0.88), rgba(167, 139, 250, 0.82)) padding-box,
-    linear-gradient(120deg, rgba(110, 231, 255, 0.85), rgba(244, 167, 194, 0.75)) border-box;
-  border-color: transparent;
-  color: #f8fbff;
-}
-.hero-actions--cta .site-pill--active::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(110deg, transparent 24%, rgba(255, 255, 255, 0.35) 48%, transparent 72%);
-  transform: translateX(-120%);
-  transition: transform 0.6s ease;
-}
-.hero-actions--cta .site-pill--secondary {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(148, 163, 184, 0.48);
-  color: color-mix(in srgb, var(--text-color) 88%, #111827 12%);
-}
-.dark-theme .hero-actions--cta .site-pill--secondary {
-  background: rgba(15, 23, 42, 0.38);
-  border-color: rgba(167, 139, 250, 0.42);
-  color: rgba(241, 245, 249, 0.96);
-}
-.hero-actions--cta .site-pill:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(98, 167, 234, 0.28);
-}
-.hero-actions--cta .site-pill--active:hover:not(:disabled)::before {
-  transform: translateX(120%);
-}
-.hero-actions--cta .site-pill--active:hover:not(:disabled) {
-  box-shadow: 0 12px 30px rgba(98, 167, 234, 0.32);
-}
-.hero-actions--cta .site-pill--secondary:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--primary-color) 58%, #fff 42%);
-  background: rgba(255, 255, 255, 0.32);
-}
-.dark-theme .hero-actions--cta .site-pill--secondary:hover:not(:disabled) {
-  background: rgba(30, 41, 59, 0.56);
-}
-.links a.site-pill.site-pill--nav {
-  font-size: 0.8rem;
-}
-
 .mobile-tabbar {
   display: none;
 }
 
 @media (max-width: 900px) {
-  .nav-social,
-  .site-nav-links {
-    display: none !important;
-  }
 
   .mobile-tabbar {
     position: fixed;
@@ -1055,181 +628,6 @@ h2 {
   border-color: color-mix(in srgb, #a78bfa 48%, rgba(255, 255, 255, 0.22));
 }
 
-/* Works Grid */
-.works-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  margin-top: 8px;
-}
-.work-card {
-  padding: 0;
-  border-radius: 24px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  cursor: pointer;
-  outline: none;
-}
-.work-card:focus-visible {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color, #4a90e2) 45%, transparent);
-}
-.work-card__media {
-  position: relative;
-  height: 180px;
-  overflow: hidden;
-}
-.work-card__media::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.05) 0 1px,
-    rgba(255, 255, 255, 0) 1px 4px
-  );
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-.work-card__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.work-card__overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 16px;
-  background: linear-gradient(to top, rgba(15, 23, 42, 0.88), transparent 52%);
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-.work-card__overlay-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  color: #fff;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-.work-card__overlay-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
-}
-.work-card__detail {
-  margin: 0;
-  font-size: 0.86rem;
-  line-height: 1.55;
-  font-weight: 400;
-  color: rgba(248, 250, 252, 0.92);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
-}
-.work-card:hover .work-card__overlay,
-.work-card:focus-visible .work-card__overlay {
-  opacity: 1;
-}
-.work-card:hover .work-card__img,
-.work-card:focus-visible .work-card__img {
-  transform: scale(1.08);
-  filter:
-    contrast(1.08)
-    saturate(1.08)
-    hue-rotate(-4deg)
-    drop-shadow(-2px 0 0 rgba(110, 231, 255, 0.22))
-    drop-shadow(2px 0 0 rgba(167, 139, 250, 0.22));
-}
-.work-card:hover .work-card__media::after,
-.work-card:focus-visible .work-card__media::after {
-  opacity: 0.85;
-}
-.glass-card.work-card:hover,
-.glass-card.work-card:focus-visible {
-  transform: translateY(-8px) scale(1.01);
-  box-shadow:
-    0 22px 50px rgba(15, 23, 42, 0.14),
-    0 0 0 1px rgba(255, 255, 255, 0.35),
-    0 0 24px color-mix(in srgb, var(--primary-color) 35%, transparent);
-  border-color: color-mix(in srgb, var(--primary-color) 44%, rgba(255, 255, 255, 0.56));
-}
-.dark-theme .glass-card.work-card:hover,
-.dark-theme .glass-card.work-card:focus-visible {
-  box-shadow:
-    0 22px 50px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    0 0 26px color-mix(in srgb, var(--secondary-color) 42%, transparent);
-  border-color: color-mix(in srgb, var(--secondary-color) 56%, rgba(255, 255, 255, 0.2));
-}
-.work-card__body {
-  padding: 22px 24px 24px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-.work-tag {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  background: color-mix(in srgb, var(--primary-color, #4a90e2) 18%, transparent);
-  color: var(--primary-color, #4a90e2);
-  padding: 4px 10px;
-  border-radius: 12px;
-  align-self: flex-start;
-  margin-bottom: 12px;
-  font-weight: 700;
-}
-.dark-theme .work-tag {
-  background: rgba(251, 194, 235, 0.15);
-  color: #fbc2eb;
-}
-.work-card h3 {
-  font-size: 1.35rem;
-  color: color-mix(in srgb, var(--primary-color) 62%, #0f172a 38%);
-  margin: 0 0 8px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  text-shadow: 0 0 12px color-mix(in srgb, var(--primary-color) 18%, transparent);
-}
-.dark-theme .work-card h3 {
-  color: #f0f4f8;
-}
-.work-card__excerpt {
-  color: rgba(15, 23, 42, 0.76);
-  font-weight: 400;
-  margin: 0 0 16px;
-  flex-grow: 1;
-  line-height: 1.68;
-  letter-spacing: 0.02em;
-  font-size: 0.95rem;
-}
-.dark-theme .work-card__excerpt {
-  color: rgba(203, 213, 225, 0.88);
-}
-.work-link {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--primary-color, #4a90e2);
-  margin-top: auto;
-}
-.dark-theme .work-link { color: #c4b5fd; }
-
 /* Contact */
 .contact-card {
   padding: 60px 40px;
@@ -1286,18 +684,10 @@ h2 {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .hero-title { font-size: 2.2rem; }
-  .works-grid { grid-template-columns: 1fr; }
-  .hero-actions { flex-direction: column; }
   .about-content { flex-direction: column; text-align: center; }
   .about-img-wrap { width: 100%; }
   .about-img { width: 100%; aspect-ratio: 4/3; }
   .contact-img { height: auto; aspect-ratio: 16/9; }
-}
-
-/* 首页顶栏汉堡：浅色背景下保证对比度 */
-.portfolio-container:not(.dark-theme) .nav-burger {
-  color: #0f172a;
 }
 
 </style>

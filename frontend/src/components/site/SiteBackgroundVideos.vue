@@ -48,6 +48,11 @@ function syncTheme() {
   const el = hostRef.value
   if (!el) return
   el.setAttribute('data-theme', props.isDark ? 'dark' : 'light')
+  // 暂停隐藏的视频以节省 GPU 解码资源
+  const active = props.isDark ? darkVideoEl : lightVideoEl
+  const hidden = props.isDark ? lightVideoEl : darkVideoEl
+  if (hidden && !hidden.paused) hidden.pause()
+  if (active && active.paused) void active.play().catch(() => {})
 }
 
 function mountShadow() {
@@ -64,8 +69,8 @@ function mountShadow() {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      right: 0;
+      bottom: 0;
       z-index: -2;
       pointer-events: none;
     }
@@ -117,7 +122,7 @@ function mountShadow() {
     })
     /** 缓冲卡住时尝试恢复（与 suspend / visibility 兜底互补） */
     v.addEventListener('stalled', () => {
-      window.setTimeout(() => void v.play().catch(() => {}), 200)
+      window.setTimeout(() => void v.play().catch(() => {}), 1000)
     })
     v.src = primarySrc
     v.addEventListener('error', function onErr() {
@@ -144,7 +149,7 @@ function mountShadow() {
       /* 部分环境需用户手势后才可 play；静音 autoplay 通常可直接播 */
     })
     const onSuspend = () => {
-      window.setTimeout(() => void v.play().catch(() => {}), 50)
+      window.setTimeout(() => void v.play().catch(() => {}), 500)
     }
     v.addEventListener('suspend', onSuspend)
     suspendHandlers.push({ el: v, fn: onSuspend })
