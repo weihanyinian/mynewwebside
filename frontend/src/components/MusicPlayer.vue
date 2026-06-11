@@ -7,11 +7,15 @@ import { storeToRefs } from 'pinia'
 import { useMusicPlayerStore } from '../stores/musicPlayer'
 import { useUserStore } from '../stores/user'
 import { useThemeStore } from '../stores/theme'
-import { neteaseLoginWithCookie, neteaseLogout, searchNetease } from '../api/musicApi'
+import {
+  neteaseLoginWithCookie,
+  neteaseLogout,
+  searchNetease,
+  qrLoginKey,
+  qrLoginCreate,
+  qrLoginCheck,
+} from '../api/musicApi'
 import type { MusicSearchHit } from '../api/musicApi'
-// ncm 扫码走独立 axios（withCredentials），与 Login.vue 一致
-// @ts-expect-error api.js 无 TS 声明，与 vue-tsc 兼容
-import { ncmApi } from '../api'
 import { activeBilingualLrcIndex, parseBilingualLrc, type BilingualLrcLine } from '../utils/lrc'
 
 const PLAYER_Z_INDEX = 1100
@@ -134,14 +138,14 @@ async function refreshNeteaseQrCode() {
   neteaseAuthErr.value = ''
   neteaseAuthMsg.value = ''
   try {
-    const keyResp = await ncmApi.qrLoginKey()
+    const keyResp = await qrLoginKey()
     const innerKey = keyResp.data?.data
     const unikey = pickNcmUnikey(innerKey)
     if (!unikey) {
       throw new Error('未获取到二维码 key')
     }
     qrUnikey.value = unikey
-    const createResp = await ncmApi.qrLoginCreate(unikey, true)
+    const createResp = await qrLoginCreate(unikey, true)
     const payload = createResp.data?.data as { data?: { qrimg?: string }; qrimg?: string } | undefined
     const img = payload?.data?.qrimg ?? payload?.qrimg
     if (!img) {
@@ -153,7 +157,7 @@ async function refreshNeteaseQrCode() {
     qrPollTimer = setInterval(async () => {
       if (!qrUnikey.value) return
       try {
-        const checkResp = await ncmApi.qrLoginCheck(qrUnikey.value)
+        const checkResp = await qrLoginCheck(qrUnikey.value)
         const body = checkResp.data?.data as
           | { code?: number; message?: string; cookie?: string }
           | undefined
@@ -262,14 +266,11 @@ watch(
   () => music.resolvedUrl,
   async (url) => {
     await nextTick()
-    const el = audioRef.value
-    if (!el || !url) return
-    el.src = url
-    try {
-      await el.play()
-    } catch {
-      isPlaying.value = false
-    }
+    // :src 绑定已自动更新 audio.src，此处只需重置播放状态和时间
+    isPlaying.value = false
+    currentTime.value = 0
+    if (!url) return
+    // 不尝试自动播放，等待用户点击（浏览器 autoplay policy）
   },
 )
 

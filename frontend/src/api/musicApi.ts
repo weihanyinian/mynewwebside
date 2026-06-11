@@ -125,3 +125,24 @@ export async function searchNetease(q: string, limit = 30, type = 'song') {
   })
   return data.data
 }
+
+// ---- 网易云扫码登录（QR Login）----
+
+/** 获取二维码 key */
+export async function qrLoginKey() {
+  return http.get<ApiResponse<Record<string, unknown>>>('/api/ncm/login/qr/key')
+}
+
+/** 生成二维码图片（base64）；qrimg=true 时后端返回 qrimg 字段 */
+export async function qrLoginCreate(key: string, qrimg = true) {
+  return http.get<ApiResponse<Record<string, unknown>>>('/api/ncm/login/qr/create', {
+    params: { key, qrimg },
+  })
+}
+
+/** 轮询二维码扫描状态；返回 code: 800=过期 801=等待 802=待确认 803=成功+cookie */
+export async function qrLoginCheck(key: string) {
+  return http.get<ApiResponse<Record<string, unknown>>>('/api/ncm/login/qr/check', {
+    params: { key },
+  })
+}
