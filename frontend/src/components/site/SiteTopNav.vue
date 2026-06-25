@@ -88,8 +88,18 @@ function navClick(item: typeof navItems[0]) {
         </button>
       </div>
 
-      <!-- Right: theme + hamburger -->
-      <div class="flex items-center gap-3">
+      <!-- Right: login + theme + hamburger -->
+      <div class="flex items-center gap-2">
+        <!-- Admin / Login button (desktop) -->
+        <button v-if="auth.isAdmin" @click="router.push('/admin')"
+          class="hidden md:inline-flex glass-button text-sm !py-2 !px-3 font-medium">
+          ⚙️ 后台
+        </button>
+        <button v-else @click="router.push('/admin/login')"
+          class="hidden md:inline-flex glass-button text-sm !py-2 !px-3 font-medium">
+          🔑 登录
+        </button>
+
         <button @click="themeStore.toggle()" class="glass-button !p-2 !rounded-full text-lg"
           :title="themeStore.isDark ? '切换日间模式' : '切换夜间模式'">
           {{ themeStore.isDark ? '☀️' : '🌙' }}
@@ -120,6 +130,7 @@ function navClick(item: typeof navItems[0]) {
           <button @click="mobileOpen = false; router.push('/tools')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">🛠 工具箱</button>
           <button @click="mobileOpen = false; router.push('/about')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">ℹ️ 关于我</button>
           <button v-if="auth.isAdmin" @click="mobileOpen = false; router.push('/admin')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">⚙️ 管理后台</button>
+          <button v-else @click="mobileOpen = false; router.push('/admin/login')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">🔑 管理员登录</button>
         </div>
       </div>
     </transition>
