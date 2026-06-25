@@ -1,180 +1,342 @@
-# Website · 个人技术博客（Spring Boot 3 + Vue 3）
+# 维寒一念的小站 — 内容规划文案
 
-## 目录结构
+> 创建时间：2026-06-25
+> 域名：weihanyinian.cn
 
-- `backend/` Spring Boot 3 + MySQL 后端（RESTful）
-- `frontend/` Vue 3 + Vite + Element Plus 前端（前台 + 简易后台）
-- `ncm-api/` 本机启动 [@neteasecloudmusicapienhanced/api](https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api)（默认端口 3000），供音乐模块上游使用
-- `docker/` 镜像构建：`backend`、`frontend`、[qq-music-api](https://github.com/sansenjian/qq-music-api)（[API 文档](https://sansenjian.github.io/qq-music-api/api/)）封装目录 `qq-music-api/` 等；**无 compose / .env**；编排见 **`deploy/README.md`**
-- `mysql/schema.sql` MySQL 建表语句
+---
 
-## 后端能力
+## 一、网站定位与基调
 
-- 文章 CRUD（草稿/发布）
-- 分类、标签 CRUD
-- 单管理员登录（JWT）
-- 文章浏览量（访问详情自动 +1）
-
-## 前端能力
-
-- 前台：文章列表 / 详情 / 分类 / 标签 / 搜索
-- 后台：登录 / 文章管理 / 发布编辑 / 分类管理 / 标签管理
-- **工具栏**（`/tools`）：卡片入口聚合在线 OJ、反应力 / CPS / 番茄钟 / MBTI
-- 代码高亮：Markdown + Highlight.js
-- 响应式、简洁现代风格
-
-## 工具栏路径
-
-| 功能 | 路径 |
+| 维度 | 定位 |
 |------|------|
-| 工具栏主页 | `/tools` |
-| 在线 OJ | `/tools/oj`（需登录；旧地址 `/oj` 会自动重定向） |
-| 反应力 / CPS / 番茄钟 / MBTI | `/tools/reaction`、`/tools/cps`、`/tools/pomodoro`、`/tools/mbti` |
+| **名称** | 维寒一念的小站 |
+| **域名** | weihanyinian.cn |
+| **调性** | 二次元 / 科技感 / 极简 / 温暖 |
+| **视觉风格** | 毛玻璃卡片 + 初音未来主题 + 日夜双模式视频背景 |
+| **日间视频** | `livetune feat 初音ミク「Redial」Music Video_final_ver.mp4` |
+| **夜间视频** | `初音.mp4` |
+| **主色调** | 日间：冰蓝 #62a7ea + 淡紫 #a58eea；夜间：深蓝 #0b1022 + 靛紫 |
 
-小工具多为**纯前端**；**在线 OJ** 判题依赖后端与 MySQL。
+---
 
-### 重复文件排查
+## 二、整体信息架构
 
-在仓库根目录执行：`node scripts/find-duplicate-files.mjs`（可选传入要扫描的根目录路径）。输出按内容哈希分组的重复路径，删除前请人工确认。
+```
+导航栏（毛玻璃置顶）
+├── 🏠 首页        → /
+├── 📝 博客        → /blog
+├── 🛠️ 工具箱      → /tools        ← 保留旧项目工具模块
+├── 💬 留言板      → /guestbook
+├── 🎮 小游戏      → /games
+└── 👤 关于我      → /about
 
-### 部署步骤（静态前端）
+全局悬浮组件
+├── 🎵 音乐播放器（左上角悬浮小球，始终可见）
+└── 🤖 AI 伴聊（右上角悬浮按钮，可展开对话窗口）
 
-1. 在 `frontend` 目录执行 `npm install` 与 `npm run build`。
-2. 将 `frontend/dist` 部署到 Nginx / CDN / 对象存储静态网站。
-3. 确保站点可正常加载构建产物；若仅部署前端，工具栏内除 OJ 外均可独立使用。
-
-## 网易云音乐 API 接入说明（增强版）
-
-### 1) 启动第三方 API 服务（本机 Node 方式，推荐仓库内 `ncm-api`）
-
-```bash
-cd ncm-api
-npm install
-npm start
+页脚（毛玻璃）
+├── 社交链接（GitHub / B站 / 网易云 / 邮箱）
+├── 一言 / 签名
+└── © 2026 维寒一念的小站
 ```
 
-npm 包入口为 `app.js`，全局安装时提供的命令名为 **`api`**（非旧文档里的 `netease-cloud-music-api-enhanced`）。默认端口 `3000`，可通过环境变量指定：
+---
 
-```bash
-PORT=3001 npm start
+## 三、各页面内容文案
+
+### 3.1 首页 `/`
+
+**Hero 区域**
+- 大标题：「维寒一念的小站」
+  - 副标题：`写点代码，听点歌，摸点鱼 ✨`
+  - 打字机效果逐字展示
+- 下方两行描述：
+  > 一个热爱技术与二次元的开发者。
+  > 在这里记录思考、分享创造、偶尔摸鱼。
+
+- CTA 按钮组：
+  - 「📝 逛逛博客」（跳转 /blog）
+  - 「💬 留个言吧」（跳转 /guestbook）
+
+**精选博客区块**（首页卡片展示最新 3-6 篇）
+- 区块标题：「📝 最近更新」
+- 每篇卡片展示：标题、摘要、日期、分类标签
+- 「查看全部 →」链接
+
+**一句话介绍区块**
+- 区块标题：「👤 关于博主」
+- 卡片内文案：
+  > 你好，我是维寒一念。
+  >
+  > 一个写 Java 和 Vue 的全栈开发者，偶尔也折腾 Python 和 AI。
+  > 喜欢初音未来，喜欢研究有趣的技术，喜欢把想法变成代码。
+  >
+  > 这个网站是我的数字花园 —— 种着代码，养着灵感，开着脑洞。
+
+**小游戏快捷入口**
+- 区块标题：「🎮 摸鱼时间」
+- 3-4 个游戏卡片（贪吃蛇 / 2048 /  数字华容道）
+- 「更多游戏 →」链接
+
+---
+
+### 3.2 博客 `/blog`
+
+**页面标题**：「📝 博客」
+
+**功能设计**
+- 文章卡片列表（毛玻璃卡片）
+- 左侧筛选栏（分类 + 标签）
+- 顶部搜索框
+- 分页加载
+- 每张卡片：封面图（渐变色占位）+ 标题 + 摘要 + 日期 + 分类 + 标签 + 阅读量
+
+**文章详情页 `/blog/:id`**
+- Markdown 渲染正文
+- 代码高亮
+- 阅读进度条
+- 上一篇 / 下一篇导航
+- 评论区（底部）
+
+---
+
+### 3.3 留言板 `/guestbook`
+
+**页面标题**：「💬 留言板」
+
+**文案**
+- 顶部引导语：
+  > 路过就留下点什么吧~
+  > 可以是建议、吐槽、问候，或者随便聊聊。
+
+- 留言表单（昵称 + 邮箱 + 内容）
+- 留言列表（毛玻璃卡片，时间倒序）
+- 支持回复（盖楼）
+- 管理员可删除
+
+---
+
+### 3.4 小游戏 `/games`
+
+**页面标题**：「🎮 摸鱼小游戏」
+
+**引导文案**
+> 学累了？来摸会儿鱼 🐟
+> 友情提醒：适度游戏益脑，沉迷游戏伤身。
+
+**游戏列表**（卡片网格）
+
+| 游戏 | 描述 | 技术 |
+|------|------|------|
+| 🐍 贪吃蛇 | 经典街机，看看你能吃多长 | Canvas |
+| 🐦 像素鸟 | 别撞管子！ | Canvas |
+| 🧩 数字华容道 | 滑动拼图，挑战最强大脑 | Vue |
+| 🔢 2048 | 合并数字，冲击 2048 | Vue |
+| 💣 扫雷 | 经典 Windows 扫雷 | Vue |
+| 🎯 反应力测试 | 测测你的反应速度 | Vue |
+
+每个游戏卡片带封面图/图标 + 简短描述，点击进入独立游戏页面。
+
+---
+
+### 3.5 关于我 `/about`
+
+**页面标题**：「👤 关于我」
+
+**个人介绍卡片**
+```
+你好，我是维寒一念 👋
+
+一枚热爱技术的全栈开发者，目前专注于 Java 生态与前端工程化。
+
+🔧 技术栈
+  - 后端：Java / Spring Boot / MyBatis / Redis / MySQL
+  - 前端：Vue 3 / TypeScript / Tailwind CSS / Vite
+  - 运维：Docker / Linux / Nginx
+  - 偶尔玩玩：Python / Selenium / AI
+
+📬 找到我
+  - GitHub：github.com/weihanyinian
+  - B站：关注「维寒一念」
+  - 邮箱：1012308753@qq.com
+  - 网易云：扫码听歌
+
+🎵 兴趣爱好
+  - 🎧 初音未来 / VOCALOID
+  - 📖 技术阅读 / 科幻小说
+  - 🎮 独立游戏
+  - ☕ 咖啡星人
 ```
 
-Windows PowerShell：
+**友情链接区块**
+- 几个友链卡片（可后台管理）
 
-```powershell
-cd ncm-api
-$env:PORT=3001
-npm start
+---
+
+### 3.6 工具箱 `/tools`
+
+> 保留旧项目中的实用小工具，纯前端实现。
+
+**页面标题**：「🛠️ 在线工具箱」
+
+**引导文案**
+> 一些实用小工具，收好不谢~
+
+**工具列表**（卡片网格）
+
+| 工具 | 描述 | 路由 |
+|------|------|------|
+| ⏱️ 反应力测试 | 看到绿色就点，测测你的反应速度 | `/tools/reaction` |
+| 🖱️ CPS 测试 | Click Per Second，测手速 | `/tools/cps` |
+| 🍅 番茄钟 | 专注 25 分钟，休息 5 分钟 | `/tools/pomodoro` |
+| 🧠 舒尔特方格 | 专注力训练经典工具 | `/tools/schulte` |
+| 🧬 MBTI 测试 | 简易版性格测试 | `/tools/mbti` |
+
+---
+
+### 3.7 音乐播放器（全局悬浮）
+
+> 保留网易云音乐 API 集成（ncm-api 容器），全局悬浮播放器。
+
+**交互设计**
+- 左上角悬浮小球（默认收起，显示当前歌曲封面缩略图）
+- 点击展开 → 毛玻璃播放面板（歌曲信息 + 进度条 + 播放控制 + 歌词）
+- 支持：播放/暂停、上一首/下一首、音量调节、播放模式切换
+- 顶部可选歌单 / 搜索
+
+**后端对接**
+- 复用 `moefurina/ncm-api` 容器（端口 3000）
+- Spring Boot 作为代理转发（可加缓存层）
+
+---
+
+### 3.8 AI 伴聊（全局悬浮）
+
+> 右下角独立悬浮按钮，点击弹出聊天窗口。
+
+**交互设计**
+- 右上角 🤖 图标按钮
+- 展开 → 毛玻璃聊天窗口（对话列表 + 输入框 + 发送按钮）
+- 对话历史本地存储
+- 支持 Markdown 格式回复
+
+**后端对接**
+- Spring Boot 代理 AI API
+- 可配置开关（环境变量控制是否启用）
+- 支持流式输出（SSE）
+
+---
+
+## 四、后台管理计划（后续实施）
+
+### 4.1 管理功能清单
+
+| 模块 | 功能 | 优先级 |
+|------|------|--------|
+| 文章管理 | 新建/编辑/删除/发布/草稿、Markdown 编辑器 | P0 |
+| 分类管理 | 增删改查文章分类 | P1 |
+| 标签管理 | 增删改查文章标签 | P1 |
+| 评论管理 | 审核/删除评论、垃圾过滤 | P1 |
+| 留言管理 | 查看/回复/删除留言 | P1 |
+| 友链管理 | 增删改查友情链接 | P2 |
+| 系统设置 | 站点名称、SEO、开关功能模块 | P2 |
+
+### 4.2 管理端路由设计
+
+```
+/admin              → 管理后台首页（仪表盘）
+/admin/articles     → 文章列表 + 编辑器
+/admin/categories   → 分类管理
+/admin/tags         → 标签管理
+/admin/comments     → 评论审核
+/admin/guestbook    → 留言管理
+/admin/friends      → 友链管理
+/admin/settings     → 站点设置
+/admin/login        → 管理员登录
 ```
 
-也可全局安装后执行：`npm i -g @neteasecloudmusicapienhanced/api`，再运行 **`api`**（见包内 `package.json` 的 `bin`）。
+### 4.3 管理端技术方案
 
-### 2) 启动第三方 API 服务（Docker 方式，增强版镜像）
+- 前端：同一 Vue 项目，独立路由组 + AdminLayout
+- 认证：JWT Token，管理员角色
+- 编辑器：Monaco Editor / ByteMD（Markdown 实时预览）
+- 图片上传：本地存储 / OSS（后续决定）
 
-与 npm 包 [@neteasecloudmusicapienhanced/api](https://www.npmjs.com/package/@neteasecloudmusicapienhanced/api) 对应：
+---
 
-```bash
-docker pull moefurina/ncm-api:latest
-docker run -d --name ncm-api -p 3000:3000 \
-  -e http_proxy= -e https_proxy= -e HTTP_PROXY= -e HTTPS_PROXY= -e no_proxy=* -e NO_PROXY=* \
-  moefurina/ncm-api:latest
+## 五、模块化组件规划
+
+| 组件 | 说明 | 复用场景 |
+|------|------|----------|
+| `SiteTopNav.vue` | 毛玻璃导航栏，自适应滚动隐藏/显示 | 全局 |
+| `SiteFooter.vue` | 毛玻璃页脚 | 全局 |
+| `SiteBackground.vue` | 双视频背景 + 日夜切换 | 全局 |
+| `GlassCard.vue` | 通用毛玻璃卡片容器 | 博客/留言/游戏/工具 |
+| `ThemeToggle.vue` | 日夜模式切换按钮 | 导航栏 |
+| `MarkdownView.vue` | Markdown 渲染器 | 博客详情 |
+| `GameCard.vue` | 游戏卡片入口 | 首页/游戏页 |
+| `CommentSection.vue` | 评论区组件 | 博客/留言板 |
+| `MusicPlayer.vue` | 全局音乐播放器（悬浮小球 + 展开面板） | 全局悬浮 |
+| `AiChatWidget.vue` | AI 伴聊悬浮按钮 + 聊天窗口 | 全局悬浮 |
+| `ToolCard.vue` | 工具箱卡片入口 | 工具箱首页 |
+
+---
+
+## 六、技术架构概要（待实施阶段细化）
+
+```
+前端：Vue 3 + Vite + TypeScript + Tailwind CSS + Pinia
+后端：Spring Boot 3 + Java 17 + MyBatis-Plus / JPA
+缓存：Redis（浏览量 / 热门文章 / 音乐缓存 / Session）
+数据库：MySQL 8.0
+第三方：ncm-api（网易云音乐代理，Docker 容器）
+部署：Docker Compose（nginx + backend + mysql + redis + ncm-api）
+
+前端路由：
+  /                   → 首页
+  /blog               → 博客列表
+  /blog/:id           → 文章详情
+  /guestbook          → 留言板
+  /games              → 游戏大厅
+  /games/:id          → 单个游戏
+  /tools              → 工具箱首页
+  /tools/reaction     → 反应力测试
+  /tools/cps          → CPS 测试
+  /tools/pomodoro     → 番茄钟
+  /tools/schulte      → 舒尔特方格
+  /tools/mbti         → MBTI 测试
+  /about              → 关于我
+  /admin/*            → 后台管理（后续实施）
+
+后端 API（RESTful）：
+  # 博客
+  GET    /api/articles            → 文章列表（分页+筛选）
+  GET    /api/articles/:id        → 文章详情
+  GET    /api/categories          → 分类列表
+  GET    /api/tags                → 标签列表
+
+  # 评论
+  POST   /api/comments            → 发表评论
+  GET    /api/comments            → 评论列表（按文章）
+
+  # 留言板
+  POST   /api/guestbook           → 发表留言
+  GET    /api/guestbook           → 留言列表（分页）
+
+  # 音乐（代理 ncm-api）
+  GET    /api/music/*             → 网易云音乐 API 代理
+
+  # AI 伴聊
+  POST   /api/ai/chat             → AI 对话（支持 SSE 流式）
+
+  # 管理端（后续）
+  POST   /api/admin/login         → 管理员登录
+  GET    /api/admin/*             → 管理端 CRUD
 ```
 
-（若宿主设置了不可用代理，可按文档清空上述变量；也可直接 `docker compose -f deploy/docker-compose.ncm-only.example.yml up -d`。）
+---
 
-健康检查（任选其一）：
+## 七、下一步
 
-```bash
-curl "http://127.0.0.1:3000/login/status"
-curl "http://127.0.0.1:3000/song/url?id=33894312"
-```
-
-**本地 `localhost:5173` 音乐组件报 502：** 多数是 **Spring Boot 未在 8080 启动**（Vite 反代失败）或 **3000 未起**（可先起 Node：`cd ncm-api && npm install && npm start`，或 Docker：`docker compose -f deploy/docker-compose.ncm-only.example.yml up -d`）。可在项目根运行 `powershell -File scripts/check-local-dev.ps1` 查看 8080/3000/5173 端口。后端对 `127.0.0.1:3000` 不可达时会尝试 **公网回退**（见 `application.example.yml` 中 `local-fallback-enabled`），但 **必须先保证 8080 后端已运行**。
-
-### 3) 后端配置（Spring Boot）
-
-复制配置模板后，重点确认：
-
-- `netease.proxy.base-url`：指向你启动的增强 API 地址（如 `http://127.0.0.1:3000`）；站内绑定账号走 `/api/music/login`（需本站 JWT），独立页 `Login.vue` 走 **`/api/ncm/*`**（已 `permitAll`，与 npm **`login_cellphone`** 对齐：表单 POST、`countrycode` 默认 86、响应体 **`cookie`** 会写入服务端 Session）。
-- `ncm.base-url`：与上相同根地址，供 `/api/ncm` 代理使用。
-- `netease.proxy.default-playlist-id`：默认歌单
-- `netease.proxy.default-br`：默认音质码率（128000/192000/320000/999000）
-- `netease.proxy.retry-count`：上游失败重试次数
-- `app.cors.allowed-origins`：前端域名
-
-### 4) 对接架构
-
-- 前端只调用本站后端接口：
-  - 登录态接口：`/api/music/*`
-  - 公共接口：`/api/public/music/*`
-- 后端再代理到第三方增强 API，不在浏览器直连第三方服务。
-
-### 5) 功能验证清单
-
-1. 登录站点账号，进入 `/music` 页面。
-2. 绑定网易云账号（手机号 + 密码）后，`状态` 应显示已绑定昵称。
-3. 检查歌单、喜欢、最近播放是否可加载。
-4. 点击任意歌曲：
-   - 播放/暂停正常
-   - 上一首/下一首正常
-   - 进度条可拖动跳转
-   - 音量滑块可调且刷新后保持
-   - 歌词滚动与高亮正常
-5. 切换播放模式（顺序/单曲循环/随机）并验证边界行为。
-6. 选一首无版权曲目，确认自动跳过并有提示，不崩溃。
-7. 停掉第三方 API 或后端，确认前端提示“加载失败/服务不可用”。
-
-## 本地运行
-
-### 1) MySQL 初始化
-
-执行：
-
-- `mysql/schema.sql`
-
-默认数据库名 `blog`。
-
-### 2) 启动后端
-
-先复制一份本地配置：
-
-```bash
-cp backend/src/main/resources/application.example.yml backend/src/main/resources/application.yml
-```
-
-Windows PowerShell：
-
-```powershell
-Copy-Item backend/src/main/resources/application.example.yml backend/src/main/resources/application.yml
-```
-
-然后修改 `backend/src/main/resources/application.yml`：
-
-- `spring.datasource.username/password`
-- `app.admin.username/password`（演示用，生产建议使用环境变量）
-- `app.jwt.secret`（生产必须替换）
-- `app.cors.allowed-origins`（前端地址）
-
-启动：
-
-```bash
-cd backend
-mvn spring-boot:run
-```
-
-若出现 **`Unresolved compilation problem`**：多为 IDE 把错误 class 写进了 `target/classes`，请先 **`mvn clean package`** 再 **`java -jar target/blog-backend-0.1.0.jar`**，或只用 Maven 编译运行。
-
-若 Flyway 报 **`Migration checksum mismatch`**（迁移文件曾改动）：在 MySQL 的 `blog` 库执行 repair，或把历史表中的 `checksum` 改成与当前 `db/migration` 文件一致（控制台日志里会打印 `Resolved locally` 的期望值），也可用 `mvn -DskipTests flyway:repair`（需在 `pom.xml` 配置 Flyway 插件并传入数据源）。
-
-后端默认：`http://localhost:8080`
-
-### 3) 启动前端
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-前端默认：`http://localhost:5173`
-
+1. **审阅以上完整文案**，确认页面结构、文案风格、导航设计是否满意
+2. **确认后开始实施**：重塑后端 + 搭建前端骨架 + 实现毛玻璃 UI + 逐一实现各模块

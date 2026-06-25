@@ -1,49 +1,45 @@
-.DS_Store
+# IDE
 .idea/
+*.iml
 .vscode/
+.settings/
+.project
+.classpath
 
-# Logs / caches
-*.log
-.npm_cache/
-**/.npm_cache/
-
-# Java
-backend/target/
-**/target/
-*.class
+# Maven
+target/
+!target/
+*.jar
+*.war
+!backend/.mvn/wrapper/maven-wrapper.jar
 
 # Node
-frontend/node_modules/
-**/node_modules/
-frontend/dist/
-**/dist/
+node_modules/
+dist/
+.npm_cache/
 
-# Cursor / local agent
-.workbuddy/
-
-# 部署敏感文件（含密钥，不提交）
-docker/.env
+# Env
+.env
+.env.local
+.env.production
 deploy/.env
+deploy/docker-compose.yml
+!deploy/docker-compose.example.yml
 
-# 后端本地配置（含密钥默认值，不提交）
-backend/src/main/resources/application.yml
+# OS
+Thumbs.db
+.DS_Store
+Desktop.ini
 
-# 离线镜像包
-*.tar
+# Logs
+*.log
 
-# Local config
-frontend/.env.local
-frontend/.env.*.local
+# H2 Database
+data/
 
-# Local wallpaper imports (do not commit)
-315*/
-317*/
+# Video cache
+*.mp4.tmp
 
-# Local large video files in root
-/*.mp4
-
-# 首页背景：由脚本从 light/dark 复制的约定文件名，避免仓库重复大文件
-frontend/public/videos/初音.mp4
-frontend/public/videos/livetune feat 初音ミク「Redial」Music Video_final_ver.mp4
-
-BGM/
+# Large video files (use copy-videos script instead)
+*.mp4
+!frontend/public/videos/.gitkeep

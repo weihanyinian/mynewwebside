@@ -1,163 +1,94 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { getToken } from '../utils/token'
-import { getSafeInternalPath } from '../utils/safeRedirect'
-import { useUserStore } from '../stores/user'
-
-const PortfolioPage = () => import('../pages/public/PortfolioPage.vue')
-const HomePage = () => import('../pages/public/BlogHome.vue')
-const ArticlePage = () => import('../pages/public/ArticlePage.vue')
-const CategoriesPage = () => import('../pages/public/CategoriesPage.vue')
-const TagsPage = () => import('../pages/public/TagsPage.vue')
-const MessageWallPage = () => import('../pages/public/MessageWallPage.vue')
-const MoyuPage = () => import('../pages/public/MoyuPage.vue')
-const OjView = () => import('../pages/oj/OjView.vue')
-const OjProblemList = () => import('../pages/oj/OjProblemList.vue')
-const OjProblemDetail = () => import('../pages/oj/OjProblemDetail.vue')
-const OjMySubmissions = () => import('../pages/oj/OjMySubmissions.vue')
-const ToolsHubPage = () => import('../pages/tools/ToolsHubPage.vue')
-const ToolReactionPage = () => import('../pages/tools/ToolReactionPage.vue')
-const ToolCpsPage = () => import('../pages/tools/ToolCpsPage.vue')
-const ToolPomodoroPage = () => import('../pages/tools/ToolPomodoroPage.vue')
-const ToolSchultePage = () => import('../pages/tools/ToolSchultePage.vue')
-const LoginPage = () => import('../pages/auth/LoginPage.vue')
-const RegisterPage = () => import('../pages/auth/RegisterPage.vue')
-const AdminArticlesPage = () => import('../pages/admin/AdminArticlesPage.vue')
-const AdminEditorPage = () => import('../pages/admin/AdminEditorPage.vue')
-const AdminCategoriesPage = () => import('../pages/admin/AdminCategoriesPage.vue')
-const AdminTagsPage = () => import('../pages/admin/AdminTagsPage.vue')
-const AdminWallPage = () => import('../pages/admin/AdminWallPage.vue')
-const AdminUsersPage = () => import('../pages/admin/AdminUsersPage.vue')
-const AdminCommentsPage = () => import('../pages/admin/AdminCommentsPage.vue')
-const AdminOjProblemsPage = () => import('../pages/admin/AdminOjProblemsPage.vue')
-const AdminOjSubmissionsPage = () => import('../pages/admin/AdminOjSubmissionsPage.vue')
-const AdminPortfolioWorksPage = () => import('../pages/admin/AdminPortfolioWorksPage.vue')
-const AlbumsPage = () => import('../pages/public/AlbumsPage.vue')
-const StatsPage = () => import('../pages/public/StatsPage.vue')
-const MusicCenterPage = () => import('../pages/music/MusicCenterPage.vue')
-const MbtiTestPage = () => import('../pages/tools/MbtiTestPage.vue')
-const GameMemoryCard = () => import('../pages/moyu/GameMemoryCard.vue')
-const MoyuIframeGame = () => import('../pages/moyu/MoyuIframeGame.vue')
-const GameDoudizhu = () => import('../views/GameBoard.vue')
-const MemoriesPage = () => import('../pages/public/MemoriesPage.vue')
-const WorksShowcasePage = () => import('../pages/public/WorksShowcasePage.vue')
-const WorksDetailPage = () => import('../pages/public/WorksDetailPage.vue')
-const ToolStockPage = () => import('../pages/tools/ToolStockPage.vue')
-const StockDetailPage = () => import('../pages/tools/StockDetailPage.vue')
+import HomePage from '../pages/HomePage.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: PortfolioPage },
-    { path: '/blog', component: HomePage },
-    { path: '/article/:id', component: ArticlePage },
-    { path: '/categories', component: CategoriesPage },
-    { path: '/tags', component: TagsPage },
-    { path: '/message', component: MessageWallPage },
-    { path: '/moyu', component: MoyuPage },
-    { path: '/moyu/memory-card', component: GameMemoryCard },
-    { path: '/moyu/doudizhu', component: GameDoudizhu },
-    { path: '/moyu/:gameId', component: MoyuIframeGame },
-    { path: '/login', component: LoginPage },
-    { path: '/register', component: RegisterPage, meta: { guestOnly: true } },
-    { path: '/archives', redirect: '/blog' },
-    { path: '/friends', redirect: '/' },
-    { path: '/search', redirect: '/blog' },
-    { path: '/albums', component: AlbumsPage },
-    { path: '/works-showcase', component: WorksShowcasePage },
-    { path: '/works/:id', component: WorksDetailPage },
-    { path: '/snippets', redirect: '/tools' },
-    { path: '/stats', component: StatsPage },
-    { path: '/music', component: MusicCenterPage, meta: { requiresAuth: true } },
-    { path: '/memories', component: MemoriesPage, meta: { requiresAuth: true } },
-    { path: '/tools/mbti', component: MbtiTestPage },
-    { path: '/admin/login', redirect: '/login' },
-    { path: '/tools', component: ToolsHubPage },
-    { path: '/tools/reaction', component: ToolReactionPage },
-    { path: '/tools/cps', component: ToolCpsPage },
-    { path: '/tools/pomodoro', component: ToolPomodoroPage },
-    { path: '/tools/schulte', component: ToolSchultePage },
-    { path: '/tools/stock', component: ToolStockPage, meta: { requiresAuth: true } },
-    { path: '/tools/stock/:code', component: StockDetailPage, meta: { requiresAuth: true } },
     {
-      path: '/tools/oj',
-      component: OjView,
-      meta: { requiresAuth: true },
-      children: [
-        { path: '', component: OjProblemList },
-        { path: 'submissions', component: OjMySubmissions },
-        { path: 'p/:id', component: OjProblemDetail },
-      ],
+      path: '/',
+      name: 'home',
+      component: HomePage,
+      meta: { title: '维寒一念的小站' }
     },
-    { path: '/oj', redirect: '/tools/oj' },
     {
-      path: '/oj/:pathMatch(.*)*',
-      redirect: (to) => {
-        const raw = to.params.pathMatch
-        if (!raw) return '/tools/oj'
-        const suffix = Array.isArray(raw) ? raw.filter(Boolean).join('/') : String(raw)
-        return suffix ? `/tools/oj/${suffix}` : '/tools/oj'
-      },
+      path: '/blog',
+      name: 'blog',
+      component: () => import('../pages/BlogPage.vue'),
+      meta: { title: '博客 - 维寒一念的小站' }
     },
-
-    { path: '/admin/friends', redirect: '/admin/articles' },
-    { path: '/admin', redirect: '/admin/articles' },
-    { path: '/admin/articles', component: AdminArticlesPage, meta: { requiresAdmin: true } },
-    { path: '/admin/editor', component: AdminEditorPage, meta: { requiresAdmin: true } },
-    { path: '/admin/editor/:id', component: AdminEditorPage, meta: { requiresAdmin: true } },
-    { path: '/admin/categories', component: AdminCategoriesPage, meta: { requiresAdmin: true } },
-    { path: '/admin/tags', component: AdminTagsPage, meta: { requiresAdmin: true } },
-    { path: '/admin/comments', component: AdminCommentsPage, meta: { requiresAdmin: true } },
-    { path: '/admin/messages', component: AdminWallPage, meta: { requiresAdmin: true } },
-    { path: '/admin/works', component: AdminPortfolioWorksPage, meta: { requiresAdmin: true } },
-    { path: '/admin/users', component: AdminUsersPage, meta: { requiresAdmin: true } },
-    { path: '/admin/oj/problems', component: AdminOjProblemsPage, meta: { requiresAdmin: true } },
-    { path: '/admin/oj/submissions', component: AdminOjSubmissionsPage, meta: { requiresAdmin: true } },
+    {
+      path: '/blog/:id',
+      name: 'article',
+      component: () => import('../pages/ArticlePage.vue'),
+      meta: { title: '文章 - 维寒一念的小站' }
+    },
+    {
+      path: '/guestbook',
+      name: 'guestbook',
+      component: () => import('../pages/GuestbookPage.vue'),
+      meta: { title: '留言板 - 维寒一念的小站' }
+    },
+    {
+      path: '/games',
+      name: 'games',
+      component: () => import('../pages/GamesPage.vue'),
+      meta: { title: '小游戏 - 维寒一念的小站' }
+    },
+    {
+      path: '/games/:id',
+      name: 'game',
+      component: () => import('../pages/GamePage.vue'),
+      meta: { title: '小游戏 - 维寒一念的小站' }
+    },
+    {
+      path: '/tools',
+      name: 'tools',
+      component: () => import('../pages/ToolsPage.vue'),
+      meta: { title: '工具箱 - 维寒一念的小站' }
+    },
+    {
+      path: '/tools/reaction',
+      name: 'tool-reaction',
+      component: () => import('../pages/tools/ReactionPage.vue'),
+      meta: { title: '反应力测试 - 维寒一念的小站' }
+    },
+    {
+      path: '/tools/cps',
+      name: 'tool-cps',
+      component: () => import('../pages/tools/CpsPage.vue'),
+      meta: { title: 'CPS测试 - 维寒一念的小站' }
+    },
+    {
+      path: '/tools/pomodoro',
+      name: 'tool-pomodoro',
+      component: () => import('../pages/tools/PomodoroPage.vue'),
+      meta: { title: '番茄钟 - 维寒一念的小站' }
+    },
+    {
+      path: '/tools/schulte',
+      name: 'tool-schulte',
+      component: () => import('../pages/tools/SchultePage.vue'),
+      meta: { title: '舒尔特方格 - 维寒一念的小站' }
+    },
+    {
+      path: '/tools/mbti',
+      name: 'tool-mbti',
+      component: () => import('../pages/tools/MbtiPage.vue'),
+      meta: { title: 'MBTI测试 - 维寒一念的小站' }
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: () => import('../pages/AboutPage.vue'),
+      meta: { title: '关于我 - 维寒一念的小站' }
+    }
   ],
-  scrollBehavior(to, from, saved) {
-    if (saved) return saved
-    if (to.hash) {
-      return { el: to.hash, behavior: 'smooth', top: 80 }
-    }
-    if (to.path !== from.path) {
-      return { top: 0 }
-    }
-    return {}
-  },
+  scrollBehavior() {
+    return { top: 0 }
+  }
 })
 
-router.beforeEach(async (to) => {
-  const userStore = useUserStore()
-  if (!userStore.hydrated) userStore.hydrateFromStorage()
-
-  if (to.meta.requiresAuth || to.meta.requiresAdmin) {
-    if (!getToken()) {
-      return { path: '/login', query: { redirect: to.fullPath } }
-    }
-    const needRefresh = !!to.meta.requiresAdmin || !userStore.profile
-    if (needRefresh) {
-      try {
-        await userStore.fetchMe()
-      } catch {
-        userStore.logout()
-        return { path: '/login', query: { redirect: to.fullPath } }
-      }
-    }
-  }
-
-  if (to.meta.requiresAdmin && !userStore.isAdmin) {
-    return { path: '/' }
-  }
-
-  // 已登录用户访问 guestOnly 页面（如注册页）直接跳走
-  if (to.meta.guestOnly && getToken()) {
-    const next = getSafeInternalPath(to.query.redirect)
-    return next || '/'
-  }
-
-  if (to.path === '/login' && getToken()) {
-    const next = getSafeInternalPath(to.query.redirect)
-    return next || '/'
-  }
-
-  return true
+// Update document title
+router.afterEach((to) => {
+  document.title = (to.meta.title as string) || '维寒一念的小站'
 })

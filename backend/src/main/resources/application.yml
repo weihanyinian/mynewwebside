@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: weihanyinian-website
+
+  profiles:
+    active: local
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Jackson
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+# Server
+server:
+  port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,text/html,text/plain,text/css,application/javascript
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# App config
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-me-in-production-use-a-very-long-random-string}
+    expire-minutes: ${JWT_EXPIRE_MINUTES:10080}
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+  bootstrap:
+    admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+    admin-sync-on-startup: ${APP_BOOTSTRAP_ADMIN_SYNC_ON_STARTUP:false}
+  view-counter-redis: ${VIEW_COUNTER_REDIS:false}
+
+# NCM API proxy
+ncm:
+  base-url: ${NCM_BASE_URL:http://localhost:3000}
+
+# AI Companion
+ai:
+  companion:
+    enabled: ${AI_COMPANION_ENABLED:false}
+    api-key: ${AI_COMPANION_API_KEY:}
+    base-url: ${AI_COMPANION_BASE_URL:https://api.openai.com}
+    model: ${AI_COMPANION_MODEL:gpt-3.5-turbo}
