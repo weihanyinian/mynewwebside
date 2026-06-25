@@ -14,7 +14,19 @@ onMounted(() => {
     if (i < fullText.length) { displayedText.value += fullText[i]; i++ }
     else { clearInterval(timer) }
   }, 100)
+  // Fetch articles
+  loadArticles()
 })
+
+// ─── Articles from API ───
+const articles = ref<any[]>([])
+async function loadArticles() {
+  try {
+    const res = await fetch('/api/articles?size=6')
+    const data = await res.json()
+    if (data.code === 200) articles.value = data.data?.content || []
+  } catch (e) { /* */ }
+}
 
 // ─── Active section tracking ───
 const activeSection = ref('home')
@@ -129,17 +141,26 @@ const games = [
   <!-- ═══════ ❸ Blog ═══════ -->
   <section id="section-blog" class="fullscreen-section">
     <div class="max-w-3xl w-full animate-fade-in-up">
-      <GlassCard class="heavy !p-10 md:!p-12 text-center max-w-xl mx-auto">
-        <p class="text-5xl md:text-6xl mb-4">📝</p>
-        <h2 class="text-3xl font-bold mb-4 gradient-text">博客</h2>
-        <p class="text-[var(--text-secondary)] mb-8 leading-relaxed font-medium">
-          还没有文章，博主正在努力写作中...<br />
-          这里会记录技术笔记、项目心得和生活碎碎念。
-        </p>
-        <button @click="router.push('/blog')" class="glass-button primary text-base px-8 py-3">
-          进入博客 →
-        </button>
+      <h2 class="text-3xl font-bold mb-8 text-center gradient-text">📝 最近更新</h2>
+
+      <!-- Articles grid -->
+      <div v-if="articles.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <GlassCard v-for="a in articles.slice(0, 4)" :key="a.id" class="cursor-pointer !p-5" @click="router.push(`/blog/${a.id}`)">
+          <span class="text-xs text-[var(--text-muted)]">{{ a.category?.name || '未分类' }} · {{ new Date(a.createdAt).toLocaleDateString('zh-CN') }}</span>
+          <h3 class="font-bold mt-1.5 mb-1 text-sm">{{ a.title }}</h3>
+          <p class="text-xs text-[var(--text-secondary)] line-clamp-2">{{ a.summary }}</p>
+        </GlassCard>
+      </div>
+
+      <!-- Empty state -->
+      <GlassCard v-else class="heavy !p-10 text-center max-w-xl mx-auto">
+        <p class="text-5xl mb-4">📝</p>
+        <p class="text-[var(--text-secondary)]">还没有文章，博主正在努力写作中...</p>
       </GlassCard>
+
+      <div class="text-center mt-6">
+        <button @click="router.push('/blog')" class="glass-button text-sm font-medium">查看全部文章 →</button>
+      </div>
     </div>
   </section>
 

@@ -1,5 +1,6 @@
 package com.weihanyinian.website.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "comments"})
 public class Article {
 
     @Id
@@ -31,9 +33,11 @@ public class Article {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
+    @Builder.Default
     private ArticleStatus status = ArticleStatus.DRAFT;
 
     @Column(nullable = false)
+    @Builder.Default
     private Long viewCount = 0L;
 
     @ManyToOne(fetch = FetchType.LAZY)
