@@ -1,32 +1,22 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { marked } from 'marked'
-import 'highlight.js/styles/github-dark.css'
-import hljs from 'highlight.js'
+import { blogApi, Article } from '../api/blog'
+import GlassCard from '../components/GlassCard.vue'
+import MarkdownRenderer from '../components/MarkdownRenderer.vue'
 
 const route = useRoute()
-const article = ref<any>(null)
+const article = ref<Article | null>(null)
 const loading = ref(true)
-
-marked.setOptions({
-  highlight(code: string, lang: string) {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(code, { language: lang }).value
-    }
-    return hljs.highlightAuto(code).value
-  }
-})
 
 onMounted(async () => {
   try {
-    const res = await fetch(`/api/articles/${route.params.id}`)
-    const data = await res.json()
-    if (data.code === 200) {
-      article.value = data.data
+    const res = await blogApi.getById(Number(route.params.id))
+    if (res.data.code === 200) {
+      article.value = res.data.data
     }
   } catch (e) {
-    // Backend not available
+    console.error(e)
   } finally {
     loading.value = false
   }
@@ -53,16 +43,21 @@ onMounted(async () => {
           <span>·</span>
           <span>{{ article.viewCount }} 阅读</span>
         </div>
+        <div v-if="article.tags?.length" class="flex gap-2 mt-3">
+          <span v-for="tag in article.tags" :key="tag.id" class="text-xs glass-button !py-0.5 !px-2 !rounded-full">
+            {{ tag.name }}
+          </span>
+        </div>
       </div>
 
       <!-- Content -->
-      <div class="glass-card p-8 mb-8 markdown-content" v-html="marked.parse(article.content || '')" />
+      <GlassCard class="!p-6 md:!p-8 mb-8">
+        <MarkdownRenderer :content="article.content || ''" />
+      </GlassCard>
 
       <!-- Navigation -->
       <div class="flex justify-between">
-        <button @click="$router.push('/blog')" class="glass-button text-sm">
-          ← 返回博客
-        </button>
+        <button @click="$router.push('/blog')" class="glass-button text-sm">← 返回博客</button>
       </div>
     </div>
   </div>

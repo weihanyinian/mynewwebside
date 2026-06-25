@@ -7,7 +7,7 @@ const router = useRouter()
 const games = [
   { id: 'snake', name: '🐍 贪吃蛇', desc: '经典街机，看看你能吃多长', tech: 'Canvas', done: true },
   { id: '2048', name: '🔢 2048', desc: '合并数字，冲击 2048', tech: 'Vue', done: true },
-  { id: 'flappy', name: '🐦 像素鸟', desc: '别撞管子！', tech: 'Canvas', done: false },
+  { id: 'schulte', name: '🔢 舒尔特方格', desc: '按顺序找数字，测注意力', tech: 'Vue', done: true },
   { id: 'puzzle15', name: '🧩 数字华容道', desc: '滑动拼图，挑战最强大脑', tech: 'Vue', done: false },
   { id: 'minesweeper', name: '💣 扫雷', desc: '经典 Windows 扫雷', tech: 'Vue', done: false },
   { id: 'reaction', name: '🎯 反应力测试', desc: '测测你的反应速度', tech: 'Vue', done: false },

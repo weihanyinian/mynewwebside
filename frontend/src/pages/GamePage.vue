@@ -10,10 +10,10 @@ const gameId = route.params.id as string
 const gameMap: Record<string, any> = {
   snake: defineAsyncComponent(() => import('./games/SnakeGame.vue')),
   '2048': defineAsyncComponent(() => import('./games/Game2048.vue')),
+  schulte: defineAsyncComponent(() => import('./games/SchulteGame.vue')),
 }
 
 const places: Record<string, { name: string; desc: string }> = {
-  flappy: { name: '🐦 像素鸟', desc: '点击屏幕让小鸟飞起来，穿过管道间隙。' },
   puzzle15: { name: '🧩 数字华容道', desc: '滑动方块使数字按顺序排列。' },
   minesweeper: { name: '💣 扫雷', desc: '根据数字提示找出所有地雷。' },
   reaction: { name: '🎯 反应力测试', desc: '测测你的反应速度。（也在工具箱中）' },
@@ -24,10 +24,8 @@ const placeholder = places[gameId]
 </script>
 
 <template>
-  <!-- Full game component -->
   <GameComponent v-if="GameComponent" />
 
-  <!-- Placeholder for unimplemented games -->
   <div v-else class="page-container max-w-2xl text-center">
     <button @click="router.push('/')" class="glass-button text-sm mb-8">← 返回首页</button>
     <GlassCard v-if="placeholder">

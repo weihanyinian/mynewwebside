@@ -77,7 +77,7 @@ onMounted(loadMsgs)
 const games = [
   { id: 'snake', icon: '🐍', name: '贪吃蛇', desc: '经典街机', color: '#62ea8a', done: true },
   { id: '2048', icon: '🔢', name: '2048', desc: '合并数字', color: '#eacd62', done: true },
-  { id: 'flappy', icon: '🐦', name: '像素鸟', desc: '别撞管子', color: '#ea6262', done: false },
+  { id: 'schulte', icon: '🔢', name: '舒尔特方格', desc: '测注意力', color: '#ea62cd', done: true },
   { id: 'puzzle15', icon: '🧩', name: '数字华容道', desc: '滑动拼图', color: '#a562ea', done: false },
   { id: 'minesweeper', icon: '💣', name: '扫雷', desc: '经典扫雷', color: '#ea9462', done: false },
   { id: 'reaction', icon: '🎯', name: '反应力', desc: '测反应速度', color: '#4ade80', done: false },

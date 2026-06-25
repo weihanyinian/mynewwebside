@@ -1,24 +1,17 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { guestbookApi, GuestbookEntry } from '../api/guestbook'
 import GlassCard from '../components/GlassCard.vue'
 
-interface Message {
-  id: number
-  nickname: string
-  content: string
-  createdAt: string
-}
-
-const messages = ref<Message[]>([])
+const messages = ref<GuestbookEntry[]>([])
 const nickname = ref('')
 const content = ref('')
 const submitting = ref(false)
 
 async function loadMessages() {
   try {
-    const res = await fetch('/api/guestbook')
-    const data = await res.json()
-    if (data.code === 200) messages.value = data.data || []
+    const res = await guestbookApi.getList()
+    if (res.data.code === 200) messages.value = res.data.data || []
   } catch (e) { /* backend not available */ }
 }
 
@@ -26,13 +19,8 @@ async function submit() {
   if (!nickname.value.trim() || !content.value.trim()) return
   submitting.value = true
   try {
-    const res = await fetch('/api/guestbook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nickname: nickname.value, content: content.value })
-    })
-    const data = await res.json()
-    if (data.code === 200) {
+    const res = await guestbookApi.create(nickname.value, content.value)
+    if (res.data.code === 200) {
       nickname.value = ''
       content.value = ''
       await loadMessages()

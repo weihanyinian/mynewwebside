@@ -10,6 +10,7 @@ export const router = createRouter({
       component: HomePage,
       meta: { title: '维寒一念的小站' }
     },
+    // ─── Blog ───
     {
       path: '/blog',
       name: 'blog',
@@ -22,12 +23,14 @@ export const router = createRouter({
       component: () => import('../pages/ArticlePage.vue'),
       meta: { title: '文章 - 维寒一念的小站' }
     },
+    // ─── Guestbook ───
     {
       path: '/guestbook',
       name: 'guestbook',
       component: () => import('../pages/GuestbookPage.vue'),
       meta: { title: '留言板 - 维寒一念的小站' }
     },
+    // ─── Games ───
     {
       path: '/games',
       name: 'games',
@@ -40,6 +43,7 @@ export const router = createRouter({
       component: () => import('../pages/GamePage.vue'),
       meta: { title: '小游戏 - 维寒一念的小站' }
     },
+    // ─── Tools ───
     {
       path: '/tools',
       name: 'tools',
@@ -76,15 +80,62 @@ export const router = createRouter({
       component: () => import('../pages/tools/MbtiPage.vue'),
       meta: { title: 'MBTI测试 - 维寒一念的小站' }
     },
+    // ─── About ───
     {
       path: '/about',
       name: 'about',
       component: () => import('../pages/AboutPage.vue'),
       meta: { title: '关于我 - 维寒一念的小站' }
+    },
+    // ─── Admin Login ───
+    {
+      path: '/admin/login',
+      name: 'admin-login',
+      component: () => import('../pages/LoginPage.vue'),
+      meta: { title: '管理员登录 - 维寒一念的小站' }
+    },
+    // ─── Admin Dashboard ───
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../pages/admin/DashboardPage.vue'),
+      meta: { title: '管理后台 - 维寒一念的小站', requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/articles',
+      name: 'admin-articles',
+      component: () => import('../pages/admin/ArticleManager.vue'),
+      meta: { title: '文章管理 - 维寒一念的小站', requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/guestbooks',
+      name: 'admin-guestbooks',
+      component: () => import('../pages/admin/GuestbookManager.vue'),
+      meta: { title: '留言管理 - 维寒一念的小站', requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/visitors',
+      name: 'admin-visitors',
+      component: () => import('../pages/admin/VisitorLogPage.vue'),
+      meta: { title: '访问日志 - 维寒一念的小站', requiresAuth: true, requiresAdmin: true }
     }
   ],
   scrollBehavior() {
     return { top: 0 }
+  }
+})
+
+// Navigation guard for admin pages
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const role = localStorage.getItem('role')
+
+  if (to.meta.requiresAuth && !token) {
+    next('/admin/login')
+  } else if (to.meta.requiresAdmin && role !== 'ADMIN') {
+    next('/')
+  } else {
+    next()
   }
 })
 
