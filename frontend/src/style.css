@@ -301,3 +301,77 @@ body {
   border-radius: 12px;
   margin: 16px 0;
 }
+
+/* ===== Mobile Responsive ===== */
+
+/* Touch-friendly: larger tap targets on mobile */
+@media (max-width: 768px) {
+  .glass-button {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .glass-card {
+    padding: 16px !important;
+  }
+
+  .page-container {
+    padding: 80px 16px 40px;
+  }
+
+  .fullscreen-section {
+    padding: 60px 16px;
+  }
+
+  /* Smaller headings on mobile */
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.4rem !important; }
+
+  /* Article content responsive */
+  .markdown-body {
+    font-size: 0.95rem;
+  }
+
+  /* Table horizontal scroll on mobile */
+  .markdown-body table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Small phone (375px) */
+@media (max-width: 480px) {
+  .page-container {
+    padding: 70px 12px 30px;
+  }
+
+  .fullscreen-section {
+    padding: 40px 12px;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.2rem !important; }
+
+  /* Make game grids smaller */
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Game-specific: prevent zoom on input */
+canvas, button {
+  touch-action: manipulation;
+}
+
+/* Prevent iOS pull-to-refresh on games */
+body.playing-game {
+  overscroll-behavior: none;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
