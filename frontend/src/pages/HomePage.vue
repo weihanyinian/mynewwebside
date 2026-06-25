@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { blogApi, Article } from '../api/blog'
+import { guestbookApi, GuestbookEntry } from '../api/guestbook'
 import GlassCard from '../components/GlassCard.vue'
 
 const router = useRouter()
@@ -14,17 +16,15 @@ onMounted(() => {
     if (i < fullText.length) { displayedText.value += fullText[i]; i++ }
     else { clearInterval(timer) }
   }, 100)
-  // Fetch articles
   loadArticles()
 })
 
 // ─── Articles from API ───
-const articles = ref<any[]>([])
+const articles = ref<Article[]>([])
 async function loadArticles() {
   try {
-    const res = await fetch('/api/articles?size=6')
-    const data = await res.json()
-    if (data.code === 200) articles.value = data.data?.content || []
+    const res = await blogApi.getPublished(0, 6)
+    if (res.data.code === 200) articles.value = res.data.data?.content || []
   } catch (e) { /* */ }
 }
 
@@ -46,28 +46,23 @@ onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
 onUnmounted(() => window.removeEventListener('scroll', onScroll))
 
 // ─── Guestbook ───
-interface Message { id: number; nickname: string; content: string; createdAt: string }
-const messages = ref<Message[]>([])
+const messages = ref<GuestbookEntry[]>([])
 const nickname = ref('')
 const content = ref('')
 const submitting = ref(false)
 
 async function loadMsgs() {
   try {
-    const res = await fetch('/api/guestbook')
-    const data = await res.json()
-    if (data.code === 200) messages.value = (data.data || []).slice(0, 4)
+    const res = await guestbookApi.getList()
+    if (res.data.code === 200) messages.value = (res.data.data || []).slice(0, 4)
   } catch (e) { /* */ }
 }
 async function submitMsg() {
   if (!nickname.value.trim() || !content.value.trim()) return
   submitting.value = true
   try {
-    const res = await fetch('/api/guestbook', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nickname: nickname.value, content: content.value })
-    })
-    if ((await res.json()).code === 200) { nickname.value = ''; content.value = ''; await loadMsgs() }
+    const res = await guestbookApi.create(nickname.value, content.value)
+    if (res.data.code === 200) { nickname.value = ''; content.value = ''; await loadMsgs() }
   } catch (e) { /* */ }
   finally { submitting.value = false }
 }
