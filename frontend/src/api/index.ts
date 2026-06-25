@@ -26,8 +26,8 @@ api.interceptors.response.use(
       localStorage.removeItem('username')
       localStorage.removeItem('role')
       const path = window.location.pathname
-      // Don't redirect if already on login page
-      if (path.startsWith('/admin') && path !== '/admin/login') {
+      // Store cleared; only redirect if already on a protected admin page
+      if (path.startsWith('/admin') && path !== '/login' && path !== '/admin/login') {
         window.location.href = '/admin/login'
       }
     }

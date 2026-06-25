@@ -90,12 +90,16 @@ function navClick(item: typeof navItems[0]) {
 
       <!-- Right: login + theme + hamburger -->
       <div class="flex items-center gap-2">
-        <!-- Admin / Login button (desktop) -->
+        <!-- Login / User button (desktop) -->
         <button v-if="auth.isAdmin" @click="router.push('/admin')"
           class="hidden md:inline-flex glass-button text-sm !py-2 !px-3 font-medium">
-          ⚙️ 后台
+          ⚙️ {{ auth.username }}
         </button>
-        <button v-else @click="router.push('/admin/login')"
+        <button v-else-if="auth.isLoggedIn" @click="auth.logout(); router.push('/')"
+          class="hidden md:inline-flex glass-button text-sm !py-2 !px-3 font-medium">
+          👤 {{ auth.username }}
+        </button>
+        <button v-else @click="router.push('/login')"
           class="hidden md:inline-flex glass-button text-sm !py-2 !px-3 font-medium">
           🔑 登录
         </button>
@@ -129,8 +133,9 @@ function navClick(item: typeof navItems[0]) {
           <hr class="my-2 border-[var(--border-color)]" />
           <button @click="mobileOpen = false; router.push('/tools')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">🛠 工具箱</button>
           <button @click="mobileOpen = false; router.push('/about')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">ℹ️ 关于我</button>
-          <button v-if="auth.isAdmin" @click="mobileOpen = false; router.push('/admin')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">⚙️ 管理后台</button>
-          <button v-else @click="mobileOpen = false; router.push('/admin/login')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">🔑 管理员登录</button>
+          <button v-if="auth.isAdmin" @click="mobileOpen = false; router.push('/admin')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">⚙️ 管理后台 ({{ auth.username }})</button>
+          <button v-else-if="auth.isLoggedIn" @click="auth.logout(); mobileOpen = false; router.push('/')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">👤 {{ auth.username }} · 退出</button>
+          <button v-else @click="mobileOpen = false; router.push('/login')" class="w-full text-left px-4 py-3 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-white/5">🔑 登录</button>
         </div>
       </div>
     </transition>

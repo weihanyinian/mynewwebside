@@ -87,12 +87,18 @@ export const router = createRouter({
       component: () => import('../pages/AboutPage.vue'),
       meta: { title: '关于我 - 维寒一念的小站' }
     },
-    // ─── Admin Login ───
+    // ─── Login ───
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../pages/LoginPage.vue'),
+      meta: { title: '登录 - 维寒一念的小站' }
+    },
     {
       path: '/admin/login',
       name: 'admin-login',
       component: () => import('../pages/LoginPage.vue'),
-      meta: { title: '管理员登录 - 维寒一念的小站' }
+      meta: { title: '登录 - 维寒一念的小站' }
     },
     // ─── Admin Dashboard ───
     {

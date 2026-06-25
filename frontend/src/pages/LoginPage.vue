@@ -20,9 +20,13 @@ async function handleLogin() {
   error.value = ''
   try {
     await auth.login(username.value, password.value)
-    router.push('/admin')
+    if (auth.isAdmin) {
+      router.push('/admin')
+    } else {
+      router.push('/')
+    }
   } catch (e: any) {
-    error.value = e.response?.data?.message || '登录失败'
+    error.value = e.response?.data?.message || '登录失败，请检查用户名和密码'
   } finally {
     loading.value = false
   }
@@ -30,10 +34,10 @@ async function handleLogin() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4">
+  <div class="min-h-screen flex items-center justify-center px-4 py-12">
     <GlassCard class="w-full max-w-md !p-8">
-      <h1 class="text-2xl font-bold text-center mb-2 gradient-text">管理员登录</h1>
-      <p class="text-sm text-center text-[var(--text-muted)] mb-8">维寒一念的小站 · 后台管理</p>
+      <h1 class="text-2xl font-bold text-center mb-1 gradient-text">登录</h1>
+      <p class="text-sm text-center text-[var(--text-muted)] mb-8">登录后可访问管理后台</p>
 
       <form @submit.prevent="handleLogin" class="space-y-5">
         <div>
@@ -57,10 +61,10 @@ async function handleLogin() {
           />
         </div>
 
-        <p v-if="error" class="text-red-400 text-sm">{{ error }}</p>
+        <p v-if="error" class="text-red-400 text-sm bg-red-500/10 rounded-lg p-3 border border-red-500/20">{{ error }}</p>
 
         <button type="submit" :disabled="loading" class="glass-button primary w-full py-3 font-medium text-base">
-          {{ loading ? '登录中...' : '登录' }}
+          {{ loading ? '登录中...' : '登 录' }}
         </button>
       </form>
 
