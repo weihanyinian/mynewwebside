@@ -8,15 +8,17 @@
 
 # Maven
 target/
-!target/
 *.jar
 *.war
 !backend/.mvn/wrapper/maven-wrapper.jar
 
+# Project metadata
+.workbuddy/
+.npm_cache/
+
 # Node
 node_modules/
 dist/
-.npm_cache/
 
 # Env
 .env
