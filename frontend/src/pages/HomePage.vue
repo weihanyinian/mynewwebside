@@ -75,10 +75,12 @@ onMounted(loadMsgs)
 
 // ─── Games ───
 const games = [
-  { id: 'snake', icon: '🐍', name: '贪吃蛇', desc: '经典街机', color: '#62ea8a' },
-  { id: 'flappy', icon: '🐦', name: '像素鸟', desc: '别撞管子', color: '#ea6262' },
-  { id: '2048', icon: '🔢', name: '2048', desc: '合并数字', color: '#eacd62' },
-  { id: 'puzzle15', icon: '🧩', name: '数字华容道', desc: '滑动拼图', color: '#a562ea' },
+  { id: 'snake', icon: '🐍', name: '贪吃蛇', desc: '经典街机', color: '#62ea8a', done: true },
+  { id: '2048', icon: '🔢', name: '2048', desc: '合并数字', color: '#eacd62', done: true },
+  { id: 'flappy', icon: '🐦', name: '像素鸟', desc: '别撞管子', color: '#ea6262', done: false },
+  { id: 'puzzle15', icon: '🧩', name: '数字华容道', desc: '滑动拼图', color: '#a562ea', done: false },
+  { id: 'minesweeper', icon: '💣', name: '扫雷', desc: '经典扫雷', color: '#ea9462', done: false },
+  { id: 'reaction', icon: '🎯', name: '反应力', desc: '测反应速度', color: '#4ade80', done: false },
 ]
 </script>
 
@@ -202,20 +204,19 @@ const games = [
   <section id="section-games" class="fullscreen-section">
     <div class="max-w-3xl w-full animate-fade-in-up">
       <h2 class="text-3xl font-bold mb-8 text-center gradient-text">🎮 摸鱼时间</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
         <GlassCard
           v-for="g in games" :key="g.id"
           class="text-center cursor-pointer !p-5 hover:!border-[2px]"
           :style="{ '--hover-border': g.color }"
-          @click="router.push('/games')"
+          @click="router.push(`/games/${g.id}`)"
         >
           <div class="text-4xl mb-2 drop-shadow-md">{{ g.icon }}</div>
           <div class="font-bold text-sm mb-1 text-[var(--text-primary)]">{{ g.name }}</div>
           <div class="text-xs text-[var(--text-muted)]">{{ g.desc }}</div>
+          <span v-if="g.done" class="text-[10px] mt-1.5 inline-block px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">可玩</span>
+          <span v-else class="text-[10px] mt-1.5 inline-block px-1.5 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400/80 border border-yellow-500/20">待开发</span>
         </GlassCard>
-      </div>
-      <div class="text-center mt-8">
-        <button @click="router.push('/games')" class="glass-button text-sm font-medium">更多游戏 →</button>
       </div>
     </div>
   </section>
