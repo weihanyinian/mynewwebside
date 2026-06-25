@@ -105,19 +105,19 @@ onUnmounted(() => window.removeEventListener('keydown', key))
 
 <template>
   <div class="page-container max-w-sm mx-auto text-center">
-    <button @click="router.push('/games')" class="glass-button text-sm mb-6">← 返回游戏大厅</button>
+    <button @click="router.push('/')" class="glass-button text-sm mb-6">← 返回首页</button>
     <GlassCard class="heavy !p-6">
       <div class="flex items-center justify-between mb-4">
         <h1 class="text-xl font-bold gradient-text">🔢 2048</h1>
         <span class="glass-card !px-4 !py-2 text-lg font-bold text-white bg-gradient-to-r from-[#62a7ea] to-[#a58eea]">{{ score }}</span>
       </div>
       <div class="grid grid-cols-4 gap-2 p-3 rounded-xl" style="background:var(--glass-bg)">
-        <div v-for="(row, r) in grid" :key="r" v-for-x class="contents">
+        <template v-for="(row, r) in grid" :key="r">
           <div v-for="(cell, c) in row" :key="c"
             class="aspect-square rounded-lg flex items-center justify-center text-lg font-bold transition-all duration-150 select-none"
             :style="{ background: cell ? getColor(cell) : 'rgba(255,255,255,0.1)', color: cell ? getTextColor(cell) : 'transparent' }"
           >{{ cell }}</div>
-        </div>
+        </template>
       </div>
       <div v-if="over" class="mt-4 space-y-2">
         <p class="text-red-400 font-bold">游戏结束！</p>

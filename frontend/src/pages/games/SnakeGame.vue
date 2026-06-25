@@ -73,7 +73,7 @@ onUnmounted(() => { if (loop) clearInterval(loop); window.removeEventListener('k
 
 <template>
   <div class="page-container max-w-lg mx-auto text-center">
-    <button @click="router.push('/games')" class="glass-button text-sm mb-6">← 返回游戏大厅</button>
+    <button @click="router.push('/')" class="glass-button text-sm mb-6">← 返回首页</button>
     <GlassCard class="heavy !p-6">
       <h1 class="text-2xl font-bold mb-1 gradient-text">🐍 贪吃蛇</h1>
       <p class="text-sm text-[var(--text-muted)] mb-3">方向键控制 | 得分：{{ score }}</p>

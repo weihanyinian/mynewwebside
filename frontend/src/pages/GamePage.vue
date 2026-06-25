@@ -29,7 +29,7 @@ const placeholder = places[gameId]
 
   <!-- Placeholder for unimplemented games -->
   <div v-else class="page-container max-w-2xl text-center">
-    <button @click="router.push('/games')" class="glass-button text-sm mb-8">← 返回游戏大厅</button>
+    <button @click="router.push('/')" class="glass-button text-sm mb-8">← 返回首页</button>
     <GlassCard v-if="placeholder">
       <div class="text-6xl mb-4">{{ placeholder.name.slice(0, 2) }}</div>
       <h1 class="text-2xl font-bold mb-4 gradient-text">{{ placeholder.name.slice(3) }}</h1>
