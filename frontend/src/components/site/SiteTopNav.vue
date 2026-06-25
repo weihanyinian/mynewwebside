@@ -69,19 +69,18 @@ function navClick(item: typeof navItems[0]) {
 </script>
 
 <template>
-  <nav class="glass-nav fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-    :class="isScrolled ? 'py-2' : 'py-3'">
+  <nav class="glass-nav relative z-50 transition-all duration-300 py-3">
     <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between">
       <!-- Logo -->
       <a href="#section-home" @click.prevent="router.push('/')" class="flex items-center gap-2 no-underline group">
-        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#62a7ea] to-[#a58eea] flex items-center justify-center text-xs font-bold text-white">寒</div>
-        <span class="text-lg font-bold gradient-text hidden sm:inline">维寒一念的小站</span>
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#62a7ea] to-[#a58eea] flex items-center justify-center text-sm font-bold text-white">寒</div>
+        <span class="text-xl font-bold gradient-text hidden sm:inline">维寒一念的小站</span>
       </a>
 
       <!-- Desktop Nav -->
       <div class="hidden md:flex items-center gap-0.5">
         <button v-for="item in navItems" :key="item.id" @click="navClick(item)"
-          class="relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 border outline-none cursor-pointer"
+          class="relative px-4 py-2.5 rounded-xl text-base font-medium transition-all duration-300 border outline-none cursor-pointer"
           :class="isActive(item)
             ? 'text-white bg-[#62a7ea30] border-[#62a7ea] shadow-[0_0_14px_rgba(98,167,234,0.4)] scale-105'
             : 'border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)] hover:border-[#62a7ea50]'">
