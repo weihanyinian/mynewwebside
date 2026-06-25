@@ -1,7 +1,10 @@
 package com.weihanyinian.website.config;
 
-import com.weihanyinian.website.entity.*;
-import com.weihanyinian.website.repository.*;
+import com.weihanyinian.website.module.blog.entity.*;
+import com.weihanyinian.website.module.blog.repository.*;
+import com.weihanyinian.website.module.guestbook.entity.Guestbook;
+import com.weihanyinian.website.module.guestbook.repository.GuestbookRepository;
+import com.weihanyinian.website.module.comment.repository.CommentRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -30,12 +33,12 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         if (categoryRepo.count() > 0) return; // Already seeded
 
-        // ─── Categories ───
+        // --- Categories ---
         Category catTech = categoryRepo.save(Category.builder().name("技术").slug("tech").build());
         Category catLife = categoryRepo.save(Category.builder().name("生活").slug("life").build());
         Category catNotes = categoryRepo.save(Category.builder().name("随笔").slug("notes").build());
 
-        // ─── Tags ───
+        // --- Tags ---
         Tag tJava = tagRepo.save(Tag.builder().name("Java").build());
         Tag tSpring = tagRepo.save(Tag.builder().name("Spring Boot").build());
         Tag tVue = tagRepo.save(Tag.builder().name("Vue").build());
@@ -44,7 +47,7 @@ public class DataSeeder implements CommandLineRunner {
         Tag tLife = tagRepo.save(Tag.builder().name("日常").build());
         Tag tDesign = tagRepo.save(Tag.builder().name("设计").build());
 
-        // ─── Articles ───
+        // --- Articles ---
         createArticle(catTech, Set.of(tJava, tSpring),
             "Spring Boot 3 个人博客从零搭建指南",
             "从项目初始化到 Docker 部署，记录用 Spring Boot 3 + Vue 3 搭建个人网站的全过程。",
@@ -219,7 +222,7 @@ public class DataSeeder implements CommandLineRunner {
             整个部署流程现在只需要 3 分钟。
             """);
 
-        // ─── Guestbook ───
+        // --- Guestbook ---
         guestbookRepo.save(Guestbook.builder()
             .nickname("路过的网友")
             .content("网站做得真好看！初音主题太棒了 🎵")

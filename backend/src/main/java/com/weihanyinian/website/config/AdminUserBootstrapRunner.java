@@ -1,7 +1,7 @@
 package com.weihanyinian.website.config;
 
-import com.weihanyinian.website.entity.User;
-import com.weihanyinian.website.repository.UserRepository;
+import com.weihanyinian.website.module.user.entity.User;
+import com.weihanyinian.website.module.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;

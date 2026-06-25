@@ -1,11 +1,11 @@
 package com.weihanyinian.website.config;
 
-import com.weihanyinian.website.security.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -30,8 +30,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String token = extractToken(request);
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
             Long userId = jwtTokenProvider.getUserIdFromToken(token);
+            String role = jwtTokenProvider.getUserRoleFromToken(token);
+            List<SimpleGrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_" + (role != null ? role : "USER"))
+            );
             UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(userId, null, List.of());
+                    new UsernamePasswordAuthenticationToken(userId, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         filterChain.doFilter(request, response);
