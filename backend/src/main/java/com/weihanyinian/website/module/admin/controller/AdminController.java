@@ -1,6 +1,7 @@
 package com.weihanyinian.website.module.admin.controller;
 
 import com.weihanyinian.website.common.ApiResponse;
+import com.weihanyinian.website.config.JwtTokenProvider;
 import com.weihanyinian.website.module.admin.dto.DashboardStats;
 import com.weihanyinian.website.module.admin.dto.LoginRequest;
 import com.weihanyinian.website.module.admin.dto.LoginResponse;
@@ -11,13 +12,16 @@ import com.weihanyinian.website.module.blog.entity.Article;
 import com.weihanyinian.website.module.blog.repository.ArticleRepository;
 import com.weihanyinian.website.module.guestbook.entity.Guestbook;
 import com.weihanyinian.website.module.guestbook.repository.GuestbookRepository;
+import com.weihanyinian.website.module.user.entity.User;
+import com.weihanyinian.website.module.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -28,13 +32,18 @@ public class AdminController {
     private final VisitorLogRepository visitorLogRepository;
     private final ArticleRepository articleRepository;
     private final GuestbookRepository guestbookRepository;
+    private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public AdminController(AdminService adminService, VisitorLogRepository visitorLogRepository,
-                           ArticleRepository articleRepository, GuestbookRepository guestbookRepository) {
+                           ArticleRepository articleRepository, GuestbookRepository guestbookRepository,
+                           UserRepository userRepository, JwtTokenProvider jwtTokenProvider) {
         this.adminService = adminService;
         this.visitorLogRepository = visitorLogRepository;
         this.articleRepository = articleRepository;
         this.guestbookRepository = guestbookRepository;
+        this.userRepository = userRepository;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @PostMapping("/login")
@@ -45,6 +54,20 @@ public class AdminController {
         } catch (RuntimeException e) {
             return ApiResponse.error(401, e.getMessage());
         }
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<Map<String, Object>> me(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ApiResponse.error(401, "用户不存在");
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", user.getId());
+        result.put("username", user.getUsername());
+        result.put("role", user.getRole());
+        return ApiResponse.success(result);
     }
 
     @GetMapping("/dashboard")

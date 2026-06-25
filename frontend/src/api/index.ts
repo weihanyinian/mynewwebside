@@ -22,10 +22,12 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
       localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      if (window.location.pathname.startsWith('/admin')) {
+      localStorage.removeItem('username')
+      localStorage.removeItem('role')
+      const path = window.location.pathname
+      // Don't redirect if already on login page
+      if (path.startsWith('/admin') && path !== '/admin/login') {
         window.location.href = '/admin/login'
       }
     }
