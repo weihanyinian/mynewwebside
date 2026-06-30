@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { musicApi } from '../api/music'
 
 const expanded = ref(false)
-const mode = ref<'search' | 'playlist'>('search')
+const mode = ref<'search' | 'playlist'>('playlist')
 const keyword = ref('')
 const results = ref<any[]>([])
 const playlists = ref<any[]>([])
 const currentPlaylist = ref<any[]>([])
 const playlistName = ref('')
+const currentIndex = ref(0)
 const currentSong = ref<any>(null)
 const lyrics = ref<{ time: number; text: string }[]>([])
 const playing = ref(false)
 const currentTime = ref(0)
 const duration = ref(0)
 const volume = ref(80)
+const shuffle = ref(true)
 let audioEl: HTMLAudioElement | null = null
 let audioUrl = ref('')
+
+const DEFAULT_PLAYLIST_ID = 3778678 // 云音乐热歌榜
 
 const progressPercent = computed(() => {
   if (!duration.value) return 0
@@ -49,9 +53,31 @@ async function openPlaylist(id: number, name: string) {
     const res = await musicApi.getPlaylistDetail(id)
     const tracks = res.data?.data?.playlist?.tracks || []
     currentPlaylist.value = tracks
+    currentIndex.value = 0
     mode.value = 'playlist'
   } catch (e) {
     console.error('Load playlist failed:', e)
+  }
+}
+
+async function loadDefaultPlaylist() {
+  try {
+    const res = await musicApi.getPlaylistDetail(DEFAULT_PLAYLIST_ID)
+    playlistName.value = res.data?.data?.playlist?.name || '热歌榜'
+    const tracks = res.data?.data?.playlist?.tracks || []
+    currentPlaylist.value = tracks
+    currentIndex.value = 0
+  } catch (e) {
+    console.warn('Default playlist failed, falling back to search:', e)
+    try {
+      const res = await musicApi.search('流行')
+      const songs = res.data?.data?.result?.songs || []
+      currentPlaylist.value = songs.slice(0, 20)
+      playlistName.value = '流行金曲'
+      currentIndex.value = 0
+    } catch (e2) {
+      console.error('Fallback search also failed:', e2)
+    }
   }
 }
 
@@ -59,7 +85,11 @@ async function playSong(song: any) {
   try {
     const res = await musicApi.getSongUrl(song.id)
     const url = res.data?.data?.data?.[0]?.url
-    if (!url) { alert('该歌曲无播放源'); return }
+    if (!url) {
+      // Try next song if this one has no source
+      next()
+      return
+    }
     audioUrl.value = url
     currentSong.value = song
 
@@ -74,21 +104,45 @@ async function playSong(song: any) {
     if (audioEl) { audioEl.pause(); audioEl.src = '' }
     audioEl = new Audio(url)
     audioEl.volume = volume.value / 100
-    audioEl.play()
+    audioEl.play().catch(() => { playing.value = false })
     playing.value = true
     duration.value = 0
 
     audioEl.ontimeupdate = () => { currentTime.value = audioEl?.currentTime || 0 }
     audioEl.onloadedmetadata = () => { duration.value = audioEl?.duration || 0 }
-    audioEl.onended = () => { playing.value = false }
-    audioEl.onerror = () => { alert('播放失败') }
+    audioEl.onended = () => { next() }
+    audioEl.onerror = () => { next() }
   } catch (e) {
     console.error('Play failed:', e)
   }
 }
 
+function next() {
+  if (!currentPlaylist.value.length) return
+  if (shuffle.value) {
+    currentIndex.value = Math.floor(Math.random() * currentPlaylist.value.length)
+  } else {
+    currentIndex.value = (currentIndex.value + 1) % currentPlaylist.value.length
+  }
+  playSong(currentPlaylist.value[currentIndex.value])
+}
+
+function prev() {
+  if (!currentPlaylist.value.length) return
+  currentIndex.value = currentIndex.value === 0
+    ? currentPlaylist.value.length - 1
+    : currentIndex.value - 1
+  playSong(currentPlaylist.value[currentIndex.value])
+}
+
 function togglePlay() {
-  if (!audioEl) return
+  if (!audioEl) {
+    // No song loaded, start playing from default playlist
+    if (currentPlaylist.value.length) {
+      playSong(currentPlaylist.value[currentIndex.value])
+    }
+    return
+  }
   if (playing.value) { audioEl.pause() } else { audioEl.play() }
   playing.value = !playing.value
 }
@@ -128,6 +182,11 @@ function formatTime(t: number) {
   const s = Math.floor(t % 60)
   return `${m}:${s.toString().padStart(2, '0')}`
 }
+
+onMounted(() => {
+  // Auto-load default playlist on first open
+  loadDefaultPlaylist()
+})
 
 watch(expanded, (v) => {
   if (v && !playlists.value.length) loadPlaylists()
@@ -169,15 +228,19 @@ watch(expanded, (v) => {
           <span>{{ formatTime(duration) }}</span>
         </div>
         <!-- Controls -->
-        <div class="flex items-center justify-center gap-3 mt-2">
+        <div class="flex items-center justify-center gap-2 mt-2">
+          <button @click="prev" class="glass-button !p-1.5 !rounded-full text-xs" title="上一首">⏮</button>
           <button @click="togglePlay" class="glass-button !p-1.5 !rounded-full text-sm">
             {{ playing ? '⏸' : '▶️' }}
           </button>
+          <button @click="next" class="glass-button !p-1.5 !rounded-full text-xs" title="下一首">⏭</button>
+          <button @click="shuffle = !shuffle" class="glass-button !p-1.5 !rounded-full text-xs" :title="shuffle ? '随机播放' : '顺序播放'">
+            {{ shuffle ? '🔀' : '➡️' }}
+          </button>
           <!-- Volume -->
-          <div @click="setVolume" class="flex-1 h-1 bg-white/10 rounded-full cursor-pointer max-w-20">
+          <div @click="setVolume" class="flex-1 h-1 bg-white/10 rounded-full cursor-pointer max-w-16">
             <div class="h-full bg-white/30 rounded-full" :style="{ width: volume + '%' }"></div>
           </div>
-          <span class="text-[10px] text-[var(--text-muted)]">🔊{{ volume }}</span>
         </div>
       </div>
 
@@ -206,13 +269,18 @@ watch(expanded, (v) => {
 
       <!-- Playlists -->
       <div v-if="mode === 'playlist'">
+        <div v-if="playlistName && currentPlaylist.length" class="mb-3 p-2 rounded-lg bg-[var(--card-bg)] flex items-center justify-between">
+          <div class="text-xs font-medium truncate">{{ playlistName }} · {{ currentPlaylist.length }}首</div>
+          <button @click="playSong(currentPlaylist[0])" class="text-[10px] glass-button primary !py-0.5 !px-2">▶ 播放</button>
+        </div>
         <div class="space-y-1 max-h-60 overflow-y-auto">
           <div
-            v-for="p in playlists" :key="p.id"
+            v-for="(p, i) in playlists" :key="p.id"
             @click="openPlaylist(p.id, p.name)"
             class="flex items-center gap-2 text-xs p-2 rounded cursor-pointer hover:bg-white/5"
           >
             <img v-if="p.coverImgUrl" :src="p.coverImgUrl" class="w-8 h-8 rounded object-cover" />
+            <div v-else class="w-8 h-8 rounded bg-gradient-to-br from-[#62a7ea] to-[#a58eea] flex items-center justify-center text-xs">{{ i + 1 }}</div>
             <div class="flex-1 min-w-0">
               <div class="text-[var(--text-primary)] truncate">{{ p.name }}</div>
               <div class="text-[10px] text-[var(--text-muted)]">{{ p.trackCount }}首 · {{ (p.playCount / 10000).toFixed(0) }}万播放</div>

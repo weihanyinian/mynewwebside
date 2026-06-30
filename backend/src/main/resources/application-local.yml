@@ -16,3 +16,15 @@ app:
   bootstrap:
     admin-password: admin123
     admin-sync-on-startup: true
+
+# AI (loaded from .env or system env)
+ai:
+  companion:
+    enabled: ${AI_COMPANION_ENABLED:true}
+    api-key: ${AI_COMPANION_API_KEY:sk-48de614a625a4e638ba611448eac2201}
+    base-url: ${AI_COMPANION_BASE_URL:https://api.deepseek.com}
+    model: ${AI_COMPANION_MODEL:deepseek-chat}
+
+# NCM API
+ncm:
+  base-url: ${NCM_BASE_URL:http://localhost:3000}
