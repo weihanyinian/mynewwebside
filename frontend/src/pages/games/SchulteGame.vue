@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import GlassCard from '../components/GlassCard.vue'
+import GlassCard from '../../components/GlassCard.vue'
 
 const router = useRouter()
 const gridSize = ref(5)
