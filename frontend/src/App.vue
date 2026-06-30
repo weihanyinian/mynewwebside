@@ -11,8 +11,8 @@ import AiChatWidget from './components/AiChatWidget.vue'
     <!-- Video Background -->
     <SiteBackground />
 
-    <!-- Content Layer: translateZ(0) prevents GPU compositing glitches during screenshots -->
-    <div class="relative z-10 flex flex-col min-h-screen" style="transform: translateZ(0); -webkit-transform: translateZ(0);"> 
+    <!-- Content Layer -->
+    <div class="relative z-10 flex flex-col min-h-screen">
       <!-- Navigation -->
       <SiteTopNav />
 
