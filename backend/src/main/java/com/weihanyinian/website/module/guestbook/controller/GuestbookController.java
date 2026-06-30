@@ -1,8 +1,10 @@
 package com.weihanyinian.website.module.guestbook.controller;
 
 import com.weihanyinian.website.common.ApiResponse;
+import com.weihanyinian.website.module.guestbook.dto.GuestbookRequest;
 import com.weihanyinian.website.module.guestbook.entity.Guestbook;
 import com.weihanyinian.website.module.guestbook.service.GuestbookService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +20,12 @@ public class GuestbookController {
     }
 
     @PostMapping
-    public ApiResponse<Guestbook> create(@RequestBody Guestbook message) {
+    public ApiResponse<Guestbook> create(@Valid @RequestBody GuestbookRequest request) {
+        Guestbook message = Guestbook.builder()
+                .nickname(request.getNickname().trim())
+                .email(request.getEmail() != null ? request.getEmail().trim() : null)
+                .content(request.getContent().trim())
+                .build();
         Guestbook saved = guestbookService.createMessage(message);
         return ApiResponse.success("留言成功", saved);
     }

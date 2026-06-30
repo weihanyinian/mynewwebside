@@ -2,6 +2,7 @@ package com.weihanyinian.website.module.admin.controller;
 
 import com.weihanyinian.website.common.ApiResponse;
 import com.weihanyinian.website.config.JwtTokenProvider;
+import com.weihanyinian.website.config.RateLimiter;
 import com.weihanyinian.website.module.admin.dto.DashboardStats;
 import com.weihanyinian.website.module.admin.dto.LoginRequest;
 import com.weihanyinian.website.module.admin.dto.LoginResponse;
@@ -14,6 +15,7 @@ import com.weihanyinian.website.module.guestbook.entity.Guestbook;
 import com.weihanyinian.website.module.guestbook.repository.GuestbookRepository;
 import com.weihanyinian.website.module.user.entity.User;
 import com.weihanyinian.website.module.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,26 +36,57 @@ public class AdminController {
     private final GuestbookRepository guestbookRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RateLimiter rateLimiter;
 
     public AdminController(AdminService adminService, VisitorLogRepository visitorLogRepository,
                            ArticleRepository articleRepository, GuestbookRepository guestbookRepository,
-                           UserRepository userRepository, JwtTokenProvider jwtTokenProvider) {
+                           UserRepository userRepository, JwtTokenProvider jwtTokenProvider,
+                           RateLimiter rateLimiter) {
         this.adminService = adminService;
         this.visitorLogRepository = visitorLogRepository;
         this.articleRepository = articleRepository;
         this.guestbookRepository = guestbookRepository;
         this.userRepository = userRepository;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping("/login")
-    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request,
+                                             HttpServletRequest httpRequest) {
+        // Rate limiting by IP
+        String ip = getClientIp(httpRequest);
+        String rateKey = "login:" + ip;
+        if (!rateLimiter.isAllowed(rateKey)) {
+            return ApiResponse.error(429, "登录尝试过多，请 " + rateLimiter.resetAfterSeconds(rateKey) + " 秒后重试");
+        }
+        // Rate limiting by username (to prevent targeted brute force)
+        String userKey = "login:" + request.getUsername();
+        if (!rateLimiter.isAllowed(userKey)) {
+            return ApiResponse.error(429, "登录尝试过多，请稍后再试");
+        }
+
         try {
             LoginResponse response = adminService.login(request);
+            // Reset rate limits on successful login
             return ApiResponse.success("登录成功", response);
         } catch (RuntimeException e) {
             return ApiResponse.error(401, e.getMessage());
         }
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isBlank() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip != null ? ip : "unknown";
     }
 
     @GetMapping("/me")
