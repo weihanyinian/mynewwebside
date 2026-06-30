@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
-import { defineAsyncComponent } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
 import GlassCard from '../components/GlassCard.vue'
 
 const route = useRoute()
 const router = useRouter()
-const gameId = route.params.id as string
+const gameId = computed(() => route.params.id as string)
 
 const gameMap: Record<string, any> = {
   snake: defineAsyncComponent(() => import('./games/SnakeGame.vue')),
@@ -19,25 +19,23 @@ const gameMap: Record<string, any> = {
 const places: Record<string, { name: string; desc: string }> = {
   // 三个新游戏已实现，下方保留为空表
 }
-
-const GameComponent = gameMap[gameId]
-const placeholder = places[gameId]
 </script>
 
 <template>
-  <GameComponent v-if="GameComponent" />
+  <div class="page-container max-w-3xl mx-auto">
+    <button @click="router.push('/')" class="glass-button text-sm mb-6">← 返回首页</button>
 
-  <div v-else class="page-container max-w-2xl text-center">
-    <button @click="router.push('/')" class="glass-button text-sm mb-8">← 返回首页</button>
-    <GlassCard v-if="placeholder">
-      <div class="text-6xl mb-4">{{ placeholder.name.slice(0, 2) }}</div>
-      <h1 class="text-2xl font-bold mb-4 gradient-text">{{ placeholder.name.slice(3) }}</h1>
-      <p class="text-[var(--text-muted)] mb-6">{{ placeholder.desc }}</p>
-      <div class="glass-card !bg-[#a58eea1a] !border-[#a58eea33] p-4 inline-block">
-        <p class="text-sm">🚧 游戏开发中，敬请期待~</p>
-      </div>
-    </GlassCard>
-    <GlassCard v-else>
+    <Suspense>
+      <component :is="gameMap[gameId]" v-if="gameMap[gameId]" :key="gameId" />
+      <template #fallback>
+        <GlassCard class="heavy !p-12 text-center">
+          <div class="text-5xl mb-3 animate-pulse">⏳</div>
+          <p class="text-[var(--text-secondary)]">游戏加载中...</p>
+        </GlassCard>
+      </template>
+    </Suspense>
+
+    <GlassCard v-if="!gameMap[gameId]" class="heavy !p-12 text-center">
       <p class="text-4xl mb-4">🤷</p>
       <p class="text-[var(--text-secondary)]">未找到该游戏</p>
     </GlassCard>

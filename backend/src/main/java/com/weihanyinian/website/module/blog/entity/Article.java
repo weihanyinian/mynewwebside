@@ -40,11 +40,11 @@ public class Article {
     @Builder.Default
     private Long viewCount = 0L;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "article_tags",
         joinColumns = @JoinColumn(name = "article_id"),

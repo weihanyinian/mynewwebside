@@ -21,9 +21,9 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 const navItems = [
   { id: 'home', path: '/', label: '🏠 首页', section: 'home' },
   { id: 'about', path: '/', label: '👤 关于', section: 'about' },
-  { id: 'blog', path: '/', label: '📝 博客', section: 'blog' },
-  { id: 'guestbook', path: '/', label: '💬 留言', section: 'guestbook' },
-  { id: 'games', path: '/', label: '🎮 游戏', section: 'games' },
+  { id: 'blog', path: '/blog', label: '📝 博客', section: null, page: 'blog' },
+  { id: 'guestbook', path: '/guestbook', label: '💬 留言', section: null, page: 'guestbook' },
+  { id: 'games', path: '/games', label: '🎮 游戏', section: null, page: 'games' },
 ]
 
 // Track which section is visible on homepage
@@ -53,16 +53,36 @@ onUnmounted(() => {
 })
 
 function isActive(item: typeof navItems[0]) {
-  if (route.path !== '/') return route.path === item.path
+  if (route.path !== '/') {
+    // On other pages, mark nav as active if matching the path's first segment
+    if (item.page) return route.path.startsWith('/' + item.page)
+    return false
+  }
   if (item.section) return activeSection.value === item.section
-  return route.path === item.path
+  return false
 }
 
 function navClick(item: typeof navItems[0]) {
   mobileOpen.value = false
+  // If clicking a page link (博客/留言/游戏), always navigate
+  if (item.page) {
+    router.push(item.path)
+    return
+  }
+  // If clicking a section on home, scroll
   if (item.section && route.path === '/') {
     const el = document.getElementById(`section-${item.section}`)
     if (el) { el.scrollIntoView({ behavior: 'smooth' }); return }
+  }
+  // Fallback: navigate to home then scroll
+  if (item.section) {
+    router.push('/').then(() => {
+      setTimeout(() => {
+        const el = document.getElementById(`section-${item.section}`)
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    })
+    return
   }
   router.push(item.path)
 }
