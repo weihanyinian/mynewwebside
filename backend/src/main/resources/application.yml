@@ -10,7 +10,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
-    open-in-view: true
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
@@ -40,6 +40,8 @@ management:
 
 # App config
 app:
+  api:
+    prefix: ${APP_API_PREFIX:/api}
   jwt:
     secret: ${JWT_SECRET:change-me-in-production-use-a-very-long-random-string}
     expire-minutes: ${JWT_EXPIRE_MINUTES:10080}
