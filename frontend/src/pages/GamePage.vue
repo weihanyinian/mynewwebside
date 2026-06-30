@@ -11,12 +11,13 @@ const gameMap: Record<string, any> = {
   snake: defineAsyncComponent(() => import('./games/SnakeGame.vue')),
   '2048': defineAsyncComponent(() => import('./games/Game2048.vue')),
   schulte: defineAsyncComponent(() => import('./games/SchulteGame.vue')),
+  puzzle15: defineAsyncComponent(() => import('./games/Puzzle15Game.vue')),
+  minesweeper: defineAsyncComponent(() => import('./games/MinesweeperGame.vue')),
+  reaction: defineAsyncComponent(() => import('./games/ReactionGame.vue')),
 }
 
 const places: Record<string, { name: string; desc: string }> = {
-  puzzle15: { name: '🧩 数字华容道', desc: '滑动方块使数字按顺序排列。' },
-  minesweeper: { name: '💣 扫雷', desc: '根据数字提示找出所有地雷。' },
-  reaction: { name: '🎯 反应力测试', desc: '测测你的反应速度。（也在工具箱中）' },
+  // 三个新游戏已实现，下方保留为空表
 }
 
 const GameComponent = gameMap[gameId]
