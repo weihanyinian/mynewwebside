@@ -228,7 +228,7 @@ body {
 .page-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 24px 60px;
+  padding: 80px 24px 60px;
   position: relative;
   z-index: 1;
 }
@@ -318,7 +318,7 @@ body {
   }
 
   .page-container {
-    padding: 30px 16px 40px;
+    padding: 70px 16px 40px;
   }
 
   .fullscreen-section {
