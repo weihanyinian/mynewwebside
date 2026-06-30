@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <footer class="glass-nav mt-auto py-8 px-6">
+  <footer class="glass-footer mt-auto py-8 px-6">
     <div class="max-w-6xl mx-auto text-center">
       <div class="flex justify-center gap-6 mb-4 text-lg">
         <a href="https://github.com/weihanyinian" target="_blank" class="opacity-60 hover:opacity-100 transition-opacity no-underline" title="GitHub">
