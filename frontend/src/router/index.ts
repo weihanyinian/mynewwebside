@@ -124,6 +124,13 @@ export const router = createRouter({
       name: 'admin-visitors',
       component: () => import('../pages/admin/VisitorLogPage.vue'),
       meta: { title: '访问日志 - 维寒一念的小站', requiresAuth: true, requiresAdmin: true }
+    },
+    // ─── 404 Catch-all ───
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../pages/NotFoundPage.vue'),
+      meta: { title: '404 - 维寒一念的小站' }
     }
   ],
   scrollBehavior() {
