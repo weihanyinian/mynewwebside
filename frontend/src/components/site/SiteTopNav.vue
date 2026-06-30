@@ -69,7 +69,7 @@ function navClick(item: typeof navItems[0]) {
 </script>
 
 <template>
-  <nav class="glass-nav fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-3">
+  <nav class="glass-nav transition-all duration-300 py-3">
     <div class="max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between">
       <!-- Logo -->
       <a href="#section-home" @click.prevent="router.push('/')" class="flex items-center gap-2 no-underline group">
